@@ -18,7 +18,8 @@ try:
 
     from tensorflow.keras import models
     from tensorflow.keras.layers import Dropout
-    from tensorflow.keras.layers import Add, Layer
+    from tensorflow.keras.layers import Add
+    from tensorflow.keras.layers import Layer
     from tensorflow.keras.layers import Conv1D
     from tensorflow.keras.layers import Dense
     from tensorflow.keras.layers import Input
@@ -69,7 +70,7 @@ DEFAULT_SOUND_FILE_FORMAT = '*.wav'  # File format for sound files
 DEFAULT_AUDIO_DURATION = 10  # Duration of audio to be considered
 
 
-class AudioClassificationModel(MetricsCalculator):
+class AudioSpectrogramTransformer(MetricsCalculator):
     """
     A class used to build and train an audio classification model.
 
@@ -235,7 +236,6 @@ class AudioClassificationModel(MetricsCalculator):
         for i in range(0, spectrogram.shape[0] - self.patch_size[0] + 1, step_size[0]):
 
             for j in range(0, spectrogram.shape[1] - self.patch_size[1] + 1, step_size[1]):
-
                 # Extract a patch from the spectrogram
                 patch = spectrogram[i:i + self.patch_size[0], j:j + self.patch_size[1]]
 
@@ -279,7 +279,6 @@ class AudioClassificationModel(MetricsCalculator):
 
         # Iterate over the number of transformer blocks
         for _ in range(self.number_blocks):
-
             # Apply layer normalization to the input tensor
             neural_model_flow = LayerNormalization(epsilon=self.normalization_epsilon)(inputs)
             # Apply multi-head self-attention
@@ -293,14 +292,15 @@ class AudioClassificationModel(MetricsCalculator):
 
             # Apply layer normalization after the residual connection
             neural_model_flow = LayerNormalization(epsilon=self.normalization_epsilon)(neural_model_flow)
-            # Apply a convolutional layer (MLP layer) to transform the features
-            neural_model_flow = Conv1D(filters=self.mlp_output, kernel_size=self.kernel_size,
-                                       activation=self.intermediary_activation)(neural_model_flow)
+
+            # Apply a feedforward layer (MLP layer) to transform the features
+            neural_model_flow = Dense(neural_model_flow.shape[2],
+                                      activation=self.intermediary_activation)(neural_model_flow)
 
             # Apply dropout for regularization
             neural_model_flow = Dropout(self.dropout)(neural_model_flow)
             # Apply a convolutional layer with kernel size of 1 for dimensionality reduction
-            neural_model_flow = Conv1D(filters=inputs.shape[-1], kernel_size=1)(neural_model_flow)
+            # neural_model_flow = Conv1D(filters=inputs.shape[-1], kernel_size=1)(neural_model_flow)
 
             # Add the input tensor to the output of the MLP layer (residual connection)
             inputs = Add()([neural_model_flow, inputs])
@@ -382,7 +382,6 @@ class AudioClassificationModel(MetricsCalculator):
 
             # Check if the path is a directory
             if os.path.isdir(class_path):
-
                 # Convert the directory name to an integer label
                 class_label = int(class_dir)
 
@@ -397,6 +396,7 @@ class AudioClassificationModel(MetricsCalculator):
 
         # Return the list of file paths and corresponding labels
         return file_paths, labels
+
     def load_dataset(self, file_paths: list, labels: list) -> tuple:
         """
         Loads the dataset by converting audio files to spectrograms and patches.
@@ -521,5 +521,5 @@ class AudioClassificationModel(MetricsCalculator):
         return mean_metrics, list_history_model
 
 
-audio_classifier = AudioClassificationModel()
+audio_classifier = AudioSpectrogramTransformer()
 audio_classifier.train(train_data_dir='Dataset')
