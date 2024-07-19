@@ -251,10 +251,14 @@ class ResidualModel(MetricsCalculator):
         tuple
             A tuple containing the feature array and label array.
         """
-        list_spectrogram, list_labels = [], []
+        list_spectrogram, list_labels, list_class_path = [], [], []
         file_extension = file_extension or self.file_extension
 
-        for _, sub_directory in tqdm(enumerate(sub_directories)):
+        for class_dir in os.listdir(sub_directories):
+            class_path = os.path.join(sub_directories, class_dir)
+            list_class_path.append(class_path)
+
+        for _, sub_directory in tqdm(enumerate(list_class_path)):
 
             for file_name in glob.glob(os.path.join(sub_directory, file_extension)):
 
@@ -278,11 +282,19 @@ class ResidualModel(MetricsCalculator):
                         list_spectrogram.append(spectrogram_decibel_scale)
                         list_labels.append(label)
 
-        array_features = numpy.asarray(list_spectrogram).reshape(len(list_spectrogram), self.number_filters_spectrogram,
+        array_features = numpy.asarray(list_spectrogram).reshape(len(list_spectrogram),
+                                                                 self.number_filters_spectrogram,
                                                                  self.window_size_factor, 1)
-        array_labels = to_categorical(numpy.array(list_labels, dtype=numpy.float32))
 
-        return numpy.array(array_features, dtype=numpy.float32), array_labels
+        array_labels = numpy.array(list_labels, dtype=numpy.float32)
+
+        # Adjust shape to include an additional dimension
+        new_shape = list(array_features.shape)
+        new_shape[1] += 1
+        new_array = numpy.zeros(new_shape)
+        new_array[:, :self.number_filters_spectrogram, :, :] = array_features
+
+        return numpy.array(new_array, dtype=numpy.float32), array_labels
 
     def compile_model(self) -> None:
         """
@@ -365,3 +377,6 @@ class ResidualModel(MetricsCalculator):
         }
 
         return mean_metrics, list_history_model
+
+audio_classifier = ResidualModel()
+audio_classifier.train(train_data_dir='Dataset')
