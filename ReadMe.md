@@ -19,8 +19,8 @@ Three Neural Network topologies are proposed, named MLP, LSTM and CNN (Conv), ac
         </tr>
         <tr>
             <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/AST-Model.png"></td>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/master/Layout/lstm.png"></td>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/master/Layout/conv.png"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/LSTM-Model.png"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/conv.png"></td>
         </tr>
 
 
