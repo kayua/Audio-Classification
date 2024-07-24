@@ -13,9 +13,9 @@ Six Neural Network topologies are evaluate. Each neural network is composed of i
 <table>
     <tbody>
         <tr>
-            <th width="30%">AST Topology</th>
-            <th width="30%">LSTM Topology</th>
-            <th width="30%">Conformer Topology</th>
+            <th width="20%">AST Topology</th>
+            <th width="20%">LSTM Topology</th>
+            <th width="20%">Conformer Topology</th>
         </tr>
         <tr>
             <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/AST-Model.png"></td>
@@ -24,9 +24,9 @@ Six Neural Network topologies are evaluate. Each neural network is composed of i
         </tr>
     <tbody>
         <tr>
-            <th width="30%">Wav2Vec2 Topology</th>
-            <th width="30%">Residual Topology</th>
-            <th width="30%">CNN Topology</th>
+            <th width="20%">Wav2Vec2 Topology</th>
+            <th width="20%">Residual Topology</th>
+            <th width="20%">CNN Topology</th>
         </tr>
         <tr>
             <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/Wav2Vec2-Model.png"></td>
