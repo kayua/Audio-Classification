@@ -11,6 +11,7 @@ __credits__ = ['unknown']
 try:
     import sys
     import os
+    from tqdm import tqdm
     import glob
     import librosa
     import numpy
@@ -18,21 +19,21 @@ try:
 
     from tensorflow.keras import models
     from tensorflow.keras.layers import Dropout
-    from tensorflow.keras.layers import Add
+    from tensorflow.keras.layers import Add, Flatten
     from tensorflow.keras.layers import Layer
     from tensorflow.keras.layers import Conv1D
     from tensorflow.keras.layers import Dense
     from tensorflow.keras.layers import Input
     from tensorflow.keras.layers import Embedding
-    from tensorflow.keras.layers import Concatenate
+    from tensorflow.keras.layers import Concatenate, TimeDistributed
     from tensorflow.keras.layers import LayerNormalization
     from tensorflow.keras.layers import MultiHeadAttention
     from tensorflow.keras.layers import GlobalAveragePooling1D
 
-    from CLSTokenLayer import CLSTokenLayer
-    from MetricsCalculator import MetricsCalculator
+    from Layers.CLSTokenLayer import CLSTokenLayer
+    from Evaluation.MetricsCalculator import MetricsCalculator
     from sklearn.model_selection import StratifiedKFold
-    from PositionalEmbeddingsLayer import PositionalEmbeddingsLayer
+    from Layers.PositionalEmbeddingsLayer import PositionalEmbeddingsLayer
 
 except ImportError as error:
     print(error)
@@ -43,34 +44,36 @@ except ImportError as error:
     sys.exit(-1)
 
 # Default constants for the Audio Classification Model
-
+DEFAULT_WINDOW_SIZE_FACTOR = 40
 DEFAULT_PROJECTION_DIMENSION = 64  # Dimension of the linear projection
 DEFAULT_HEAD_SIZE = 256  # Size of each attention head
-DEFAULT_NUMBER_HEADS = 4  # Number of attention heads
+DEFAULT_NUMBER_HEADS = 2  # Number of attention heads
 DEFAULT_MLP_OUTPUT = 128  # Output size of the MLP layer
-DEFAULT_NUMBER_BLOCKS = 4  # Number of transformer encoder blocks
+DEFAULT_NUMBER_BLOCKS = 2  # Number of transformer encoder blocks
 DEFAULT_NUMBER_CLASSES = 4  # Number of output classes for classification
 DEFAULT_SAMPLE_RATE = 8000  # Sample rate for loading audio
 DEFAULT_NUMBER_FILTERS = 128  # Number of filters for the Mel spectrogram
 DEFAULT_HOP_LENGTH = 512  # Hop length for the Mel spectrogram
 DEFAULT_SIZE_FFT = 1024  # FFT size for the Mel spectrogram
 DEFAULT_SIZE_PATCH = (16, 16)  # Size of the patches to be extracted from the spectrogram
-DEFAULT_OVERLAP = 0.5  # Overlap ratio between patches
+DEFAULT_OVERLAP = 2  # Overlap ratio between patches
 DEFAULT_DROPOUT_RATE = 0.2  # Dropout rate
-DEFAULT_NUMBER_EPOCHS = 10  # Number of training epochs
+DEFAULT_NUMBER_EPOCHS = 40  # Number of training epochs
 DEFAULT_SIZE_BATCH = 32  # Batch size for training
-DEFAULT_KERNEL_SIZE = 1  # Kernel size for convolutional layers
-DEFAULT_NUMBER_SPLITS = 5  # Number of splits for cross-validation
+DEFAULT_KERNEL_SIZE = 3  # Kernel size for convolutional layers
+DEFAULT_NUMBER_SPLITS = 2  # Number of splits for cross-validation
 DEFAULT_NORMALIZATION_EPSILON = 1e-6  # Epsilon value for layer normalization
 DEFAULT_INTERMEDIARY_ACTIVATION = 'relu'  # Activation function for intermediary layers
 DEFAULT_LAST_LAYER_ACTIVATION = 'softmax'  # Activation function for the output layer
 DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'  # Loss function for model compilation
 DEFAULT_OPTIMIZER_FUNCTION = 'adam'  # Optimizer function for model compilation
-DEFAULT_SOUND_FILE_FORMAT = '*.wav'  # File format for sound files
+DEFAULT_FILE_EXTENSION = "*.wav"  # File format for sound files
 DEFAULT_AUDIO_DURATION = 10  # Duration of audio to be considered
+DEFAULT_DECIBEL_SCALE_FACTOR = 80
+DEFAULT_NUMBER_FILTERS_SPECTROGRAM = 512
 
 
-class AudioSpectrogramTransformer(MetricsCalculator):
+class AudioAST(MetricsCalculator):
     """
     A class used to build and train an audio classification model.
 
@@ -98,11 +101,15 @@ class AudioSpectrogramTransformer(MetricsCalculator):
                  loss_function: str = DEFAULT_LOSS_FUNCTION,
                  last_activation_layer: str = DEFAULT_LAST_LAYER_ACTIVATION,
                  optimizer_function: str = DEFAULT_OPTIMIZER_FUNCTION,
-                 sound_file_format: str = DEFAULT_SOUND_FILE_FORMAT,
                  kernel_size: int = DEFAULT_KERNEL_SIZE,
                  number_splits: int = DEFAULT_NUMBER_SPLITS,
                  normalization_epsilon: float = DEFAULT_NORMALIZATION_EPSILON,
-                 audio_duration: int = DEFAULT_AUDIO_DURATION):
+                 audio_duration: int = DEFAULT_AUDIO_DURATION,
+                 decibel_scale_factor=DEFAULT_DECIBEL_SCALE_FACTOR,
+                 window_size_fft=DEFAULT_SIZE_FFT,
+                 window_size_factor=DEFAULT_WINDOW_SIZE_FACTOR,
+                 number_filters_spectrogram=DEFAULT_NUMBER_FILTERS_SPECTROGRAM,
+                 file_extension=DEFAULT_FILE_EXTENSION):
 
         """
         Parameters
@@ -134,7 +141,7 @@ class AudioSpectrogramTransformer(MetricsCalculator):
         audio_duration: Duration of audio to be considered.
 
         """
-        self.neural_model = None
+        self.neural_network_model = None
         self.head_size = head_size
         self.number_heads = num_heads
         self.mlp_output = mlp_output
@@ -151,7 +158,6 @@ class AudioSpectrogramTransformer(MetricsCalculator):
         self.number_splits = number_splits
         self.size_batch = size_batch
         self.dropout = dropout
-        self.sound_file_format = sound_file_format
         self.optimizer_function = optimizer_function
         self.loss_function = loss_function
         self.normalization_epsilon = normalization_epsilon
@@ -159,6 +165,13 @@ class AudioSpectrogramTransformer(MetricsCalculator):
         self.projection_dimension = projection_dimension
         self.intermediary_activation = intermediary_activation
         self.audio_duration = audio_duration
+        self.model_name = "Audio Spectrogram Transformer"
+        self.sound_file_format = file_extension
+        self.decibel_scale_factor = decibel_scale_factor
+        self.window_size_fft = window_size_fft
+        self.window_size_factor = window_size_factor
+        self.window_size = hop_length * (self.window_size_factor - 1)
+        self.number_filters_spectrogram = number_filters_spectrogram
 
     def load_audio(self, filename: str) -> tuple:
         """
@@ -192,30 +205,9 @@ class AudioSpectrogramTransformer(MetricsCalculator):
         # Return the processed signal and the sample rate
         return signal, sample_rate
 
-    def audio_to_mel_spectrogram(self, signal: numpy.ndarray, sample_rate: int) -> numpy.ndarray:
-        """
-        Converts an audio signal to a Mel spectrogram.
-
-        Parameters
-        ----------
-        signal : numpy.ndarray
-            The audio signal.
-        sample_rate : int
-            The sample rate of the audio signal.
-
-        Returns
-        -------
-        numpy.ndarray
-            The Mel spectrogram of the audio signal.
-        """
-        signal = librosa.feature.melspectrogram(y=signal, n_mels=self.number_filters,
-                                                hop_length=self.hop_length, n_fft=self.size_fft)
-        spectrogram_signal = librosa.power_to_db(signal, ref=numpy.max)
-        return spectrogram_signal
-
     def split_spectrogram_into_patches(self, spectrogram: numpy.ndarray) -> numpy.ndarray:
         """
-        Splits a spectrogram into overlapping patches.
+        Splits a spectrogram into non-overlapping patches of a fixed size with padding.
 
         Parameters
         ----------
@@ -227,22 +219,28 @@ class AudioSpectrogramTransformer(MetricsCalculator):
         numpy.ndarray
             An array of patches. Each patch is a 2D numpy array extracted from the spectrogram.
         """
+
+        # Calculate the padding needed to make the dimensions divisible by patch_size
+        pad_height = (self.patch_size[0] - (spectrogram.shape[0] % self.patch_size[0])) % self.patch_size[0]
+        pad_width = (self.patch_size[1] - (spectrogram.shape[1] % self.patch_size[1])) % self.patch_size[1]
+
+        # Pad the spectrogram with zeros
+        padded_spectrogram = numpy.pad(spectrogram, ((0, pad_height), (0, pad_width)), mode='constant',
+                                       constant_values=0)
+
+        num_patches_x = padded_spectrogram.shape[0] // self.patch_size[0]
+        num_patches_y = padded_spectrogram.shape[1] // self.patch_size[1]
+
         list_patches = []
 
-        # Calculate the step size for extracting patches based on the overlap ratio
-        step_size = (int(self.patch_size[0] * (1 - self.overlap)), int(self.patch_size[1] * (1 - self.overlap)))
+        for i in range(num_patches_x):
+            for j in range(num_patches_y):
+                patch = padded_spectrogram[
+                        i * self.patch_size[0]:(i + 1) * self.patch_size[0],
+                        j * self.patch_size[1]:(j + 1) * self.patch_size[1]]
 
-        # Iterate over the spectrogram to extract patches
-        for i in range(0, spectrogram.shape[0] - self.patch_size[0] + 1, step_size[0]):
-
-            for j in range(0, spectrogram.shape[1] - self.patch_size[1] + 1, step_size[1]):
-                # Extract a patch from the spectrogram
-                patch = spectrogram[i:i + self.patch_size[0], j:j + self.patch_size[1]]
-
-                # Append the patch to the list of patches
                 list_patches.append(patch)
 
-        # Convert the list of patches to a numpy array
         return numpy.array(list_patches)
 
     def linear_projection(self, tensor_patches: numpy.ndarray) -> numpy.ndarray:
@@ -322,15 +320,17 @@ class AudioSpectrogramTransformer(MetricsCalculator):
             The built Keras model.
         """
         # Define the input layer with shape (number_patches, projection_dimension)
-        inputs = Input(shape=(number_patches, self.projection_dimension))
+        inputs = Input(shape=(number_patches, self.patch_size[0], self.patch_size[1]))
+        input_flatten = TimeDistributed(Flatten())(inputs)
+        linear_projection = TimeDistributed(Dense(self.projection_dimension))(input_flatten)
 
-        # Add a CLS token layer
-        cls_tokens_layer = CLSTokenLayer(self.projection_dimension)(inputs)
+        cls_tokens_layer = CLSTokenLayer(self.projection_dimension)(linear_projection)
         # Concatenate the CLS token to the input patches
-        neural_model_flow = Concatenate(axis=1)([cls_tokens_layer, inputs])
+        neural_model_flow = Concatenate(axis=1)([cls_tokens_layer, linear_projection])
 
         # Add positional embeddings to the input patches
-        positional_embeddings_layer = PositionalEmbeddingsLayer(number_patches, self.projection_dimension)(inputs)
+        positional_embeddings_layer = PositionalEmbeddingsLayer(number_patches,
+                                                                self.projection_dimension)(linear_projection)
         neural_model_flow += positional_embeddings_layer
 
         # Pass the input through the transformer encoder
@@ -346,19 +346,43 @@ class AudioSpectrogramTransformer(MetricsCalculator):
         outputs = Dense(self.number_classes, activation=self.last_activation_layer)(neural_model_flow)
 
         # Create the Keras model
-        self.neural_model = models.Model(inputs, outputs)
+        self.neural_network_model = models.Model(inputs, outputs)
 
-        return self.neural_model
+        return self.neural_network_model
 
-    def compile_model(self) -> None:
+    def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,
+                          batch_size: int, validation_data: tuple = None) -> tensorflow.keras.callbacks.History:
         """
-        Compiles the model with the specified optimizer and loss function.
+        Compiles and trains the neural network model.
+
+        Parameters
+        ----------
+        train_data : tf.Tensor
+            Training data tensor with shape (samples, ...), where ... represents the feature dimensions.
+        train_labels : tf.Tensor
+            Training labels tensor with shape (samples,), representing the class labels.
+        epochs : int
+            Number of epochs to train the model.
+        batch_size : int
+            Number of samples per batch.
+        validation_data : tuple, optional
+            A tuple (validation_data, validation_labels) for validation during training. If not provided,
+             no validation is performed.
 
         Returns
         -------
-        None
+        tf.keras.callbacks.History
+            History object containing the training history, including loss and metrics over epochs.
         """
-        self.neural_model.compile(optimizer=self.optimizer_function, loss=self.loss_function, metrics=['accuracy'])
+        # Compile the model with the specified optimizer, loss function, and metrics
+        self.neural_network_model.compile(optimizer=self.optimizer_function, loss=self.loss_function,
+                                          metrics=['accuracy'])
+
+        # Train the model with the training data and labels, and optionally validation data
+        training_history = self.neural_network_model.fit(train_data, train_labels, epochs=epochs,
+                                                         batch_size=batch_size,
+                                                         validation_data=validation_data)
+        return training_history
 
     def load_data(self, data_dir: str) -> tuple:
         """
@@ -397,47 +421,89 @@ class AudioSpectrogramTransformer(MetricsCalculator):
         # Return the list of file paths and corresponding labels
         return file_paths, labels
 
-    def load_dataset(self, file_paths: list, labels: list) -> tuple:
+    @staticmethod
+    def windows(data, window_size, overlap):
         """
-        Loads the dataset by converting audio files to spectrograms and patches.
+        Generates windowed segments of the input data.
 
         Parameters
         ----------
-        file_paths : list
-            List of file paths to audio files.
-        labels : list
-            List of labels corresponding to the audio files.
+        data : numpy.ndarray
+            The input data array.
+        window_size : int
+            The size of each window.
+        overlap : int
+            The overlap between consecutive windows.
+
+        Yields
+        ------
+        tuple
+            Start and end indices of each window.
+        """
+        start = 0
+        while start < len(data):
+            yield start, start + window_size
+            start += (window_size // overlap)
+
+    def load_dataset(self, sub_directories: str = None, file_extension: str = None, patch_mode: bool = True) -> tuple:
+        """
+        Loads audio data, extracts features, and prepares labels.
+
+        This method reads audio files from the specified directories, extracts spectrogram features,
+        and prepares the corresponding labels.
+
+        Parameters
+        ----------
+        sub_directories : list of str, optional
+            List of subdirectories containing audio files.
+        file_extension : str, optional
+            The file extension for audio files.
 
         Returns
         -------
         tuple
-            A tuple containing the dataset features and labels.
+            A tuple containing the feature array and label array.
         """
-        list_spectrogram = []
+        list_spectrogram, list_labels, list_class_path = [], [], []
+        file_extension = file_extension or self.sound_file_format
 
-        # Iterate over each file path
-        for path_file in file_paths:
-            # Load the audio file and get the signal and sample rate
-            signal, sample_rate = self.load_audio(path_file)
+        for class_dir in os.listdir(sub_directories):
+            class_path = os.path.join(sub_directories, class_dir)
+            list_class_path.append(class_path)
 
-            # Skip files that couldn't be loaded
-            if signal is None:
-                continue
+        for _, sub_directory in enumerate(list_class_path):
+            print("Class {}".format(_))
+            for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
 
-            # Convert the audio signal to a Mel spectrogram
-            spectrogram_decibel_scale = self.audio_to_mel_spectrogram(signal, sample_rate)
-            # Split the spectrogram into patches
-            spectrogram_patches = self.split_spectrogram_into_patches(spectrogram_decibel_scale)
-            # Add the patches to the list
-            list_spectrogram.append(spectrogram_patches)
+                signal, _ = librosa.load(file_name, sr=self.sample_rate)
+                label = file_name.split('/')[-2].split('_')[0]
 
-        # Apply linear projection to all patches and convert to numpy array
-        list_spectrogram = numpy.array([self.linear_projection(list_patches) for list_patches in list_spectrogram])
+                for (start, end) in self.windows(signal, self.window_size, 2):
 
-        # Convert labels to numpy array and return both features and labels
-        return list_spectrogram, numpy.array(labels)
+                    if len(signal[start:end]) == self.window_size:
+                        signal = signal[start:end]
 
-    def train(self, train_data_dir: str, number_epochs: int = None, batch_size: int = None,
+                        spectrogram = librosa.feature.melspectrogram(y=signal,
+                                                                     n_mels=self.number_filters_spectrogram,
+                                                                     sr=self.sample_rate,
+                                                                     n_fft=self.window_size_fft,
+                                                                     hop_length=self.hop_length)
+
+                        # Convert spectrogram to decibels
+                        spectrogram_decibel_scale = librosa.power_to_db(spectrogram, ref=numpy.max)
+                        spectrogram_decibel_scale = (spectrogram_decibel_scale / self.decibel_scale_factor) + 1
+                        spectrogram_decibel_scale = self.split_spectrogram_into_patches(spectrogram_decibel_scale)
+
+                        list_spectrogram.append(spectrogram_decibel_scale)
+                        list_labels.append(label)
+
+        array_features = numpy.array(list_spectrogram)
+
+        array_labels = numpy.array(list_labels, dtype=numpy.int32)
+
+        return numpy.array(array_features, dtype=numpy.float32), array_labels
+
+    def train(self, train_data_directory: str, number_epochs: int = None, batch_size: int = None,
               number_splits: int = None) -> tuple:
         """
         Trains the model using cross-validation.
@@ -464,62 +530,62 @@ class AudioSpectrogramTransformer(MetricsCalculator):
         batch_size = batch_size or self.size_batch
 
         # Load the training file paths and labels
-        train_file_paths, train_labels = self.load_data(train_data_dir)
+        features, labels = self.load_dataset(train_data_directory)
 
-        # Load a sample audio file and process it to determine the number of patches
-        sample_audio, _ = self.load_audio(train_file_paths[10])
-        sample_spectrogram = self.audio_to_mel_spectrogram(sample_audio, self.sample_rate)
-        sample_patches = self.split_spectrogram_into_patches(sample_spectrogram)
-        sample_projected_patches = self.linear_projection(sample_patches)
+        number_patches = features.shape[1]
+        metrics_list, confusion_matriz_list = [], []
+        labels = numpy.array(labels).astype(float)
 
-        # Determine the number of patches
-        number_patches = sample_projected_patches.shape[0]
+        instance_k_fold = StratifiedKFold(n_splits=number_splits)
+        list_history_model = None
+        print("STARTING TRAINING MODEL: {}".format(self.model_name))
+        for train_indexes, test_indexes in instance_k_fold.split(features, labels):
+            features_train, features_test = features[train_indexes], features[test_indexes]
+            labels_train, labels_test = labels[train_indexes], labels[test_indexes]
 
-        # Load the entire dataset
-        dataset_features, dataset_labels = self.load_dataset(train_file_paths, train_labels)
-
-        # Initialize stratified k-fold cross-validation
-        stratified_k_fold = StratifiedKFold(n_splits=number_splits)
-        list_history_model, metrics_list = [], []
-
-        # Perform k-fold cross-validation
-        for train_index, val_index in stratified_k_fold.split(dataset_features, dataset_labels):
-            # Build and compile the model for each fold
             self.build_model(number_patches)
-            self.compile_model()
-            self.neural_model.summary()
+            self.neural_network_model.summary()
+            history_model = self.compile_and_train(features_train, labels_train, epochs=number_epochs,
+                                                   batch_size=batch_size,
+                                                   validation_data=(features_test, labels_test))
 
-            # Split the data into training and validation sets
-            x_train_fold, x_validation_fold = dataset_features[train_index], dataset_features[val_index]
-            y_train_fold, y_validation_fold = dataset_labels[train_index], dataset_labels[val_index]
+            model_predictions = self.neural_network_model.predict(features_test, batch_size=batch_size)
+            predicted_labels = numpy.argmax(model_predictions, axis=1)
 
-            # Train the model
-            history = self.neural_model.fit(x_train_fold, y_train_fold,
-                                            validation_data=(x_validation_fold, y_validation_fold),
-                                            epochs=number_epochs, batch_size=batch_size)
-            list_history_model.append(history.history)
-
-            # Predict the validation set
-            y_validation_predicted = self.neural_model.predict(x_validation_fold)
-            y_validation_predicted_classes = numpy.argmax(y_validation_predicted, axis=1)
-            y_validation_predicted_probability = y_validation_predicted if y_validation_predicted.shape[1] > 1 else None
+            y_validation_predicted_probability = numpy.array([numpy.argmax(model_predictions[i], axis=-1)
+                                                              for i in range(len(model_predictions))])
 
             # Calculate and store the metrics for this fold
-            metrics, _ = self.calculate_metrics(y_validation_fold, y_validation_predicted_classes,
-                                                y_validation_predicted_probability)
+            metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_test,
+                                                               y_validation_predicted_probability)
+            list_history_model = history_model.history
             metrics_list.append(metrics)
+            confusion_matriz_list.append(confusion_matrix)
 
         # Calculate mean metrics across all folds
         mean_metrics = {
-            'accuracy': numpy.mean([metric['accuracy'] for metric in metrics_list]),
-            'precision': numpy.mean([metric['precision'] for metric in metrics_list]),
-            'recall': numpy.mean([metric['recall'] for metric in metrics_list]),
-            'f1_score': numpy.mean([metric['f1_score'] for metric in metrics_list]),
-            'auc': numpy.mean([metric['auc'] for metric in metrics_list]) if 'auc' in metrics_list[0] else None
+            'model_name': self.model_name,
+            'Accuracy': {'value': numpy.mean([metric['Accuracy'] for metric in metrics_list]),
+                         'std': numpy.std([metric['Accuracy'] for metric in metrics_list])},
+            'Precision': {'value': numpy.mean([metric['Precision'] for metric in metrics_list]),
+                          'std': numpy.std([metric['Precision'] for metric in metrics_list])},
+            'Recall': {'value': numpy.mean([metric['Recall'] for metric in metrics_list]),
+                       'std': numpy.std([metric['Recall'] for metric in metrics_list])},
+            'F1-Score': {'value': numpy.mean([metric['F1-Score'] for metric in metrics_list]),
+                         'std': numpy.std([metric['F1-Score'] for metric in metrics_list])},
         }
 
-        return mean_metrics, list_history_model
+        confusion_matrix_array = numpy.array(confusion_matriz_list)
+        confusion_matrix_array = numpy.mean(confusion_matrix_array, axis=0)
+        mean_confusion_matrix = numpy.round(confusion_matrix_array).astype(numpy.int32)
 
+        # Calculate the average across the first dimension (number of matrices)
+        mean_confusion_matrix = mean_confusion_matrix.tolist()
 
-audio_classifier = AudioSpectrogramTransformer()
-audio_classifier.train(train_data_dir='Dataset')
+        mean_confusion_matrices = {
+            "confusion_matrix": mean_confusion_matrix,
+            "class_names": ['Class {}'.format(i) for i in range(self.number_classes)],
+            "title": self.model_name
+        }
+
+        return mean_metrics, {"Name": self.model_name, "History": list_history_model}, mean_confusion_matrices

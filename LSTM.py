@@ -22,6 +22,7 @@ try:
     from tensorflow.keras.layers import Input
     from tensorflow.keras.layers import LSTM
     from tensorflow.keras.layers import Dropout
+    from tensorflow.keras.layers import Bidirectional
     from sklearn.model_selection import StratifiedKFold
     from tensorflow.keras.layers import GlobalAveragePooling1D
     from Evaluation.MetricsCalculator import MetricsCalculator
@@ -36,15 +37,15 @@ except ImportError as error:
 
 DEFAULT_INPUT_DIMENSION = (40, 256)
 DEFAULT_NUMBER_CLASSES = 4
-DEFAULT_LIST_LSTM_CELLS = [128, 128]
+DEFAULT_LIST_LSTM_CELLS = [128, 129]
 DEFAULT_SAMPLE_RATE = 8000
 DEFAULT_HOP_LENGTH = 256
-DEFAULT_SIZE_BATCH = 8
+DEFAULT_SIZE_BATCH = 32
 DEFAULT_OVERLAP = 2
 DEFAULT_DROPOUT_RATE = 0.1
 DEFAULT_WINDOW_SIZE = 1024
 DEFAULT_NUMBER_EPOCHS = 40
-DEFAULT_NUMBER_SPLITS = 5
+DEFAULT_NUMBER_SPLITS = 2
 DEFAULT_DECIBEL_SCALE_FACTOR = 80
 DEFAULT_WINDOW_SIZE_FACTOR = 40
 DEFAULT_LAST_LAYER_ACTIVATION = 'softmax'
@@ -106,7 +107,7 @@ class AudioLSTM(MetricsCalculator):
 
         if list_lstm_cells is None:
             list_lstm_cells = DEFAULT_LIST_LSTM_CELLS
-
+        self.model_name = "LSTM"
         self.neural_network_model = None
         self.size_batch = size_batch
         self.list_lstm_cells = list_lstm_cells
@@ -127,6 +128,7 @@ class AudioLSTM(MetricsCalculator):
         self.number_classes = number_classes
         self.dropout_rate = dropout_rate
         self.last_layer_activation = last_layer_activation
+        self.model_name = "LSTM"
 
     def build_model(self) -> None:
         """
@@ -235,8 +237,8 @@ class AudioLSTM(MetricsCalculator):
                 for (start, end) in self.windows(signal, self.window_size, self.overlap):
 
                     if len(signal[start:end]) == self.window_size:
-                        local_window = len(signal[start:end])//self.window_size_factor
-                        signal = [signal[i:i+local_window] for i in range(0, len(signal[start:end]), local_window)]
+                        local_window = len(signal[start:end]) // self.window_size_factor
+                        signal = [signal[i:i + local_window] for i in range(0, len(signal[start:end]), local_window)]
                         signal = numpy.abs(numpy.array(signal))
 
                         signal_min = numpy.min(signal)
@@ -244,58 +246,83 @@ class AudioLSTM(MetricsCalculator):
 
                         if signal_max != signal_min:
                             normalized_signal = (signal - signal_min) / (
-                                        signal_max - signal_min)
+                                    signal_max - signal_min)
                         else:
                             normalized_signal = numpy.zeros_like(signal)
 
                         list_spectrogram.append(normalized_signal)
                         list_labels.append(label)
 
-        array_features = numpy.asarray(list_spectrogram)
+        array_features = numpy.array(list_spectrogram, dtype=numpy.float32)
         array_features = numpy.expand_dims(array_features, axis=-1)
 
-        return array_features, list_labels
+        return array_features, numpy.array(list_labels, dtype=numpy.int32)
 
-    def train(self, train_data_dir: str, number_epochs: int = None, batch_size: int = None,
+    def train(self, train_data_directory: str, number_epochs: int = None, batch_size: int = None,
               number_splits: int = None) -> tuple:
 
-        features, labels = self.load_data(train_data_dir)
-        list_history_model, metrics_list = [], []
+        features, labels = self.load_data(train_data_directory)
+        self.number_epochs = number_epochs or self.number_epochs
+        self.size_batch = batch_size or self.size_batch
+        self.number_splits = number_splits or self.number_splits
+        metrics_list, confusion_matriz_list = [], []
         labels = numpy.array(labels).astype(float)
 
-        k_fold = StratifiedKFold(n_splits=self.number_splits)
-
-        for train_indexes, test_indexes in k_fold.split(features, labels):
+        instance_k_fold = StratifiedKFold(n_splits=self.number_splits)
+        list_history_model = None
+        print("STARTING TRAINING MODEL: {}".format(self.model_name))
+        for train_indexes, test_indexes in instance_k_fold.split(features, labels):
             features_train, features_test = features[train_indexes], features[test_indexes]
             labels_train, labels_test = labels[train_indexes], labels[test_indexes]
 
             self.build_model()
             self.neural_network_model.summary()
-            self.compile_and_train(features_train, labels_train, epochs=self.number_epochs,
-                                   batch_size=self.size_batch, validation_data=(features_test, labels_test))
+            history_model = self.compile_and_train(features_train, labels_train, epochs=self.number_epochs,
+                                                   batch_size=self.size_batch,
+                                                   validation_data=(features_test, labels_test))
 
             model_predictions = self.neural_network_model.predict(features_test)
             predicted_labels = numpy.argmax(model_predictions, axis=1)
 
-            y_validation_predicted_probability = model_predictions if model_predictions.shape[1] > 1 else None
+            y_validation_predicted_probability = numpy.array([numpy.argmax(model_predictions[i], axis=-1)
+                                                              for i in range(len(model_predictions))])
 
             # Calculate and store the metrics for this fold
-            metrics, _ = self.calculate_metrics(predicted_labels, labels_test,
-                                                y_validation_predicted_probability)
+            metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_test,
+                                                               y_validation_predicted_probability)
+            list_history_model = history_model.history
             metrics_list.append(metrics)
+            confusion_matriz_list.append(confusion_matrix)
 
         # Calculate mean metrics across all folds
         mean_metrics = {
-            'accuracy': numpy.mean([metric['accuracy'] for metric in metrics_list]),
-            'precision': numpy.mean([metric['precision'] for metric in metrics_list]),
-            'recall': numpy.mean([metric['recall'] for metric in metrics_list]),
-            'f1_score': numpy.mean([metric['f1_score'] for metric in metrics_list]),
-            'auc': numpy.mean([metric['auc'] for metric in metrics_list]) if 'auc' in metrics_list[0] else None
+            'model_name': self.model_name,
+            'Accuracy': {'value': numpy.mean([metric['Accuracy'] for metric in metrics_list]),
+                         'std': numpy.std([metric['Accuracy'] for metric in metrics_list])},
+            'Precision': {'value': numpy.mean([metric['Precision'] for metric in metrics_list]),
+                          'std': numpy.std([metric['Precision'] for metric in metrics_list])},
+            'Recall': {'value': numpy.mean([metric['Recall'] for metric in metrics_list]),
+                       'std': numpy.std([metric['Recall'] for metric in metrics_list])},
+            'F1-Score': {'value': numpy.mean([metric['F1-Score'] for metric in metrics_list]),
+                         'std': numpy.std([metric['F1-Score'] for metric in metrics_list])},
         }
 
-        return mean_metrics, list_history_model
+        confusion_matrix_array = numpy.array(confusion_matriz_list)
+        confusion_matrix_array = numpy.mean(confusion_matrix_array, axis=0)
+        mean_confusion_matrix = numpy.round(confusion_matrix_array).astype(numpy.int32)
+
+        # Calculate the average across the first dimension (number of matrices)
+        mean_confusion_matrix = mean_confusion_matrix.tolist()
+
+        mean_confusion_matrices = {
+            "confusion_matrix": mean_confusion_matrix,
+            "class_names": ['Class {}'.format(i) for i in range(self.number_classes)],
+            "title": self.model_name
+        }
+
+        return mean_metrics, {"Name": self.model_name, "History": list_history_model}, mean_confusion_matrices
 
 
 if __name__ == "__main__":
     lstm_model = AudioLSTM()
-    lstm_model.train(train_data_dir='Dataset')
+    lstm_model.train('Dataset')

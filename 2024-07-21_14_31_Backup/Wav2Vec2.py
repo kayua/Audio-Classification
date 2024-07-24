@@ -1,0 +1,297 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+__author__ = 'unknown'
+__email__ = 'unknown@unknown.com.br'
+__version__ = '{1}.{0}.{0}'
+__initial_data__ = '2024/07/17'
+__last_update__ = '2024/07/17'
+__credits__ = ['unknown']
+
+try:
+    import os
+    import sys
+    import glob
+    import numpy
+    import librosa
+    import tensorflow
+    from tqdm import tqdm
+
+    from tensorflow.keras import Model
+    from tensorflow.keras.layers import Dense
+    from tensorflow.keras.layers import Input
+    from tensorflow.keras.layers import Conv1D
+    from tensorflow.keras.layers import Flatten
+    from tensorflow.keras.layers import Lambda
+    from tensorflow.keras.layers import Dropout
+    from tensorflow.keras.layers import MultiHeadAttention
+    from tensorflow.keras.layers import LayerNormalization
+
+    from Loss.ContrastiveLoss import ContrastiveLoss
+    from sklearn.model_selection import StratifiedKFold
+    from tensorflow.keras.layers import GlobalAveragePooling1D
+    from Evaluation.MetricsCalculator import MetricsCalculator
+    from Layers.QuantizedEncoderLayer import QuantizedEncoderLayer
+
+except ImportError as error:
+    print(error)
+    print("1. Install requirements:")
+    print("  pip3 install --upgrade pip")
+    print("  pip3 install -r requirements.txt ")
+    print()
+    sys.exit(-1)
+
+DEFAULT_INPUT_DIMENSION = (10240, 1)
+DEFAULT_NUMBER_CLASSES = 4
+DEFAULT_NUMBER_HEADS = 4
+DEFAULT_KEY_DIMENSION = 16
+DEFAULT_SAMPLE_RATE = 8000
+DEFAULT_HOP_LENGTH = 256
+DEFAULT_SIZE_BATCH = 8
+DEFAULT_OVERLAP = 1
+DEFAULT_DROPOUT_RATE = 0.1
+DEFAULT_WINDOW_SIZE = 1024
+DEFAULT_NUMBER_EPOCHS = 10
+DEFAULT_NUMBER_SPLITS = 2
+DEFAULT_KERNEL_SIZE = 3
+DEFAULT_DECIBEL_SCALE_FACTOR = 80
+DEFAULT_CONTEXT_DIMENSION = 16
+DEFAULT_PROJECTION_MLP_DIMENSION = 128
+DEFAULT_WINDOW_SIZE_FACTOR = 40
+DEFAULT_LIST_FILTERS_ENCODER = [8, 16, 32]
+DEFAULT_LAST_LAYER_ACTIVATION = 'softmax'
+DEFAULT_FILE_EXTENSION = "*.wav"
+DEFAULT_OPTIMIZER_FUNCTION = 'adam'
+DEFAULT_QUANTIZATION_UNITS = 32
+DEFAULT_INTERMEDIARY_LAYER_ACTIVATION = 'relu'
+DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
+
+
+class AudioWav2Vec2(MetricsCalculator):
+
+    def __init__(self,
+                 number_classes: int = DEFAULT_NUMBER_CLASSES,
+                 last_layer_activation: str = DEFAULT_LAST_LAYER_ACTIVATION,
+                 size_batch: int = DEFAULT_SIZE_BATCH,
+                 number_splits: int = DEFAULT_NUMBER_SPLITS,
+                 number_epochs: int = DEFAULT_NUMBER_EPOCHS,
+                 loss_function: str = DEFAULT_LOSS_FUNCTION,
+                 optimizer_function: str = DEFAULT_OPTIMIZER_FUNCTION,
+                 window_size_factor: int = DEFAULT_WINDOW_SIZE_FACTOR,
+                 decibel_scale_factor: int = DEFAULT_DECIBEL_SCALE_FACTOR,
+                 hop_length: int = DEFAULT_HOP_LENGTH,
+                 overlap: int = DEFAULT_OVERLAP,
+                 quantization_units: int = DEFAULT_QUANTIZATION_UNITS,
+                 sample_rate: int = DEFAULT_SAMPLE_RATE,
+                 key_dimension: int = DEFAULT_KEY_DIMENSION,
+                 dropout_rate: float = DEFAULT_DROPOUT_RATE,
+                 file_extension: str = DEFAULT_FILE_EXTENSION,
+                 intermediary_layer_activation: str = DEFAULT_INTERMEDIARY_LAYER_ACTIVATION,
+                 input_dimension: tuple = DEFAULT_INPUT_DIMENSION,
+                 number_heads: int = DEFAULT_NUMBER_HEADS,
+                 kernel_size: int = DEFAULT_KERNEL_SIZE,
+                 projection_mlp_dimension: int = DEFAULT_PROJECTION_MLP_DIMENSION,
+                 context_dimension: int = DEFAULT_CONTEXT_DIMENSION,
+                 list_filters_encoder=None):
+
+        if list_filters_encoder is None:
+            list_filters_encoder = DEFAULT_LIST_FILTERS_ENCODER
+
+        self.model_name = "Wav2Vec2"
+        self.neural_network_model = None
+
+        self.size_batch = size_batch
+        self.contex_dimension = context_dimension
+        self.list_filters_encoder = list_filters_encoder
+        self.projection_mlp_dimension = projection_mlp_dimension
+        self.number_splits = number_splits
+        self.number_epochs = number_epochs
+        self.loss_function = loss_function
+        self.optimizer_function = optimizer_function
+        self.window_size_factor = window_size_factor
+        self.decibel_scale_factor = decibel_scale_factor
+        self.hop_length = hop_length
+        self.kernel_size = kernel_size
+        self.quantization_units = quantization_units
+        self.key_dimension = key_dimension
+        self.intermediary_layer_activation = intermediary_layer_activation
+        self.overlap = overlap
+        self.number_heads = number_heads
+        self.window_size = self.hop_length * self.window_size_factor
+        self.sample_rate = sample_rate
+        self.file_extension = file_extension
+        self.input_dimension = input_dimension
+        self.number_classes = number_classes
+        self.dropout_rate = dropout_rate
+        self.last_layer_activation = last_layer_activation
+
+    def build_model(self) -> None:
+        # Define the input layer
+        inputs = Input(shape=self.input_dimension)
+
+        # Apply the custom QuantizedEncoderLayer
+        neural_network_flow, neural_network_flow_quantized = QuantizedEncoderLayer(self.list_filters_encoder,
+                                                                                   self.kernel_size,
+                                                                                   self.quantization_units,
+                                                                                   self.dropout_rate,
+                                                                                   self.intermediary_layer_activation)(
+            inputs)
+
+        # Apply a Dense layer for intermediate representation
+        neural_network_flow = Dense(self.projection_mlp_dimension,
+                                    activation=self.intermediary_layer_activation)(neural_network_flow)
+
+        # Apply mask using Lambda layer (optional, depending on use case)
+        mask = Lambda(lambda x: x * tensorflow.random.uniform(tensorflow.shape(x), 0, 1))(neural_network_flow)
+
+        # Apply MultiHeadAttention
+        attention = MultiHeadAttention(num_heads=self.number_heads, key_dim=self.key_dimension)(mask, mask)
+        neural_network_flow = LayerNormalization()(attention)
+        neural_network_flow = Dropout(self.dropout_rate)(neural_network_flow)
+
+        neural_network_flow = Dense(self.contex_dimension,
+                                    activation=self.intermediary_layer_activation)(neural_network_flow)
+
+        context = Dense(self.contex_dimension,
+                        activation=self.intermediary_layer_activation)(neural_network_flow)
+
+        # Create the model with the specified inputs and outputs
+        self.neural_network_model = Model(inputs=inputs, outputs=[neural_network_flow, context])
+
+        # Compile the model with the specified optimizer, loss function, and metrics
+        self.neural_network_model.compile(optimizer=self.optimizer_function,
+                                          loss=ContrastiveLoss(margin=1.0),
+                                          metrics=['accuracy'])
+
+    def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,
+                          batch_size: int, validation_data: tuple = None) -> tensorflow.keras.callbacks.History:
+
+        self.neural_network_model.compile(optimizer=self.optimizer_function, loss=ContrastiveLoss(margin=1.0))
+
+        self.neural_network_model.fit(train_data, train_data, epochs=epochs, batch_size=batch_size)
+        neural_network_flow = Flatten()(self.neural_network_model.output[0])
+        neural_network_flow = Dense(self.number_classes,
+                                    activation=self.last_layer_activation)(neural_network_flow)
+
+        self.neural_network_model = Model(inputs=self.neural_network_model.inputs, outputs=neural_network_flow)
+
+        # Compile the model with the specified optimizer, loss function, and metrics
+        self.neural_network_model.compile(optimizer=self.optimizer_function,
+                                          loss=self.loss_function,
+                                          metrics=['accuracy'])
+
+        training_history = self.neural_network_model.fit(train_data, train_labels, epochs=epochs,
+                                                         batch_size=batch_size,
+                                                         validation_data=validation_data)
+        return training_history
+
+    @staticmethod
+    def windows(data, window_size, overlap):
+
+        start = 0
+        while start < len(data):
+            yield start, start + window_size
+            start += (window_size // overlap)
+
+    def load_data(self, sub_directories: str = None, file_extension: str = None) -> tuple:
+
+        list_spectrogram, list_labels, list_class_path = [], [], []
+        file_extension = file_extension or self.file_extension
+
+        for class_dir in os.listdir(sub_directories):
+            class_path = os.path.join(sub_directories, class_dir)
+            list_class_path.append(class_path)
+
+        for _, sub_directory in enumerate(list_class_path):
+
+            for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))[0:100]):
+
+                signal, _ = librosa.load(file_name, sr=self.sample_rate)
+
+                label = file_name.split('/')[-2].split('_')[0]
+
+                for (start, end) in self.windows(signal, self.window_size, self.overlap):
+
+                    if len(signal[start:end]) == self.window_size:
+
+                        signal = numpy.abs(numpy.array(signal[start:end]))
+
+                        signal_min = numpy.min(signal)
+                        signal_max = numpy.max(signal)
+
+                        if signal_max != signal_min:
+                            normalized_signal = (signal - signal_min) / (
+                                    signal_max - signal_min)
+                        else:
+                            normalized_signal = numpy.zeros_like(signal)
+
+                        list_spectrogram.append(normalized_signal)
+                        list_labels.append(label)
+
+        array_features = numpy.array(list_spectrogram, dtype=numpy.float32)
+        array_features = numpy.expand_dims(array_features, axis=-1)
+
+        return array_features, numpy.array(list_labels, dtype=numpy.int32)
+
+    def train(self, train_data_directory: str, number_epochs: int = None, batch_size: int = None,
+              number_splits: int = None) -> tuple:
+
+        features, labels = self.load_data(train_data_directory)
+        self.number_epochs = number_epochs or self.number_epochs
+        self.size_batch = batch_size or self.size_batch
+        self.number_splits = number_splits or self.number_splits
+        metrics_list, confusion_matriz_list = [], []
+        labels = numpy.array(labels).astype(float)
+
+        instance_k_fold = StratifiedKFold(n_splits=self.number_splits)
+        list_history_model = None
+        for train_indexes, test_indexes in instance_k_fold.split(features, labels):
+            features_train, features_test = features[train_indexes], features[test_indexes]
+            labels_train, labels_test = labels[train_indexes], labels[test_indexes]
+
+            self.build_model()
+            self.neural_network_model.summary()
+            history_model = self.compile_and_train(features_train, labels_train, epochs=self.number_epochs,
+                                                   batch_size=self.size_batch,
+                                                   validation_data=(features_test, labels_test))
+
+            model_predictions = self.neural_network_model.predict(features_test, batch_size=self.size_batch)
+            predicted_labels = numpy.argmax(model_predictions, axis=1)
+
+            y_validation_predicted_probability = numpy.array([numpy.argmax(model_predictions[i], axis=-1)
+                                                              for i in range(len(model_predictions))])
+
+            # Calculate and store the metrics for this fold
+            metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_test,
+                                                               y_validation_predicted_probability)
+            list_history_model = history_model.history
+            metrics_list.append(metrics)
+            confusion_matriz_list.append(confusion_matrix)
+
+        # Calculate mean metrics across all folds
+        mean_metrics = {
+            'model_name': self.model_name,
+            'Accuracy': {'value': numpy.mean([metric['Accuracy'] for metric in metrics_list]),
+                         'std': numpy.std([metric['Accuracy'] for metric in metrics_list])},
+            'Precision': {'value': numpy.mean([metric['Precision'] for metric in metrics_list]),
+                          'std': numpy.std([metric['Precision'] for metric in metrics_list])},
+            'Recall': {'value': numpy.mean([metric['Recall'] for metric in metrics_list]),
+                       'std': numpy.std([metric['Recall'] for metric in metrics_list])},
+            'F1-Score': {'value': numpy.mean([metric['F1-Score'] for metric in metrics_list]),
+                         'std': numpy.std([metric['F1-Score'] for metric in metrics_list])},
+        }
+
+        confusion_matrix_array = numpy.array(confusion_matriz_list)
+        confusion_matrix_array = numpy.mean(confusion_matrix_array, axis=0)
+        mean_confusion_matrix = numpy.round(confusion_matrix_array).astype(numpy.int32)
+
+        # Calculate the average across the first dimension (number of matrices)
+        mean_confusion_matrix = mean_confusion_matrix.tolist()
+
+        mean_confusion_matrices = {
+            "confusion_matrix": mean_confusion_matrix,
+            "class_names": ['Class {}'.format(i) for i in range(self.number_classes)],
+            "title": self.model_name
+        }
+
+        return mean_metrics, {"Name": self.model_name, "History": list_history_model}, mean_confusion_matrices

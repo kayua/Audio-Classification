@@ -14,11 +14,11 @@ try:
     import glob
     import numpy
     import librosa
+    import tensorflow
 
     from tqdm import tqdm
     import librosa.display
     from tensorflow.keras import Model
-    from keras.utils import to_categorical
 
     from tensorflow.keras.layers import Conv2D
     from tensorflow.keras.layers import Flatten
@@ -29,7 +29,7 @@ try:
     from tensorflow.keras.layers import MaxPooling2D
     from sklearn.model_selection import StratifiedKFold
 
-    from MetricsCalculator import MetricsCalculator
+    from Evaluation.MetricsCalculator import MetricsCalculator
 
 except ImportError as error:
 
@@ -46,7 +46,7 @@ DEFAULT_HOP_LENGTH = 256
 DEFAULT_SIZE_BATCH = 32
 DEFAULT_WINDOW_SIZE_FACTOR = 40
 DEFAULT_NUMBER_FILTERS_SPECTROGRAM = 512
-DEFAULT_FILTERS_PER_BLOCK = [16, 32, 64, 128]
+DEFAULT_FILTERS_PER_BLOCK = [16, 32, 64, 96]
 DEFAULT_FILE_EXTENSION = "*.wav"
 DEFAULT_DROPOUT_RATE = 0.1
 DEFAULT_NUMBER_LAYERS = 4
@@ -61,8 +61,8 @@ DEFAULT_LAST_LAYER_ACTIVATION = 'softmax'
 DEFAULT_NUMBER_CLASSES = 4
 DEFAULT_SIZE_POOLING = (2, 2)
 DEFAULT_WINDOW_SIZE = 1024
-DEFAULT_NUMBER_EPOCHS = 10
-DEFAULT_NUMBER_SPLITS = 5
+DEFAULT_NUMBER_EPOCHS = 40
+DEFAULT_NUMBER_SPLITS = 2
 DEFAULT_SIZE_CONVOLUTIONAL_FILTERS = (3, 3)
 
 
@@ -142,6 +142,7 @@ class ResidualModel(MetricsCalculator):
         if filters_per_block is None:
             filters_per_block = DEFAULT_FILTERS_PER_BLOCK
 
+        self.model_name = "Residual Model"
         self.neural_network_model = None
         self.sample_rate = sample_rate
         self.size_batch = size_batch
@@ -258,9 +259,9 @@ class ResidualModel(MetricsCalculator):
             class_path = os.path.join(sub_directories, class_dir)
             list_class_path.append(class_path)
 
-        for _, sub_directory in tqdm(enumerate(list_class_path)):
-
-            for file_name in glob.glob(os.path.join(sub_directory, file_extension)):
+        for _, sub_directory in enumerate(list_class_path):
+            print("Class {}".format(_))
+            for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
 
                 signal, _ = librosa.load(file_name, sr=self.sample_rate)
                 label = file_name.split('/')[-2].split('_')[0]
@@ -282,11 +283,11 @@ class ResidualModel(MetricsCalculator):
                         list_spectrogram.append(spectrogram_decibel_scale)
                         list_labels.append(label)
 
-        array_features = numpy.asarray(list_spectrogram).reshape(len(list_spectrogram),
-                                                                 self.number_filters_spectrogram,
-                                                                 self.window_size_factor, 1)
+        array_features = numpy.array(list_spectrogram).reshape(len(list_spectrogram),
+                                                               self.number_filters_spectrogram,
+                                                               self.window_size_factor, 1)
 
-        array_labels = numpy.array(list_labels, dtype=numpy.float32)
+        array_labels = numpy.array(list_labels, dtype=numpy.int32)
 
         # Adjust shape to include an additional dimension
         new_shape = list(array_features.shape)
@@ -296,87 +297,86 @@ class ResidualModel(MetricsCalculator):
 
         return numpy.array(new_array, dtype=numpy.float32), array_labels
 
-    def compile_model(self) -> None:
+    def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,
+                          batch_size: int, validation_data: tuple = None) -> tensorflow.keras.callbacks.History:
         """
-        Compiles the CNN model with the specified loss function and optimizer.
+        Compiles and trains the LSTM model on the provided training data.
 
-        This method prepares the model for training by setting the optimizer, loss function, and metrics.
+        :param train_data: Tensor containing the training data.
+        :param train_labels: Tensor containing the training labels.
+        :param epochs: Number of training epochs.
+        :param batch_size: Batch size for training.
+        :param validation_data: Tuple containing validation data and labels (optional).
+        :return: Training history containing metrics and loss values for each epoch.
         """
         self.neural_network_model.compile(optimizer=self.optimizer_function, loss=self.loss_function,
                                           metrics=['accuracy'])
 
-    def train(self, train_data_dir: str, number_epochs: int = None, batch_size: int = None,
+        training_history = self.neural_network_model.fit(train_data, train_labels, epochs=epochs,
+                                                         batch_size=batch_size,
+                                                         validation_data=validation_data)
+        return training_history
+
+    def train(self, train_data_directory: str, number_epochs: int = None, batch_size: int = None,
               number_splits: int = None) -> tuple:
-        """
-        Trains the model using cross-validation.
 
-        This method performs cross-validation to train the model and evaluate its performance.
+        features, labels = self.load_data(train_data_directory)
+        self.number_epochs = number_epochs or self.number_epochs
+        self.size_batch = batch_size or self.size_batch
+        self.number_splits = number_splits or self.number_splits
+        metrics_list, confusion_matriz_list = [], []
+        labels = numpy.array(labels).astype(float)
 
-        Parameters
-        ----------
-        train_data_dir : str
-            Directory containing the training data.
-        number_epochs : int, optional
-            Number of training epochs.
-        batch_size : int, optional
-            Batch size for training.
-        number_splits : int, optional
-            Number of splits for cross-validation.
+        instance_k_fold = StratifiedKFold(n_splits=self.number_splits)
+        list_history_model = None
+        print("STARTING TRAINING MODEL: {}".format(self.model_name))
+        for train_indexes, test_indexes in instance_k_fold.split(features, labels):
+            features_train, features_test = features[train_indexes], features[test_indexes]
+            labels_train, labels_test = labels[train_indexes], labels[test_indexes]
 
-        Returns
-        -------
-        tuple
-            A tuple containing the mean metrics and the training history.
-        """
-        # Use default values if not provided
-        number_epochs = number_epochs or self.number_epochs
-        number_splits = number_splits or self.number_splits
-        batch_size = batch_size or self.size_batch
-
-        # Load the entire dataset
-        dataset_features, dataset_labels = self.load_data(train_data_dir, self.file_extension)
-
-        # Initialize stratified k-fold cross-validation
-        stratified_k_fold = StratifiedKFold(n_splits=number_splits)
-        list_history_model, metrics_list = [], []
-
-        # Perform k-fold cross-validation
-        for train_index, val_index in stratified_k_fold.split(dataset_features, dataset_labels):
-            # Build and compile the model for each fold
             self.build_model()
-            self.compile_model()
             self.neural_network_model.summary()
+            history_model = self.compile_and_train(features_train, labels_train, epochs=self.number_epochs,
+                                                   batch_size=self.size_batch,
+                                                   validation_data=(features_test, labels_test))
 
-            # Split the data into training and validation sets
-            x_train_fold, x_validation_fold = dataset_features[train_index], dataset_features[val_index]
-            y_train_fold, y_validation_fold = dataset_labels[train_index], dataset_labels[val_index]
+            model_predictions = self.neural_network_model.predict(features_test)
+            predicted_labels = numpy.argmax(model_predictions, axis=1)
 
-            # Train the model
-            history = self.neural_network_model.fit(x_train_fold, y_train_fold,
-                                                    validation_data=(x_validation_fold, y_validation_fold),
-                                                    epochs=number_epochs, batch_size=batch_size)
-            list_history_model.append(history.history)
-
-            # Predict the validation set
-            y_validation_predicted = self.neural_network_model.predict(x_validation_fold)
-            y_validation_predicted_classes = numpy.argmax(y_validation_predicted, axis=1)
-            y_validation_predicted_probability = y_validation_predicted if y_validation_predicted.shape[1] > 1 else None
+            y_validation_predicted_probability = numpy.array([numpy.argmax(model_predictions[i], axis=-1)
+                                                              for i in range(len(model_predictions))])
 
             # Calculate and store the metrics for this fold
-            metrics, _ = self.calculate_metrics(y_validation_fold, y_validation_predicted_classes,
-                                                y_validation_predicted_probability)
+            metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_test,
+                                                               y_validation_predicted_probability)
+            list_history_model = history_model.history
             metrics_list.append(metrics)
+            confusion_matriz_list.append(confusion_matrix)
 
         # Calculate mean metrics across all folds
         mean_metrics = {
-            'accuracy': numpy.mean([metric['accuracy'] for metric in metrics_list]),
-            'precision': numpy.mean([metric['precision'] for metric in metrics_list]),
-            'recall': numpy.mean([metric['recall'] for metric in metrics_list]),
-            'f1_score': numpy.mean([metric['f1_score'] for metric in metrics_list]),
-            'auc': numpy.mean([metric['auc'] for metric in metrics_list]) if 'auc' in metrics_list[0] else None
+            'model_name': self.model_name,
+            'Accuracy': {'value': numpy.mean([metric['Accuracy'] for metric in metrics_list]),
+                         'std': numpy.std([metric['Accuracy'] for metric in metrics_list])},
+            'Precision': {'value': numpy.mean([metric['Precision'] for metric in metrics_list]),
+                          'std': numpy.std([metric['Precision'] for metric in metrics_list])},
+            'Recall': {'value': numpy.mean([metric['Recall'] for metric in metrics_list]),
+                       'std': numpy.std([metric['Recall'] for metric in metrics_list])},
+            'F1-Score': {'value': numpy.mean([metric['F1-Score'] for metric in metrics_list]),
+                         'std': numpy.std([metric['F1-Score'] for metric in metrics_list])},
         }
 
-        return mean_metrics, list_history_model
+        confusion_matrix_array = numpy.array(confusion_matriz_list)
+        confusion_matrix_array = numpy.mean(confusion_matrix_array, axis=0)
+        mean_confusion_matrix = numpy.round(confusion_matrix_array).astype(numpy.int32)
 
-audio_classifier = ResidualModel()
-audio_classifier.train(train_data_dir='Dataset')
+        # Calculate the average across the first dimension (number of matrices)
+        mean_confusion_matrix = mean_confusion_matrix.tolist()
+
+        mean_confusion_matrices = {
+            "confusion_matrix": mean_confusion_matrix,
+            "class_names": ['Class {}'.format(i) for i in range(self.number_classes)],
+            "title": self.model_name
+        }
+
+        return mean_metrics, {"Name": self.model_name, "History": list_history_model}, mean_confusion_matrices
