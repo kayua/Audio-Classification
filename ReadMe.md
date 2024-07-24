@@ -13,9 +13,9 @@ Three Neural Network topologies are proposed, named MLP, LSTM and CNN (Conv), ac
 <table>
     <tbody>
         <tr>
-            <th width="20%">AST Topology</th>
-            <th width="20%">LSTM Topology</th>
-            <th width="20%">Conformer Topology</th>
+            <th width="30%">AST Topology</th>
+            <th width="30%">LSTM Topology</th>
+            <th width="30%">Conformer Topology</th>
         </tr>
         <tr>
             <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/AST-Model.png"></td>
