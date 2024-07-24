@@ -13,14 +13,14 @@ Three Neural Network topologies are proposed, named MLP, LSTM and CNN (Conv), ac
 <table>
     <tbody>
         <tr>
-            <th width="20%">MLP Topology</th>
+            <th width="20%">AST Topology</th>
             <th width="20%">LSTM Topology</th>
             <th width="20%">CNN Topology</th>
         </tr>
         <tr>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/dense_model.png"></td>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/lstm.png"></td>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/conv.png"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/master/Layout/AST-Model.png"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/master/Layout/lstm.png"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/master/Layout/conv.png"></td>
         </tr>
 
 
