@@ -1,6 +1,7 @@
-# Regenerating Networked Systems’ Monitoring Traces Using Deep Learning
+# Sound classification - Neural Network Models
 
-Algorithm for correcting sessions of users of large-scale networked systems based on deep learning.
+Algorithms for mosquito flapping audio classification based on deep neural networks.
+
 [View publication](https://doi.org/10.1007/s10922-023-09790-9)
 
 ![Examples of traces: ground truth (obtained with 27 monitors), failed
