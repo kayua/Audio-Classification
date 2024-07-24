@@ -2,11 +2,10 @@
 
 Algorithms for mosquito flapping audio classification based on deep neural networks.
 
-[View publication](https://doi.org/10.1007/s10922-023-09790-9)
 
-![Examples of traces: ground truth (obtained with 27 monitors), failed
-(obtained with 7 monitors/20 failed), and recovered (using NN).](Layout/AudioSegments.png?raw=true "Examples of traces: ground truth (obtained with 27 monitors), failed (obtained with 7 monitors/20 failed), and recovered (using NN).")
 
+![Spectrogramas](Layout/AudioSegments.png?raw=true "Examples of traces: ground truth (obtained with 27 monitors), failed (obtained with 7 monitors/20 failed), and recovered (using NN).")
+[View original publication](https://www.sciencedirect.com/science/article/pii/S1746809424004002)
 ## Neural Network Topologies
 
 Three Neural Network topologies are proposed, named MLP, LSTM and CNN (Conv), according to their fundamental structures. Each neural network is composed of input, intermediate (also known as hidden layers), and output structures. Below, we provide more details of each proposed neural network topology.
