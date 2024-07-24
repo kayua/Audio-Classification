@@ -1,24 +1,75 @@
-import tensorflow as tf
-from tensorflow.keras.losses import Loss
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+__author__ = 'unknown'
+__email__ = 'unknown@unknown.com.br'
+__version__ = '{1}.{0}.{0}'
+__initial_data__ = '2024/07/17'
+__last_update__ = '2024/07/17'
+__credits__ = ['unknown']
+
+try:
+    import sys
+    import tensorflow
+    from tensorflow.keras.losses import Loss
+
+except ImportError as error:
+    print(error)
+    print("1. Install requirements:")
+    print("  pip3 install --upgrade pip")
+    print("  pip3 install -r requirements.txt ")
+    print()
+    sys.exit(-1)
 
 
 class ContrastiveLoss(Loss):
+    """
+    Custom implementation of Contrastive Loss for training models with the
+    contrastive loss function, which is commonly used in tasks involving
+    similarity learning.
+
+    Attributes:
+        margin (float): The margin value for the loss function.
+    """
+
     def __init__(self, margin=1.0, **kwargs):
+        """
+        Initializes the ContrastiveLoss class with a specified margin.
+
+        Args:
+            margin (float): The margin value for the contrastive loss. Default is 1.0.
+            **kwargs: Additional keyword arguments passed to the base Loss class.
+        """
         super().__init__(**kwargs)
         self.margin = margin
 
     def call(self, y_true, y_predicted):
-        y_true = tf.cast(y_true, tf.float32)
-        y_predicted = tf.cast(y_predicted, tf.float32)
+        """
+        Computes the contrastive loss.
 
-        d = tf.reduce_sum(tf.square(y_predicted[0] - y_predicted[1]), axis=1)
+        Args:
+            y_true (tf.Tensor): Tensor of true labels with shape (batch_size,).
+            y_predicted (tf.Tensor): Tensor of predicted embeddings with shape (2, batch_size, embedding_dim).
 
-        d = tf.maximum(d, 1e-10)
+        Returns:
+            tf.Tensor: The computed contrastive loss.
+        """
+        y_true = tensorflow.cast(y_true, tensorflow.float32)
+        y_predicted = tensorflow.cast(y_predicted, tensorflow.float32)
 
-        sqrt_d = tf.sqrt(d)
+        # Calculate the Euclidean distance between the two sets of embeddings
+        distance = tensorflow.reduce_sum(tensorflow.square(y_predicted[0] - y_predicted[1]), axis=1)
 
-        margin_term = tf.maximum(0.0, self.margin - sqrt_d)
+        # Ensure the distance is non-zero to avoid division by zero errors
+        distance = tensorflow.maximum(distance, 1e-10)
 
-        loss = tf.reduce_mean(y_true * d + (1 - y_true) * tf.square(margin_term))
+        # Compute the square root of the distance
+        sqrt_distance = tensorflow.sqrt(distance)
 
-        return loss
+        # Calculate the margin term for the contrastive loss
+        margin_term = tensorflow.maximum(0.0, self.margin - sqrt_distance)
+
+        # Compute the final contrastive loss
+        contrastive_loss = tensorflow.reduce_mean(y_true * distance + (1 - y_true) * tensorflow.square(margin_term))
+
+        return contrastive_loss
