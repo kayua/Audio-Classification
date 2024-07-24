@@ -9,7 +9,7 @@ Algorithms for mosquito flapping audio classification based on deep neural netwo
 ## Neural Network Topologies
 
 Three Neural Network topologies are proposed, named MLP, LSTM and CNN (Conv), according to their fundamental structures. Each neural network is composed of input, intermediate (also known as hidden layers), and output structures. Below, we provide more details of each proposed neural network topology.
-d
+
 <table>
     <tbody>
         <tr>
@@ -18,7 +18,7 @@ d
             <th width="20%">CNN Topology</th>
         </tr>
         <tr>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/master/Layout/AST-Model.png"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/AST-Model.png"></td>
             <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/master/Layout/lstm.png"></td>
             <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/master/Layout/conv.png"></td>
         </tr>
