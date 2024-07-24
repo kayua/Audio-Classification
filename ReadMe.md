@@ -5,8 +5,7 @@ Algorithms for mosquito flapping audio classification based on deep neural netwo
 [View publication](https://doi.org/10.1007/s10922-023-09790-9)
 
 ![Examples of traces: ground truth (obtained with 27 monitors), failed
-(obtained with 7 monitors/20 failed), and recovered (using NN).](layout/example3.png?raw=true "Examples of traces: ground truth (obtained with 27 monitors), failed
-(obtained with 7 monitors/20 failed), and recovered (using NN).")
+(obtained with 7 monitors/20 failed), and recovered (using NN).](Layout/AudioSegments.png?raw=true "Examples of traces: ground truth (obtained with 27 monitors), failed (obtained with 7 monitors/20 failed), and recovered (using NN).")
 
 ## Neural Network Topologies
 
