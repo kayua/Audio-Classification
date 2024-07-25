@@ -9,7 +9,7 @@ Algorithms for mosquito flapping audio classification based on deep neural netwo
 ## Neural Network Topologies
 
 Six different deep neural network topologies are implemented and evaluated for the problem of identifying mosquitoes from the audio emitted by their wings.
-## Original Papers:
+### Original Papers:
 
 1. Audio Spectrogram Transformer [https://arxiv.org/abs/2104.01778]
 2. Long Short Term Memory [https://www.bioinf.jku.at/publications/older/2604.pdf]
