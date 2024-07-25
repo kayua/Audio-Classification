@@ -148,7 +148,7 @@ Impact, in terms of number (left) and duration (right) of a trace (S1) failed (F
     - sudo apt-get upgrade 
     
 2. Installation of application and internal dependencies
-    - git clone [https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network]
+    - git clone [https://github.com/kayua/ModelsAudioClassification]
     - pip install -r requirements.txt
     
 3. Test installation:
@@ -175,54 +175,15 @@ Impact, in terms of number (left) and duration (right) of a trace (S1) failed (F
     Arguments(run_TNSM.py):
         
        -h, --help            Show this help message and exit
-       --append, -a          Append output logging file with analysis results
-       --demo, -d            Demo mode (default=False)
-       --trials, -r          Mumber of trials (default=1)
-       --start_trials,-s     Start trials (default=0)
-       --skip_train, -t      Skip training of the machine learning model training?
-       --campaign -c         Campaign [demo, mif, pif] (default=demo)
-       --verbosity, -v       Verbosity logging level (INFO=20 DEBUG=10)
-
 
     --------------------------------------------------------------
    
     Arguments(main.py):
 
           -h, --help            Show this help message and exit
-          --snapshot_column     Snapshot column position (Default 1)
-          --peer_column         Peer column position (Default 2)
-          --window_length       Define length window (Default 256)
-          --window_width        Define width window (Default 256)
-          --number_blocks       Define number blocks (Default 32)
-          --topology            Neural topology (Default model_v1)
-          --verbosity           Verbosity (Default 20)
-          --epochs              Define number epochs (Default 120)
-          --metrics             Define metrics (Default mse)
-          --loss LOSS           Define loss (Default mse)
-          --optimizer           Define optimizer (Default adam)
-          --steps_per_epoch     Define batch size (Default 32)
-          --threshold           Threshold (Default 0.75)
-          --seed                Seed (Default 0)
-          --learning_rate       Learning rate (Default 0.001)
-          --pif PIF             PIF(0<x<1) MIF(>1) (Default 0)
-          --duration            Duration
-          --input_file_swarm    Input file swarm (Default )
-          --save_file_samples   Save file samples (Default )
-          --load_samples_in     Load file samples in (Default )
-          --load_samples_out    Load file samples out (Default )
-          --save_model          File save model (Default models_saved/model)
-          --load_model          File load model (Default None)
-          --input_predict       File input to predict (Default )
-          --output_predict      File output to predict (Default )
-          --file_corrected      File corrected for evaluation (Default )
-          --file_failed         File failed for evaluation (Default )
-          --file_original       File failed for evaluation (Default )
-          --file_analyse_mode   File evaluation file mode (Default +a)
-          --file_analyse        File evaluation file (Default results.txt)
-
 
         --------------------------------------------------------------
-        Full traces available at: https://github.com/ComputerNetworks-UFRGS/TraceCollection/tree/master/01_traces
+
 
 
 
@@ -240,79 +201,3 @@ Impact, in terms of number (left) and duration (right) of a trace (S1) failed (F
 
 
 
-
-## Complementary Results
-
-### Comparison with the State-of-the-Art (MLP vs Probabilistic)
-Comparison between the neural network MLP and state-of-the-art probabilistic technique. Values obtained for probabilistic error injection and monitoring error injection.
-
-<table>
-    <tbody> 
-        <tr>
-            <th width="10%">Probabilistic Inject Failure</th>
-        </tr>
-        <tr>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/comparison_pif_dense_prob.png" alt="2023-03-16 4 33 16" style="max-width:100%;"></td>
-        </tr>
-</table>
-
-<table>
-    <tbody> 
-        <tr>
-            <th width="10%">Monitoring Inject Failure</th>
-        </tr>
-        <tr>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/comparison_mif_dense_prob.png" alt="2023-03-16 4 33 16" style="max-width:100%;"></td>
-        </tr>
-</table>
-
-
-### Comparison with the State-of-the-Art (LSTM vs Probabilistic) 
-
-Comparison between the neural network LSTM and state-of-the-art probabilistic technique. Values obtained for probabilistic error injection and monitoring error injection.
-
-<table>
-    <tbody> 
-        <tr>
-            <th width="10%">Probabilistic Inject Failure</th>
-        </tr>
-        <tr>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/comparison_pif_lstm_prob.png" alt="2023-03-16 4 33 16" style="max-width:100%;"></td>
-        </tr>
-</table>
-
-<table>
-    <tbody> 
-        <tr>
-            <th width="10%">Monitoring Inject Failure</th>
-        </tr>
-        <tr>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/comparison_mif_lstm_prob.png" alt="2023-03-16 4 33 16" style="max-width:100%;"></td>
-        </tr>
-</table>
-
-
-## ACKNOWLEDGMENTS
-
-
-This study was financed in part by the Coordenação
-de Aperfeiçoamento de Pessoal de Nível Superior - Brasil
-(CAPES) - Finance Code 001. We also received funding from
-Rio Grande do Sul Research Foundation (FAPERGS) - Grant
-ARD 10/2020 and Nvidia – Academic Hardware Grant
-
-## Reference
-
-    @article{Paim2023,
-      author    = {Paim, Kayuã Oleques and Quincozes, Vagner Ereno and Kreutz, Diego and Mansilha, Rodrigo Brandão and Cordeiro, Weverton},
-      title     = {Regenerating Networked Systems’ Monitoring Traces Using Neural Networks},
-      journal   = {Journal of Network and Systems Management},
-      year      = {2023},
-      volume    = {32},
-      number    = {1},
-      pages     = {16},
-      month     = {},
-      doi       = {10.1007/s10922-023-09790-9},
-      url       = {https://doi.org/10.1007/s10922-023-09790-9},
-      issn      = {1573-7705},
-    }
