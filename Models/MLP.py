@@ -45,7 +45,7 @@ DEFAULT_SIZE_BATCH = 32
 DEFAULT_OVERLAP = 2
 DEFAULT_DROPOUT_RATE = 0.1
 DEFAULT_WINDOW_SIZE = 1024
-DEFAULT_NUMBER_EPOCHS = 40
+DEFAULT_NUMBER_EPOCHS = 2
 DEFAULT_NUMBER_SPLITS = 2
 DEFAULT_DECIBEL_SCALE_FACTOR = 80
 DEFAULT_WINDOW_SIZE_FACTOR = 40
@@ -108,7 +108,6 @@ class AudioDense(MetricsCalculator):
 
         if list_lstm_cells is None:
             list_lstm_cells = DEFAULT_LIST_LSTM_CELLS
-        self.model_name = "LSTM"
         self.neural_network_model = None
         self.size_batch = size_batch
         self.list_number_neurons = list_lstm_cells
@@ -129,7 +128,7 @@ class AudioDense(MetricsCalculator):
         self.number_classes = number_classes
         self.dropout_rate = dropout_rate
         self.last_layer_activation = last_layer_activation
-        self.model_name = "LSTM"
+        self.model_name = "MLP"
 
     def build_model(self) -> None:
         """
@@ -152,9 +151,8 @@ class AudioDense(MetricsCalculator):
                                         activation=self.intermediary_layer_activation)(neural_network_flow)
             neural_network_flow = Dropout(self.dropout_rate)(neural_network_flow)
 
-        neural_network_flow = GlobalAveragePooling1D()(neural_network_flow)
         neural_network_flow = Dense(self.number_classes, activation=self.last_layer_activation)(neural_network_flow)
-        self.neural_network_model = Model(inputs=inputs, outputs=neural_network_flow)
+        self.neural_network_model = Model(inputs=inputs, outputs=neural_network_flow, name=self.model_name)
 
     def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,
                           batch_size: int, validation_data: tuple = None) -> tensorflow.keras.callbacks.History:
@@ -228,7 +226,7 @@ class AudioDense(MetricsCalculator):
 
         for _, sub_directory in enumerate(list_class_path):
             print("Class Load: {}".format(_))
-            for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
+            for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))[0:100]):
 
                 signal, _ = librosa.load(file_name, sr=self.sample_rate)
 

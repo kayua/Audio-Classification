@@ -44,7 +44,7 @@ DEFAULT_SIZE_BATCH = 32
 DEFAULT_OVERLAP = 2
 DEFAULT_DROPOUT_RATE = 0.1
 DEFAULT_WINDOW_SIZE = 1024
-DEFAULT_NUMBER_EPOCHS = 40
+DEFAULT_NUMBER_EPOCHS = 2
 DEFAULT_NUMBER_SPLITS = 2
 DEFAULT_DECIBEL_SCALE_FACTOR = 80
 DEFAULT_WINDOW_SIZE_FACTOR = 40
@@ -228,7 +228,7 @@ class AudioLSTM(MetricsCalculator):
 
         for _, sub_directory in enumerate(list_class_path):
             print("Class Load: {}".format(_))
-            for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
+            for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))[0:100]):
 
                 signal, _ = librosa.load(file_name, sr=self.sample_rate)
 

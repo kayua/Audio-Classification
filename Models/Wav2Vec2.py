@@ -54,7 +54,7 @@ DEFAULT_SIZE_BATCH = 8
 DEFAULT_OVERLAP = 1
 DEFAULT_DROPOUT_RATE = 0.1
 DEFAULT_WINDOW_SIZE = 1024
-DEFAULT_NUMBER_EPOCHS = 40
+DEFAULT_NUMBER_EPOCHS = 2
 DEFAULT_NUMBER_SPLITS = 2
 DEFAULT_KERNEL_SIZE = 3
 DEFAULT_DECIBEL_SCALE_FACTOR = 80
@@ -170,7 +170,8 @@ class AudioWav2Vec2(MetricsCalculator):
         # Quantize Layer
         quantize_layer = TimeDistributed(QuantizationLayer(4), name="Quantization")(dense_layer)
 
-        self.neural_network_model = Model(inputs=inputs, outputs=[transformer_output, quantize_layer])
+        self.neural_network_model = Model(inputs=inputs, outputs=[transformer_output, quantize_layer],
+                                          name=self.model_name)
         self.neural_network_model.compile(optimizer=self.optimizer_function,
                                           loss=ContrastiveLoss(margin=0.5),
                                           metrics=['accuracy'])
@@ -217,7 +218,7 @@ class AudioWav2Vec2(MetricsCalculator):
 
         for _, sub_directory in enumerate(list_class_path):
 
-            for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
+            for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))[0:100]):
 
                 signal, _ = librosa.load(file_name, sr=self.sample_rate)
 

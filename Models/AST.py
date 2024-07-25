@@ -58,7 +58,7 @@ DEFAULT_SIZE_FFT = 1024  # FFT size for the Mel spectrogram
 DEFAULT_SIZE_PATCH = (16, 16)  # Size of the patches to be extracted from the spectrogram
 DEFAULT_OVERLAP = 2  # Overlap ratio between patches
 DEFAULT_DROPOUT_RATE = 0.2  # Dropout rate
-DEFAULT_NUMBER_EPOCHS = 40  # Number of training epochs
+DEFAULT_NUMBER_EPOCHS = 2  # Number of training epochs
 DEFAULT_SIZE_BATCH = 32  # Batch size for training
 DEFAULT_KERNEL_SIZE = 3  # Kernel size for convolutional layers
 DEFAULT_NUMBER_SPLITS = 2  # Number of splits for cross-validation
@@ -346,7 +346,7 @@ class AudioAST(MetricsCalculator):
         outputs = Dense(self.number_classes, activation=self.last_activation_layer)(neural_model_flow)
 
         # Create the Keras model
-        self.neural_network_model = models.Model(inputs, outputs)
+        self.neural_network_model = models.Model(inputs, outputs, name=self.model_name)
 
         return self.neural_network_model
 
@@ -473,7 +473,7 @@ class AudioAST(MetricsCalculator):
 
         for _, sub_directory in enumerate(list_class_path):
             print("Class {}".format(_))
-            for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
+            for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))[0:100]):
 
                 signal, _ = librosa.load(file_name, sr=self.sample_rate)
                 label = file_name.split('/')[-2].split('_')[0]

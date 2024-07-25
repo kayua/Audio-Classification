@@ -61,7 +61,7 @@ DEFAULT_LAST_LAYER_ACTIVATION = 'softmax'
 DEFAULT_NUMBER_CLASSES = 4
 DEFAULT_SIZE_POOLING = (2, 2)
 DEFAULT_WINDOW_SIZE = 1024
-DEFAULT_NUMBER_EPOCHS = 40
+DEFAULT_NUMBER_EPOCHS = 2
 DEFAULT_NUMBER_SPLITS = 2
 DEFAULT_SIZE_CONVOLUTIONAL_FILTERS = (3, 3)
 
@@ -207,7 +207,7 @@ class ResidualModel(MetricsCalculator):
         neural_network_flow = Dense(self.number_classes, activation=self.last_layer_activation)(neural_network_flow)
 
         # Define the model
-        self.neural_network_model = Model(inputs=inputs, outputs=neural_network_flow)
+        self.neural_network_model = Model(inputs=inputs, outputs=neural_network_flow, name=self.model_name)
 
     @staticmethod
     def windows(data, window_size, overlap):
@@ -261,7 +261,7 @@ class ResidualModel(MetricsCalculator):
 
         for _, sub_directory in enumerate(list_class_path):
             print("Class {}".format(_))
-            for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
+            for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))[0:100]):
 
                 signal, _ = librosa.load(file_name, sr=self.sample_rate)
                 label = file_name.split('/')[-2].split('_')[0]
