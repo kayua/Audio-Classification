@@ -21,12 +21,12 @@ try:
     from typing import Union
     from typing import Optional
 
-    from AST import AudioAST
-    from LSTM import AudioLSTM
-    from MLP import AudioDense
-    from Conformer import Conformer
-    from Wav2Vec2 import AudioWav2Vec2
-    from ResidualModel import ResidualModel
+    from Models.AST import AudioAST
+    from Models.LSTM import AudioLSTM
+    from Models.MLP import AudioDense
+    from Models.Conformer import Conformer
+    from Models.Wav2Vec2 import AudioWav2Vec2
+    from Models.ResidualModel import ResidualModel
 
     import matplotlib.pyplot as plt
     from sklearn.metrics import accuracy_score

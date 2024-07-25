@@ -58,10 +58,8 @@ Description of the datasets used for training and validating the models as well 
         <tr>
             <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/Dataset-Description.png" alt="" style="max-width:100%;"></td>
         </tr>
-   
 
 </table>
-
 
 
 ### Fitting Analysis
