@@ -11,7 +11,8 @@ The code made available aims to facilitate the replication of the experiments an
 ---------------------
 ## Neural Network Topologies
 
-This repository contains the implementation and evaluation of six distinct deep neural network topologies for audio recognition. Each topology was developed for the analysis and identification of specific acoustic patterns in the audio emitted by mosquito wings, providing a robust technical basis for the comparative evaluation of the proposed solutions.
+This repository contains the implementation and evaluation of six distinct deep neural network topologies for audio recognition. Each topology was developed for the analysis and identification of specific acoustic patterns in the audio emitted by mosquito wings, providing a robust technical basis for the comparative evaluation of the proposed solutions. Below are listed each of the topologies present in this repository, as well as their structure and original work.
+
 ### Original Papers:
 
 1. Audio Spectrogram Transformer [https://arxiv.org/abs/2104.01778]
@@ -20,8 +21,9 @@ This repository contains the implementation and evaluation of six distinct deep 
 4. Wav2Vec2 [https://arxiv.org/abs/2006.11477]
 5. Residual [https://doi.org/10.1016/j.bspc.2024.106342]
 6. MLP [https://ieeexplore.ieee.org/document/8942209]
+
 ---------------------
-### Models:
+## Models:
 <table>
     <tbody>
         <tr>
