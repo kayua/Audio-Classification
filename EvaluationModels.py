@@ -8,6 +8,7 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+from MLP import AudioDense
 
 try:
     import sys
@@ -44,14 +45,12 @@ except ImportError as error:
     print()
     sys.exit(-1)
 
-
 DEFAULT_MATRIX_FIGURE_SIZE = (5, 5)
 DEFAULT_MATRIX_COLOR_MAP = 'Blues'
 DEFAULT_MATRIX_ANNOTATION_FONT_SIZE = 10
 DEFAULT_MATRIX_LABEL_FONT_SIZE = 12
 DEFAULT_MATRIX_TITLE_FONT_SIZE = 14
 DEFAULT_SHOW_PLOT = False
-
 
 
 class EvaluationModels:
@@ -299,14 +298,20 @@ mean_metrics_AST, mean_history_AST, mean_matrices_AST = AST_instance.train('Data
 AST_instance = None
 gc.collect()
 
+Dense_instance = AudioDense()
+mean_metrics_Dense, mean_history_Dense, mean_matrices_Dense = Dense_instance.train('Dataset')
+Dense_instance = None
+gc.collect()
+
+
 mean_metrics = [mean_metrics_Wav2Vec2, mean_metrics_LSTM, mean_metrics_Conformer,
-                mean_metrics_Residual, mean_metrics_AST]
+                mean_metrics_Residual, mean_metrics_AST, mean_metrics_Dense]
 
 mean_history = [mean_history_Wav2Vec2, mean_history_LSTM, mean_history_Conformer,
-                mean_history_Residual, mean_history_AST]
+                mean_history_Residual, mean_history_AST, mean_history_Dense]
 
 mean_matrices = [mean_matrices_Wav2Vec2, mean_matrices_LSTM, mean_matrices_Conformer,
-                 mean_matrices_Residual, mean_matrices_AST]
+                 mean_matrices_Residual, mean_matrices_AST, mean_matrices_Dense]
 
 InstanceEvaluation.plot_confusion_matrices(mean_matrices, "confusion_matrices.png")
 InstanceEvaluation.plot_comparative_metrics(mean_metrics, "metrics.png")
