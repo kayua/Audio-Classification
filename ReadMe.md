@@ -85,9 +85,9 @@ Texto de exemplo
             <th width="10%">Conformer Topology</th>
         </tr>
         <tr>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/ConfusionMatrices_AST.png" alt="2018-06-04 4 33 16" style="max-width:100%;"></td>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/ConfusionMatrices_LSTM.png" alt="2018-06-04 4 40 06" style="max-width:100%;"></td>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/ConfusionMatrices_Conformer.png" alt="2018-06-04 4 43 02" style="max-width:100%;"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/ConfusionMatrices_AST.png" alt="2018-06-04 4 33 16" style="max-width:100%;"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/ConfusionMatrices_LSTM.png" alt="2018-06-04 4 40 06" style="max-width:100%;"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/ConfusionMatrices_Conformer.png" alt="2018-06-04 4 43 02" style="max-width:100%;"></td>
         </tr>
    <tbody> 
         <tr>
@@ -96,9 +96,9 @@ Texto de exemplo
             <th width="10%">MLP</th>
         </tr>
         <tr>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/dense_error.png" alt="2018-06-04 4 33 16" style="max-width:100%;"></td>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/ConfusionMatrices_Residual.png" alt="2018-06-04 4 40 06" style="max-width:100%;"></td>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/conv_error.png" alt="2018-06-04 4 43 02" style="max-width:100%;"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/dense_error.png" alt="2018-06-04 4 33 16" style="max-width:100%;"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/ConfusionMatrices_Residual.png" alt="2018-06-04 4 40 06" style="max-width:100%;"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/conv_error.png" alt="2018-06-04 4 43 02" style="max-width:100%;"></td>
         </tr>
 
 </table>
