@@ -1,46 +1,56 @@
 import markdown
 import pdfkit
 import os
-import tempfile
 
-def convert_md_to_pdf(md_file_path, pdf_file_path, path_wkhtmltopdf):
-    # Read the markdown file
-    with open(md_file_path, 'r', encoding='utf-8') as f:
-        md_content = f.read()
 
-    # Convert markdown to HTML
-    html_content = markdown.markdown(md_content)
+def convert_md_to_html(md_file_path, html_file_path):
+    # Lê o arquivo Markdown
+    with open(md_file_path, 'r', encoding='utf-8') as md_file:
+        md_content = md_file.read()
 
-    # Configure pdfkit to use wkhtmltopdf
+    # Converte Markdown para HTML
+    html_content = markdown.markdown(md_content, extensions=['tables', 'fenced_code'])
+
+    # Escreve o HTML em um arquivo
+    with open(html_file_path, 'w', encoding='utf-8') as html_file:
+        html_file.write(html_content)
+
+
+def convert_html_to_pdf(html_file_path, pdf_file_path):
+    # Configure pdfkit para usar wkhtmltopdf
+    path_wkhtmltopdf = '/usr/bin/wkhtmltopdf'  # Atualize este caminho conforme necessário
     config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
 
-    # Create a temporary HTML file
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.html') as temp_html_file:
-        temp_html_file.write(html_content.encode('utf-8'))
-        temp_html_file_path = temp_html_file.name
-
-    # Define options to ignore errors
+    # Defina o diretório base para recursos locais
     options = {
         'no-outline': None,
-        'disable-smart-shrinking': None,
-        'enable-local-file-access': None
+        'enable-local-file-access': None,  # Habilita o acesso a arquivos locais
     }
 
-    # Convert the HTML file to PDF
-    pdfkit.from_file(temp_html_file_path, pdf_file_path, configuration=config, options=options)
+    # Converte HTML para PDF
+    try:
+        pdfkit.from_file(html_file_path, pdf_file_path, configuration=config, options=options)
+    except Exception as e:
+        print(f'Error converting HTML to PDF: {e}')
 
-    # Remove the temporary HTML file
-    os.remove(temp_html_file_path)
 
 if __name__ == '__main__':
+    # Caminho para o arquivo Markdown
     md_file_path = 'ReadMe.md'
-    pdf_file_path = 'ReadMe.pdf'
 
-    # Use the path returned by the 'which wkhtmltopdf' command
-    path_wkhtmltopdf = '/usr/bin/wkhtmltopdf'  # Atualize este caminho conforme necessário
+    # Caminho para o arquivo HTML temporário
+    html_file_path = 'temp.html'
 
-    if not os.path.exists(md_file_path):
-        print(f'Error: The file {md_file_path} does not exist.')
-    else:
-        convert_md_to_pdf(md_file_path, pdf_file_path, path_wkhtmltopdf)
-        print(f'Success: The file has been converted to {pdf_file_path}.')
+    # Caminho para o arquivo PDF
+    pdf_file_path = 'output.pdf'
+
+    # Converta Markdown para HTML
+    convert_md_to_html(md_file_path, html_file_path)
+
+    # Converta HTML para PDF
+    convert_html_to_pdf(html_file_path, pdf_file_path)
+
+    # Remove o arquivo HTML temporário
+    os.remove(html_file_path)
+
+    print(f'Success: The PDF has been generated at {pdf_file_path}.')

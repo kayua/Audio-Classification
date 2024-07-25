@@ -57,7 +57,7 @@ Description of the datasets used for training and validating the models as well 
             <th width="10%">Dataset Description</th>
         </tr>
         <tr>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/Dataset-Description.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Layout/Dataset-Description.png" alt="" style="max-width:100%;"></td>
         </tr>
 
 </table>
@@ -74,9 +74,9 @@ Impact of the number of epochs on average error for Dense topology (arrangements
             <th width="10%">Conformer Topology</th>
         </tr>
         <tr>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/dense_error.png" alt="" style="max-width:100%;"></td>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/lstm_error.png" alt="" style="max-width:100%;"></td>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/conv_error.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Layout/dense_error.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Layout/lstm_error.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Layout/conv_error.png" alt="" style="max-width:100%;"></td>
         </tr>
    <tbody> 
         <tr>
@@ -85,9 +85,9 @@ Impact of the number of epochs on average error for Dense topology (arrangements
             <th width="10%">MLP</th>
         </tr>
         <tr>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/dense_error.png" alt="" style="max-width:100%;"></td>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/lstm_error.png" alt="" style="max-width:100%;"></td>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/conv_error.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Layout/dense_error.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Layout/lstm_error.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Layout/conv_error.png" alt="" style="max-width:100%;"></td>
         </tr>
 
 </table>
@@ -102,9 +102,9 @@ Multiclass confusion matrices for each of the evaluated models. The configuratio
             <th width="10%">Conformer Topology</th>
         </tr>
         <tr>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/ConfusionMatrices_AST.png" alt="" style="max-width:100%;"></td>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/ConfusionMatrices_LSTM.png" alt="" style="max-width:100%;"></td>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/ConfusionMatrices_Conformer.png" alt="2" style="max-width:100%;"></td>
+            <td><img src="Layout/ConfusionMatrices_AST.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Layout/ConfusionMatrices_LSTM.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Layout/ConfusionMatrices_Conformer.png" alt="2" style="max-width:100%;"></td>
         </tr>
    <tbody> 
         <tr>
@@ -113,9 +113,9 @@ Multiclass confusion matrices for each of the evaluated models. The configuratio
             <th width="10%">MLP</th>
         </tr>
         <tr>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/ConfusionMatrices_Wav2Vec2.png" alt="" style="max-width:100%;"></td>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/ConfusionMatrices_Residual.png" alt="" style="max-width:100%;"></td>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/ConfusionMatrices_MLP.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Layout/ConfusionMatrices_Wav2Vec2.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Layout/ConfusionMatrices_Residual.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Layout/ConfusionMatrices_MLP.png" alt="" style="max-width:100%;"></td>
         </tr>
 
 </table>
