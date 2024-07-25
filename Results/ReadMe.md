@@ -26,11 +26,10 @@ Six different deep neural network topologies are implemented and evaluated for t
             <th width="20%">Conformer Topology</th>
         </tr>
         <tr>
-            <td><img src="Layout/AST-Model.png"></td>
-            <td><img src="Layout/LSTM-Model.png"></td>
-            <td><img src="Layout/Conformer-Model.png"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/AST-Model.png"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/LSTM-Model.png"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/Conformer-Model.png"></td>
         </tr>
-    </tbody>
     <tbody>
         <tr>
             <th width="20%">Wav2Vec2 Topology</th>
@@ -38,11 +37,11 @@ Six different deep neural network topologies are implemented and evaluated for t
             <th width="20%">MLP Topology</th>
         </tr>
         <tr>
-            <td><img src="Layout/Wav2Vec2-Model.png"></td>
-            <td><img src="Layout/Residual-Model.png"></td>
-            <td><img src="Layout/MultiLayerPerceptron-Model.png"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/Wav2Vec2-Model.png"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/Residual-Model.png"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/MultiLayerPerceptron-Model.png"></td>
         </tr>
-    </tbody>
+
 </table>
 
 ## Experimental Evaluation
