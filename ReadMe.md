@@ -57,9 +57,9 @@ Impact of the number of epochs on average error for Dense topology (arrangements
             <th width="10%">Conformer Topology</th>
         </tr>
         <tr>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/dense_error.png" alt="2018-06-04 4 33 16" style="max-width:100%;"></td>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/lstm_error.png" alt="2018-06-04 4 40 06" style="max-width:100%;"></td>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/conv_error.png" alt="2018-06-04 4 43 02" style="max-width:100%;"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/dense_error.png" alt="" style="max-width:100%;"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/lstm_error.png" alt="" style="max-width:100%;"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/conv_error.png" alt="" style="max-width:100%;"></td>
         </tr>
    <tbody> 
         <tr>
@@ -68,9 +68,9 @@ Impact of the number of epochs on average error for Dense topology (arrangements
             <th width="10%">MLP</th>
         </tr>
         <tr>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/dense_error.png" alt="2018-06-04 4 33 16" style="max-width:100%;"></td>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/lstm_error.png" alt="2018-06-04 4 40 06" style="max-width:100%;"></td>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/conv_error.png" alt="2018-06-04 4 43 02" style="max-width:100%;"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/dense_error.png" alt="" style="max-width:100%;"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/lstm_error.png" alt="" style="max-width:100%;"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/conv_error.png" alt="" style="max-width:100%;"></td>
         </tr>
 
 </table>
@@ -85,9 +85,9 @@ Multiclass confusion matrices for each of the evaluated models. The configuratio
             <th width="10%">Conformer Topology</th>
         </tr>
         <tr>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/ConfusionMatrices_AST.png" alt="2018-06-04 4 33 16" style="max-width:100%;"></td>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/ConfusionMatrices_LSTM.png" alt="2018-06-04 4 40 06" style="max-width:100%;"></td>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/ConfusionMatrices_Conformer.png" alt="2018-06-04 4 43 02" style="max-width:100%;"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/ConfusionMatrices_AST.png" alt="" style="max-width:100%;"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/ConfusionMatrices_LSTM.png" alt="" style="max-width:100%;"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/ConfusionMatrices_Conformer.png" alt="2" style="max-width:100%;"></td>
         </tr>
    <tbody> 
         <tr>
@@ -96,9 +96,9 @@ Multiclass confusion matrices for each of the evaluated models. The configuratio
             <th width="10%">MLP</th>
         </tr>
         <tr>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/ConfusionMatrices_Wav2Vec2.png" alt="2018-06-04 4 33 16" style="max-width:100%;"></td>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/ConfusionMatrices_Residual.png" alt="2018-06-04 4 40 06" style="max-width:100%;"></td>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/ConfusionMatrices_MLP.png" alt="2018-06-04 4 43 02" style="max-width:100%;"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/ConfusionMatrices_Wav2Vec2.png" alt="" style="max-width:100%;"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/ConfusionMatrices_Residual.png" alt="" style="max-width:100%;"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/ConfusionMatrices_MLP.png" alt="" style="max-width:100%;"></td>
         </tr>
 
 </table>
@@ -112,7 +112,7 @@ Parameter sensitivity of Conv. topology withuniform probabilistic injected failu
             <th width="20%">Convolutional Topology</th>
         </tr>
         <tr>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/sens_conv.png" alt="2018-06-04 4 33 16" style="max-width:50%;"></td>
+            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/sens_conv.png" alt="" style="max-width:50%;"></td>
         </tr>
 
 
