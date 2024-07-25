@@ -67,6 +67,12 @@ Impact of the number of epochs on average error for Dense topology (arrangements
 
 </table>
 
+## Original Papers:
+
+1. Audio Spectrogram Transformer [https://arxiv.org/abs/2104.01778]
+
+
+
 ###  Parameter Sensitivity Analysis
 
 Parameter sensitivity of Conv. topology withuniform probabilistic injected failure Fprob =10%
