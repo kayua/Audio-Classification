@@ -8,8 +8,6 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-from Layers.QuantizerLayerMLP import QuantizationLayer
-
 try:
     import os
     import sys
@@ -21,14 +19,18 @@ try:
 
     from tensorflow.keras import Model
     from tensorflow.keras.layers import Dense
-    from tensorflow.keras.layers import Input, Reshape
-    from tensorflow.keras.layers import Conv1D, Embedding, Add
+    from tensorflow.keras.layers import Input
+    from tensorflow.keras.layers import Reshape
+    from tensorflow.keras.layers import Conv1D
+    from tensorflow.keras.layers import Embedding
+    from tensorflow.keras.layers import Add
     from tensorflow.keras.layers import Flatten
     from tensorflow.keras.layers import Lambda, Activation
     from tensorflow.keras.layers import Dropout
     from tensorflow.keras.layers import MultiHeadAttention
-    from tensorflow.keras.layers import LayerNormalization, TimeDistributed
-
+    from tensorflow.keras.layers import LayerNormalization
+    from tensorflow.keras.layers import TimeDistributed
+    from Layers.QuantizerLayerMLP import QuantizationLayer
     from Loss.ContrastiveLoss import ContrastiveLoss
     from sklearn.model_selection import StratifiedKFold
     from tensorflow.keras.layers import GlobalAveragePooling1D

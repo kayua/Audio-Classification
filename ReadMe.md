@@ -31,7 +31,7 @@ Six Neural Network topologies are evaluate. Each neural network is composed of i
         <tr>
             <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/Wav2Vec2-Model.png"></td>
             <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/Residual-Model.png"></td>
-            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/conv.png"></td>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/MultiLayerPerceptron-Model.png"></td>
         </tr>
 
 </table>
