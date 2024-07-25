@@ -33,8 +33,8 @@ def convert_md_to_pdf(md_file_path, pdf_file_path, path_wkhtmltopdf):
     os.remove(temp_html_file_path)
 
 if __name__ == '__main__':
-    md_file_path = '../ReadMe.md'
-    pdf_file_path = '../ReadMe.pdf'
+    md_file_path = 'ReadMe.md'
+    pdf_file_path = 'ReadMe.pdf'
 
     # Use the path returned by the 'which wkhtmltopdf' command
     path_wkhtmltopdf = '/usr/bin/wkhtmltopdf'  # Atualize este caminho conforme necessário
