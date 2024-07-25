@@ -8,8 +8,6 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-from MLP import AudioDense
-
 try:
     import sys
     import numpy
@@ -25,6 +23,7 @@ try:
 
     from AST import AudioAST
     from LSTM import AudioLSTM
+    from MLP import AudioDense
     from Conformer import Conformer
     from Wav2Vec2 import AudioWav2Vec2
     from ResidualModel import ResidualModel
@@ -302,7 +301,6 @@ Dense_instance = AudioDense()
 mean_metrics_Dense, mean_history_Dense, mean_matrices_Dense = Dense_instance.train('Dataset')
 Dense_instance = None
 gc.collect()
-
 
 mean_metrics = [mean_metrics_Wav2Vec2, mean_metrics_LSTM, mean_metrics_Conformer,
                 mean_metrics_Residual, mean_metrics_AST, mean_metrics_Dense]

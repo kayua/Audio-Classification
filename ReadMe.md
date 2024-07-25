@@ -46,6 +46,24 @@ Six different deep neural network topologies are implemented and evaluated for t
 
 ## Experimental Evaluation
 
+### Dataset for Experiments
+
+Description of the datasets used for training and validating the models as well as the link to obtain them.
+
+<table>
+    <tbody> 
+        <tr>
+            <th width="10%">Dataset Description</th>
+        </tr>
+        <tr>
+            <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/Dataset-Description.png" alt="" style="max-width:100%;"></td>
+        </tr>
+   
+
+</table>
+
+
+
 ### Fitting Analysis
 Impact of the number of epochs on average error for Dense topology (arrangements A=3, window width W=11), LSTM topology (arrangements A=3, window width W=11), and Conv. topology (arrangements A=8, squared window width W=H=256).
 
