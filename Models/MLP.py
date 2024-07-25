@@ -26,7 +26,7 @@ try:
     from tensorflow.keras.layers import Bidirectional
     from sklearn.model_selection import StratifiedKFold
     from tensorflow.keras.layers import GlobalAveragePooling1D
-    from Evaluation.MetricsCalculator import MetricsCalculator
+    from Modules.Evaluation.MetricsCalculator import MetricsCalculator
 
 except ImportError as error:
     print(error)

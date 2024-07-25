@@ -29,7 +29,7 @@ try:
     from tensorflow.keras.layers import MaxPooling2D
     from sklearn.model_selection import StratifiedKFold
 
-    from Evaluation.MetricsCalculator import MetricsCalculator
+    from Modules.Evaluation.MetricsCalculator import MetricsCalculator
 
 except ImportError as error:
 

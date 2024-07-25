@@ -30,11 +30,11 @@ try:
     from tensorflow.keras.layers import MultiHeadAttention
     from tensorflow.keras.layers import LayerNormalization
     from tensorflow.keras.layers import TimeDistributed
-    from Layers.QuantizerLayerMLP import QuantizationLayer
-    from Loss.ContrastiveLoss import ContrastiveLoss
+    from Modules.Layers.QuantizerLayerMLP import QuantizationLayer
+    from Modules.Loss.ContrastiveLoss import ContrastiveLoss
     from sklearn.model_selection import StratifiedKFold
     from tensorflow.keras.layers import GlobalAveragePooling1D
-    from Evaluation.MetricsCalculator import MetricsCalculator
+    from Modules.Evaluation.MetricsCalculator import MetricsCalculator
 
 except ImportError as error:
     print(error)

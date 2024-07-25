@@ -23,12 +23,12 @@ try:
     from tensorflow.keras.layers import Dropout
     from tensorflow.keras.layers import Flatten
     from tensorflow.keras.layers import Layer, Reshape
-    from Layers.ConformerBlock import ConformerBlock
+    from Modules.Layers.ConformerBlock import ConformerBlock
     from sklearn.model_selection import StratifiedKFold
-    from Evaluation.MetricsCalculator import MetricsCalculator
+    from Modules.Evaluation.MetricsCalculator import MetricsCalculator
     from tensorflow.keras.layers import GlobalAveragePooling1D
     from tensorflow.keras.layers import Concatenate
-    from Layers.ConvolutionalSubsampling import ConvolutionalSubsampling
+    from Modules.Layers.ConvolutionalSubsampling import ConvolutionalSubsampling
 
 except ImportError as error:
     print(error)

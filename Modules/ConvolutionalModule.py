@@ -12,7 +12,7 @@ try:
     import sys
     import tensorflow as tf
 
-    from Layers.GLU import GLU
+    from Modules.Layers.GLU import GLU
     from tensorflow.keras.layers import Layer
     from tensorflow.keras.layers import Conv1D
     from tensorflow.keras.layers import BatchNormalization

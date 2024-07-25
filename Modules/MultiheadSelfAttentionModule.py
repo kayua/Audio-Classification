@@ -14,7 +14,7 @@ try:
     from tensorflow.keras.layers import Dropout
     from tensorflow.keras.layers import Layer
     from tensorflow.keras.layers import LayerNormalization, MultiHeadAttention
-    from Layers.RelativePositionalEmbedding import RelativePositionalEmbedding
+    from Modules.Layers.RelativePositionalEmbedding import RelativePositionalEmbedding
 
 except ImportError as error:
     print(error)

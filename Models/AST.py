@@ -30,10 +30,10 @@ try:
     from tensorflow.keras.layers import MultiHeadAttention
     from tensorflow.keras.layers import GlobalAveragePooling1D
 
-    from Layers.CLSTokenLayer import CLSTokenLayer
-    from Evaluation.MetricsCalculator import MetricsCalculator
+    from Modules.Layers.CLSTokenLayer import CLSTokenLayer
+    from Modules.Evaluation.MetricsCalculator import MetricsCalculator
     from sklearn.model_selection import StratifiedKFold
-    from Layers.PositionalEmbeddingsLayer import PositionalEmbeddingsLayer
+    from Modules.Layers.PositionalEmbeddingsLayer import PositionalEmbeddingsLayer
 
 except ImportError as error:
     print(error)
