@@ -26,7 +26,7 @@ Six Neural Network topologies are evaluate. Each neural network is composed of i
         <tr>
             <th width="20%">Wav2Vec2 Topology</th>
             <th width="20%">Residual Topology</th>
-            <th width="20%">CNN Topology</th>
+            <th width="20%">MLP Topology</th>
         </tr>
         <tr>
             <td><img src="https://github.com/kayua/ModelsAudioClassification/blob/main/Layout/Wav2Vec2-Model.png"></td>
