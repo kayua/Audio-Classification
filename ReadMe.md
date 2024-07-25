@@ -1,6 +1,6 @@
 # Sound classification - Neural Network Models
 
-Algorithms for mosquito flapping audio classification based on deep neural networks.
+Este repositório contém o código implementado para a classificação de áudios de mosquitos utilizando redes neurais profundas. Inclui algoritmos de ponta e técnicas avançadas empregadas no estudo, oferecendo uma base robusta para a análise e categorização de padrões acústicos complexos. O código disponibilizado visa facilitar a replicação dos experimentos e a aplicação das metodologias de última geração no processamento de áudio e bioacústica.
 
 
 
