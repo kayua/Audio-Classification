@@ -1,14 +1,17 @@
 # Sound classification - Neural Network Models
+---------------------
+This repository contains the implemented code for the classification of mosquito audios using deep neural networks. It includes state-of-the-art algorithms and advanced techniques employed in the study, providing a robust basis for the analysis and categorization of complex acoustic patterns. 
 
-Este repositório contém o código implementado para a classificação de áudios de mosquitos utilizando redes neurais profundas. Inclui algoritmos de ponta e técnicas avançadas empregadas no estudo, oferecendo uma base robusta para a análise e categorização de padrões acústicos complexos. O código disponibilizado visa facilitar a replicação dos experimentos e a aplicação das metodologias de última geração no processamento de áudio e bioacústica.
 
-
-
-![Spectrogramas](Layout/AudioSegments.png?raw=true "Examples of traces: ground truth (obtained with 27 monitors), failed (obtained with 7 monitors/20 failed), and recovered (using NN).")
+![Spectrogramas](Layout/AudioSegments.png?raw=true "")
 [View original publication](https://www.sciencedirect.com/science/article/pii/S1746809424004002)
+
+The code made available aims to facilitate the replication of the experiments and the application of state-of-the-art methodologies in audio processing and bioacoustics.
+
+---------------------
 ## Neural Network Topologies
 
-Six different deep neural network topologies are implemented and evaluated for the problem of identifying mosquitoes from the audio emitted by their wings.
+This repository contains the implementation and evaluation of six distinct deep neural network topologies for audio recognition. Each topology was developed for the analysis and identification of specific acoustic patterns in the audio emitted by mosquito wings, providing a robust technical basis for the comparative evaluation of the proposed solutions.
 ### Original Papers:
 
 1. Audio Spectrogram Transformer [https://arxiv.org/abs/2104.01778]
@@ -17,7 +20,8 @@ Six different deep neural network topologies are implemented and evaluated for t
 4. Wav2Vec2 [https://arxiv.org/abs/2006.11477]
 5. Residual [https://doi.org/10.1016/j.bspc.2024.106342]
 6. MLP [https://ieeexplore.ieee.org/document/8942209]
-
+---------------------
+### Models:
 <table>
     <tbody>
         <tr>

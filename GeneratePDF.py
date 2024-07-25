@@ -42,8 +42,10 @@ def convert_html_to_pdf(html_file_path, pdf_file_path):
     options = {
         'no-outline': None,
         'enable-local-file-access': None,
-        'margin-top': '20mm',  # Margin superior
-        'margin-bottom': '20mm'  # Margin inferior
+        'margin-top': '22mm',  # Margin superior
+        'margin-bottom': '20mm',  # Margin inferior
+        'margin-left': '19mm',
+        'margin-right': '19mm'
     }
 
     try:
