@@ -76,7 +76,7 @@ Impact of the number of epochs on average error for Dense topology (arrangements
 </table>
 
 ### Confusion Matrices
-Texto de exemplo
+Multiclass confusion matrices for each of the evaluated models. The configurations were defined based on the best configuration found among those evaluated.
 <table>
     <tbody> 
         <tr>
