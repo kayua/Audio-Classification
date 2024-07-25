@@ -75,8 +75,33 @@ Impact of the number of epochs on average error for Dense topology (arrangements
 
 </table>
 
+### Confusion Matrices
+Texto de exemplo
+<table>
+    <tbody> 
+        <tr>
+            <th width="10%">AST Topology</th>
+            <th width="10%">LSTM Topology</th>
+            <th width="10%">Conformer Topology</th>
+        </tr>
+        <tr>
+            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/ConfusionMatrices_AST.png" alt="2018-06-04 4 33 16" style="max-width:100%;"></td>
+            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/ConfusionMatrices_LSTM.png" alt="2018-06-04 4 40 06" style="max-width:100%;"></td>
+            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/ConfusionMatrices_Conformer.png" alt="2018-06-04 4 43 02" style="max-width:100%;"></td>
+        </tr>
+   <tbody> 
+        <tr>
+            <th width="10%">Wav2Vec2</th>
+            <th width="10%">Residual</th>
+            <th width="10%">MLP</th>
+        </tr>
+        <tr>
+            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/dense_error.png" alt="2018-06-04 4 33 16" style="max-width:100%;"></td>
+            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/ConfusionMatrices_Residual.png" alt="2018-06-04 4 40 06" style="max-width:100%;"></td>
+            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/conv_error.png" alt="2018-06-04 4 43 02" style="max-width:100%;"></td>
+        </tr>
 
-
+</table>
 
 ###  Parameter Sensitivity Analysis
 
