@@ -8,7 +8,15 @@ Algorithms for mosquito flapping audio classification based on deep neural netwo
 [View original publication](https://www.sciencedirect.com/science/article/pii/S1746809424004002)
 ## Neural Network Topologies
 
-Six Neural Network topologies are evaluate. Each neural network is composed of input, intermediate (also known as hidden layers), and output structures. Below, we provide more details of each proposed neural network topology.
+Six different deep neural network topologies are implemented and evaluated for the problem of identifying mosquitoes from the audio emitted by their wings.
+## Original Papers:
+
+1. Audio Spectrogram Transformer [https://arxiv.org/abs/2104.01778]
+2. Long Short Term Memory [https://www.bioinf.jku.at/publications/older/2604.pdf]
+3. Conformer [https://arxiv.org/abs/2005.08100]
+4. Wav2Vec2 [https://arxiv.org/abs/2006.11477]
+5. Residual [https://doi.org/10.1016/j.bspc.2024.106342]
+6. MLP [https://ieeexplore.ieee.org/document/8942209]
 
 <table>
     <tbody>
@@ -67,9 +75,6 @@ Impact of the number of epochs on average error for Dense topology (arrangements
 
 </table>
 
-## Original Papers:
-
-1. Audio Spectrogram Transformer [https://arxiv.org/abs/2104.01778]
 
 
 
