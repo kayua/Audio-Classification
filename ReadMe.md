@@ -57,8 +57,7 @@ This repository contains the implementation and evaluation of six distinct deep 
 ---------------------
 ### Dataset for Experiments RAW
 
-Description of the datasets used for training and validating the models as well as the link to obtain them.
-
+Description of the datasets used to train and validate the models, as well as the link to obtain them. The table below details the raw dataset obtained.
 <table>
     <tbody> 
         <tr>
