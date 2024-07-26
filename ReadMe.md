@@ -152,18 +152,16 @@ Multiclass confusion matrices for each of the evaluated models. The configuratio
 
 </table>
 
-
-| Parameter                  | Description                                 | Evaluated Value     |
-|----------------------------|---------------------------------------------|---------------------|
-| **Epochs**                 | Total number of training epochs             | [Value]             |
-| **Learning Rate**          | Learning rate used                          | [Value]             |
-| **Loss Function**          | Loss function employed                      | [Value]             |
-| **Optimization Algorithm** | Optimization algorithm used                 | [Value]             |
-| **Number of Folds**        | Number of folds for cross-validation        | [Value]             |
-| **Batch Size**             | Batch size for training                     | [Value]             |
-| **Activation Function**    | Activation function used                    | [Value]             |
-| **Normalization Method**   | Method of data normalization                | [Value]             |
-
+## Training Parameters
+### Parameters evaluated
+| Parameter                  | Description                                 | Evaluated Value            |
+|----------------------------|---------------------------------------------|----------------------------|
+| **Epochs**                 | Total number of training epochs             | [10, 20, 30]               |
+| **Learning Rate**          | Learning rate used                          | [0.1, 0.01, 0.001]         |
+| **Loss Function**          | Loss function employed                      | [Categorical Cross-Entropy] |
+| **Optimization Algorithm** | Optimization algorithm used                 | [Adam]                     |
+| **Number of Folds**        | Number of folds for cross-validation        | [10]                       |
+| **Batch Size**             | Batch size for training                     | [16, 32, 64]               |
 
 
 
