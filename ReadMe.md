@@ -88,7 +88,9 @@ Description of the datasets used for training and validating the models as well 
 
 
 
-### Fitting Analysis
+## Fitting Analysis
+
+---------------------
 Impact of the number of epochs on average error for Dense topology (arrangements A=3, window width W=11), LSTM topology (arrangements A=3, window width W=11), and Conv. topology (arrangements A=8, squared window width W=H=256).
 
 <table>
@@ -99,9 +101,9 @@ Impact of the number of epochs on average error for Dense topology (arrangements
             <th width="10%">Conformer Topology</th>
         </tr>
         <tr>
-            <td><img src="Layout/dense_error.png" alt="" style="max-width:100%;"></td>
-            <td><img src="Layout/lstm_error.png" alt="" style="max-width:100%;"></td>
-            <td><img src="Layout/conv_error.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/AST_loss.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/LSTM_loss.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/Conformer_loss.png" alt="" style="max-width:100%;"></td>
         </tr>
    <tbody> 
         <tr>
@@ -110,9 +112,9 @@ Impact of the number of epochs on average error for Dense topology (arrangements
             <th width="10%">MLP</th>
         </tr>
         <tr>
-            <td><img src="Layout/dense_error.png" alt="" style="max-width:100%;"></td>
-            <td><img src="Layout/lstm_error.png" alt="" style="max-width:100%;"></td>
-            <td><img src="Layout/conv_error.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/Wav2Vec2_loss.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/Residual_loss.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/Dense_loss.png" alt="" style="max-width:100%;"></td>
         </tr>
 
 </table>
