@@ -71,7 +71,8 @@ Description of the datasets used to train and validate the models, as well as th
 
 ### Dataset for Experiments Processed
 
-Description of the datasets used for training and validating the models as well as the link to obtain them.
+Description of the datasets used to train and validate the models, as well as the link to obtain them. The table below details the processed dataset obtained.
+
 
 <table>
     <tbody> 
@@ -84,15 +85,32 @@ Description of the datasets used for training and validating the models as well 
 
 </table>
 
+## Training Parameters
+---------------------
 
+Definition of general parameters used for the evaluation. The parameters were chosen to obtain the fairest possible configuration with all models. The selection process considered various factors to ensure that the evaluation metrics are unbiased and provide an accurate representation of each model's performance under similar conditions. This approach ensures that comparisons between models are valid and meaningful.
 
+### Parameters evaluated
+| Parameter                  | Description                          | Evaluated Value           |
+|----------------------------|--------------------------------------|---------------------------|
+| **Epochs**                 | Total number of training epochs      | [10, 20, 30]              |
+| **Learning Rate**          | Learning rate used                   | [0.1, 0.01, 0.001]        |
+| **Loss Function**          | Loss function employed               | [Categorical Cross-Entropy] |
+| **Optimization Algorithm** | Optimization algorithm used          | [Adam]                    |
+| **Number of Folds**        | Number of folds for cross-validation | [10]                      |
+| **Batch Size**             | Batch size for training              | [32]                      |
+| **Sample Rate**            | Sample rate of sounds                | [8000]                    |
+| **Segment Length**         | Length of sound segment              | [40, 60]                  |
 
 ## Fitting Analysis
 
+This section is dedicated to the evaluation of models, providing a comprehensive analysis of training curves, confusion matrices, and performance metrics. Through this approach, we ensure a deep understanding of each model's strengths and weaknesses, allowing for continuous adjustments and improvements.
+
 ---------------------
 ### Training Curve
+Visualization of the training curves for each of the six model topologies, showing both the training curve and the validation curve. Using cross entropy as a metric, these curves allow a detailed evaluation of the performance of two models and are used to identify possible problems during training, such as overfitting.
 
-Visualization of the training curves for each of the six model topologies, showing both the training curve and the validation curve. Using cross entropy as a metric, these curves allow a detailed evaluation of the performance of two models and are used to identify possible problems during training, such as non-convergence or overfitting.
+
 <table>
     <tbody> 
         <tr>
@@ -151,20 +169,6 @@ Multiclass confusion matrices for each of the evaluated models. The configuratio
 
 </table>
 
-## Training Parameters
----------------------
-
-### Parameters evaluated
-| Parameter                  | Description                                 | Evaluated Value            |
-|----------------------------|---------------------------------------------|----------------------------|
-| **Epochs**                 | Total number of training epochs             | [10, 20, 30]               |
-| **Learning Rate**          | Learning rate used                          | [0.1, 0.01, 0.001]         |
-| **Loss Function**          | Loss function employed                      | [Categorical Cross-Entropy] |
-| **Optimization Algorithm** | Optimization algorithm used                 | [Adam]                     |
-| **Number of Folds**        | Number of folds for cross-validation        | [10]                       |
-| **Batch Size**             | Batch size for training                     | [16, 32, 64]               |
-
-
 
 ### Comparing our Neural Networks
 Comparison of topologies MLP, LSTM (LS), and CNN for probabilistic injected failure and monitoring injected failure.
@@ -179,37 +183,6 @@ Comparison of topologies MLP, LSTM (LS), and CNN for probabilistic injected fail
         
 </table>
 
-### Comparison with the State-of-the-Art (Convolutional vs Probabilistic)
-
-Comparison between the best neural network model and state-of-the-art probabilistic technique. Values obtained for probabilistic error injection and monitoring error injection.
-<table>
-    <tbody>
-        <tr>
-            <th width="20%">Convolutional vs Probabilistic</th>
-        </tr>
-        <tr>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/results.png" alt="2018-06-04 4 33 16" style="max-width:120%;"></td>
-        </tr>
-
-
-</table>
-
-### Qualitative Analysis
-
-Impact, in terms of number (left) and duration (right) of a trace (S1) failed (Fmon = 20) and regenerated using the proposed BB-based (topology=Conv., threshold α =0.50, arrangements A =8, squared window width W = H =256) and prior probabilistic-based (threshold α =0.75).
-
-<table>
-    <tbody> 
-        <tr>
-            <th width="10%">Sessions Duration</th>
-            <th width="10%">Number Sessions</th>
-        </tr>
-        <tr>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/CDF_duration.png" alt="2018-06-04 4 33 16" style="max-width:100%;"></td>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/CDF_number_sessions.png" alt="2018-06-04 4 40 06" style="max-width:100%;"></td>
-        </tr>
-        
-</table>
 
 ## Steps to Install:
 ---------------------
@@ -221,25 +194,13 @@ Impact, in terms of number (left) and duration (right) of a trace (S1) failed (F
 2. Installation of application and internal dependencies
     - git clone [https://github.com/kayua/ModelsAudioClassification]
     - pip install -r requirements.txt
-    
-3. Test installation:
-    - python3 main.py -h
 
-
+   
 ## Run experiments:
 ---------------------
 
 ###  Run (all F_prob experiments)
-`python3 run_jnsm_mif.py -c lstm`
-
-### Run (only one F_prob scenario)
-`python3 main.py`
-
-###  Run (all F_mon experiments)
-`python3 run_mif.py -c lstm`
-
-### Run (only one F_mon scenario)
-`python3 main_mif.py`
+`python3 Evaluation.py`
 
 
 ### Input parameters:
