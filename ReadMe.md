@@ -6,7 +6,7 @@ This repository contains the implemented code for the classification of mosquito
 ![Spectrogramas](Layout/AudioSegments.png?raw=true "")
 [View original publication](https://www.sciencedirect.com/science/article/pii/S1746809424004002)
 
-The code made available aims to facilitate the replication of the experiments and the application of state-of-the-art methodologies in audio processing and bioacoustics.
+The code made available aims to facilitate the replication of the experiments and the application of state-of-the-art methodologies in audio processing and bioacoustics. The implementation contains the definitions of the models, layers, blocks and loss functions necessary for the correct functioning of the models, as well as an evaluation framework that allows the analysis of the models' performance.
 
 ---------------------
 ## Neural Network Topologies
