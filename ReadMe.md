@@ -24,6 +24,8 @@ This repository contains the implementation and evaluation of six distinct deep 
 
 ---------------------
 ## Models:
+
+---------------------
 <table>
     <tbody>
         <tr>
@@ -52,8 +54,8 @@ This repository contains the implementation and evaluation of six distinct deep 
 </table>
 
 ## Experimental Evaluation
-
-### Dataset for Experiments
+---------------------
+### Dataset for Experiments RAW
 
 Description of the datasets used for training and validating the models as well as the link to obtain them.
 
@@ -67,6 +69,23 @@ Description of the datasets used for training and validating the models as well 
         </tr>
 
 </table>
+
+### Dataset for Experiments Processed
+
+Description of the datasets used for training and validating the models as well as the link to obtain them.
+
+<table>
+    <tbody> 
+        <tr>
+            <th width="10%">Dataset Description</th>
+        </tr>
+        <tr>
+            <td><img src="Layout/Dataset-Description.png" alt="" style="max-width:100%;"></td>
+        </tr>
+
+</table>
+
+
 
 
 ### Fitting Analysis
