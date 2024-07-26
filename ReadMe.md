@@ -152,20 +152,19 @@ Multiclass confusion matrices for each of the evaluated models. The configuratio
 
 </table>
 
-###  Parameter Sensitivity Analysis
 
-Parameter sensitivity of Conv. topology withuniform probabilistic injected failure Fprob =10%
-<table>
-    <tbody>
-        <tr>
-            <th width="20%">Convolutional Topology</th>
-        </tr>
-        <tr>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/sens_conv.png" alt="" style="max-width:50%;"></td>
-        </tr>
+| Parameter                  | Description                                 | Evaluated Value     |
+|----------------------------|---------------------------------------------|---------------------|
+| **Epochs**                 | Total number of training epochs             | [Value]             |
+| **Learning Rate**          | Learning rate used                          | [Value]             |
+| **Loss Function**          | Loss function employed                      | [Value]             |
+| **Optimization Algorithm** | Optimization algorithm used                 | [Value]             |
+| **Number of Folds**        | Number of folds for cross-validation        | [Value]             |
+| **Batch Size**             | Batch size for training                     | [Value]             |
+| **Activation Function**    | Activation function used                    | [Value]             |
+| **Normalization Method**   | Method of data normalization                | [Value]             |
 
 
-</table>
 
 
 ### Comparing our Neural Networks
@@ -174,11 +173,9 @@ Comparison of topologies MLP, LSTM (LS), and CNN for probabilistic injected fail
     <tbody> 
         <tr>
             <th width="10%">Probabilistic Injected Failure</th>
-            <th width="10%">Monitoring Injected Failure</th>
         </tr>
         <tr>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/comparison_nn_pif.png" alt="2018-06-04 4 33 16" style="max-width:100%;"></td>
-            <td><img src="https://github.com/kayua/Regenerating-Datasets-With-Convolutional-Network/blob/master/layout/comparison_nn_mif.png" alt="2018-06-04 4 40 06" style="max-width:101%;"></td>
+            <td><img src="Results/Evaluation_metrics.png" alt="" style="max-width:100%;"></td>
         </tr>
         
 </table>
