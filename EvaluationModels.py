@@ -8,12 +8,14 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+
 try:
     import sys
     import numpy
     import math
     import gc
     import subprocess
+    import argparse
     import seaborn as sns
     from typing import List
     from typing import Dict
@@ -50,6 +52,14 @@ DEFAULT_MATRIX_ANNOTATION_FONT_SIZE = 10
 DEFAULT_MATRIX_LABEL_FONT_SIZE = 12
 DEFAULT_MATRIX_TITLE_FONT_SIZE = 14
 DEFAULT_SHOW_PLOT = False
+DEFAULT_DATASET_DIRECTORY = "Dataset/"
+DEFAULT_NUMBER_EPOCHS = 2
+DEFAULT_BATCH_SIZE = 32
+DEFAULT_NUMBER_SPLITS = 2
+DEFAULT_LOSS = 'sparse_categorical_crossentropy'
+DEFAULT_SAMPLE_RATE = 8000
+DEFAULT_OVERLAP = 2
+DEFAULT_NUMBER_CLASSES = 4
 
 
 class EvaluationModels:
@@ -250,14 +260,16 @@ class EvaluationModels:
             plt.close()
 
     @staticmethod
-    def train_and_collect_metrics(model_class, dataset_training_evaluation):
+    def train_and_collect_metrics(model_class, dataset_directory, number_epochs, batch_size, number_splits, loss,
+                                  sample_rate, overlap, number_classes):
         instance = model_class()
-        metrics, history, matrices = instance.train(dataset_training_evaluation)
+        metrics, history, matrices = instance.train(dataset_directory, number_epochs, batch_size, number_splits,
+                                                    loss, sample_rate, overlap, number_classes)
         gc.collect()
         return metrics, history, matrices
 
-    def run(self, models, dataset_directory, number_epochs=2, batch_size=32, number_splits=2,
-            loss='sparse_categorical_crossentropy', sample_rate=8000, overlap=2, number_classes=4):
+    def run(self, models, dataset_directory, number_epochs, batch_size, number_splits, loss, sample_rate,
+            overlap, number_classes):
 
         for model_class in models:
             metrics, history, matrices = self.train_and_collect_metrics(model_class=model_class,
@@ -304,11 +316,39 @@ class EvaluationModels:
             return e.returncode
 
 
-InstanceEvaluation = EvaluationModels()
+def main():
+    parser = argparse.ArgumentParser(description='Run model training with specified parameters.')
+    parser.add_argument('--dataset_directory', type=str, default=DEFAULT_DATASET_DIRECTORY,
+                        help='Path to the dataset directory.')
+    parser.add_argument('--number_epochs', type=int, default=DEFAULT_NUMBER_EPOCHS,
+                        help='Number of epochs for training.')
+    parser.add_argument('--batch_size', type=int, default=DEFAULT_BATCH_SIZE,
+                        help='Batch size for training.')
+    parser.add_argument('--number_splits', type=int, default=DEFAULT_NUMBER_SPLITS,
+                        help='Number of splits for dataset.')
+    parser.add_argument('--loss', type=str, default=DEFAULT_LOSS,
+                        help='Loss function to use.')
+    parser.add_argument('--sample_rate', type=int, default=DEFAULT_SAMPLE_RATE,
+                        help='Sample rate for audio data.')
+    parser.add_argument('--overlap', type=int, default=DEFAULT_OVERLAP,
+                        help='Overlap for audio processing.')
+    parser.add_argument('--number_classes', type=int, default=DEFAULT_NUMBER_CLASSES,
+                        help='Number of classes in the dataset.')
 
-model_classes = [AudioWav2Vec2, AudioLSTM, Conformer, ResidualModel, AudioAST, AudioDense]
+    args = parser.parse_args()
 
-# Dataset
-dataset = 'Dataset'
+    InstanceEvaluation = EvaluationModels()
 
-InstanceEvaluation.run(model_classes, dataset)
+    InstanceEvaluation.run(models=[AudioWav2Vec2, AudioLSTM, Conformer, ResidualModel, AudioAST, AudioDense],
+                           dataset_directory=args.dataset_directory,
+                           number_epochs=args.number_epochs,
+                           batch_size=args.batch_size,
+                           number_splits=args.number_splits,
+                           loss=args.loss,
+                           sample_rate=args.sample_rate,
+                           overlap=args.overlap,
+                           number_classes=args.number_classes)
+
+
+if __name__ == '__main__':
+    main()
