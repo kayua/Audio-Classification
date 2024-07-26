@@ -13,7 +13,7 @@ try:
     import numpy
     import math
     import gc
-
+    import subprocess
     import seaborn as sns
     from typing import List
     from typing import Dict
@@ -176,7 +176,7 @@ class EvaluationModels:
 
         # Save the plot to a file
         plt.tight_layout()
-        plt.savefig(file_name)
+        plt.savefig(f'{file_name}metrics.png')
         plt.close()
 
     @staticmethod
@@ -225,8 +225,9 @@ class EvaluationModels:
             else:
                 plt.savefig(file_path)
             plt.close()
+
     @staticmethod
-    def plot_and_save_loss(history_dict_list):
+    def plot_and_save_loss(history_dict_list, path_output):
         for history_dict in history_dict_list:
             model_name = history_dict['Name']
             history = history_dict['History']
@@ -245,7 +246,7 @@ class EvaluationModels:
             plt.ylabel('Loss')
             plt.legend()
 
-            plt.savefig(f'{model_name}_loss.png')
+            plt.savefig(f'{path_output}{model_name}_loss.png')
             plt.close()
 
     @staticmethod
@@ -255,19 +256,52 @@ class EvaluationModels:
         gc.collect()
         return metrics, history, matrices
 
-    def run(self, models, dataset_directory):
+    def run(self, models, dataset_directory, number_epochs=2, batch_size=32, number_splits=2,
+            loss='sparse_categorical_crossentropy', sample_rate=8000, overlap=2, number_classes=4):
+
         for model_class in models:
-            metrics, history, matrices = self.train_and_collect_metrics(model_class, dataset_directory)
+            metrics, history, matrices = self.train_and_collect_metrics(model_class=model_class,
+                                                                        dataset_directory=dataset_directory,
+                                                                        number_epochs=number_epochs,
+                                                                        batch_size=batch_size,
+                                                                        number_splits=number_splits,
+                                                                        loss=loss,
+                                                                        sample_rate=sample_rate,
+                                                                        overlap=overlap,
+                                                                        number_classes=number_classes)
             self.mean_metrics.append(metrics)
             self.mean_history.append(history)
             self.mean_matrices.append(matrices)
 
         self.plot_confusion_matrices(self.mean_matrices, "Results/")
         self.plot_comparative_metrics(self.mean_metrics, "Results/")
-        self.plot_and_save_loss(self.mean_history)
+        self.plot_and_save_loss(self.mean_history, "Results/")
+        self.run_python_script('--output', "TestFile.pdf")
 
     def get_results(self):
         return self.mean_metrics, self.mean_history, self.mean_matrices
+
+    @staticmethod
+    def run_python_script(*args) -> int:
+        try:
+            # Prepare the command to run the script
+            command = ['python3', 'GeneratePDF.py'] + list(args)
+
+            # Execute the command
+            result = subprocess.run(command, check=True, capture_output=True, text=True)
+
+            # Print standard output and standard error
+            print("Standard Output:\n", result.stdout)
+            if result.stderr:
+                print("Standard Error:\n", result.stderr)
+
+            return result.returncode
+
+        except subprocess.CalledProcessError as e:
+            print(f"An error occurred while executing the script: {e}")
+            print("Standard Output:\n", e.stdout)
+            print("Standard Error:\n", e.stderr)
+            return e.returncode
 
 
 InstanceEvaluation = EvaluationModels()

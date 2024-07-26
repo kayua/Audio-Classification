@@ -1,3 +1,5 @@
+import argparse
+
 import markdown
 import pdfkit
 import os
@@ -55,18 +57,26 @@ def convert_html_to_pdf(html_file_path, pdf_file_path):
         print(f'Error converting HTML to PDF: {e}')
 
 if __name__ == '__main__':
-    # Paths for input and output files
-    md_file_path = 'ReadMe.md'
-    html_file_path = 'temp.html'
-    pdf_file_path = 'output.pdf'
+    # Criação do parser de argumentos
+    parser = argparse.ArgumentParser(description='Convert Markdown to PDF.')
+    parser.add_argument('--input', type=str, default='ReadMe.md', help='Path to the input Markdown file.')
+    parser.add_argument('--output', type=str, default='output.pdf', help='Path to the output PDF file.')
 
-    # Convert markdown to HTML
+    # Parse dos argumentos
+    args = parser.parse_args()
+
+    # Paths para arquivos de entrada e saída
+    md_file_path = args.input
+    pdf_file_path = args.output
+    html_file_path = 'temp.html'
+
+    # Convert Markdown to HTML
     convert_md_to_html(md_file_path, html_file_path)
 
     # Convert HTML to PDF
     convert_html_to_pdf(html_file_path, pdf_file_path)
 
-    # Remove temporary HTML file
+    # Remove arquivo temporário HTML
     os.remove(html_file_path)
 
     print(f'Success: The PDF has been generated at {pdf_file_path}.')

@@ -258,10 +258,37 @@ class AudioLSTM(MetricsCalculator):
 
         return array_features, numpy.array(list_labels, dtype=numpy.int32)
 
-    def train(self, train_data_directory: str, number_epochs: int = None, batch_size: int = None,
-              number_splits: int = None) -> tuple:
+    def train(self, dataset_directory, number_epochs, batch_size, number_splits,
+              loss, sample_rate, overlap, number_classes) -> tuple:
+        """
+        Trains the model using cross-validation.
 
-        features, labels = self.load_data(train_data_directory)
+        Parameters
+        ----------
+        train_data_directory
+            Directory containing the training data.
+        number_epochs : int, optional
+            Number of training epochs.
+        batch_size : int, optional
+            Batch size for training.
+        number_splits : int, optional
+            Number of splits for cross-validation.
+
+        Returns
+        -------
+        tuple
+            A tuple containing the mean metrics and the training history.
+        """
+        # Use default values if not provided
+        self.number_epochs = number_epochs or self.number_epochs
+        self.number_splits = number_splits or self.number_splits
+        self.size_batch = batch_size or self.size_batch
+        self.loss_function = loss or self.loss_function
+        self.sample_rate = sample_rate or self.sample_rate
+        self.overlap = overlap or overlap
+        self.number_classes = number_classes or self.number_classes
+
+        features, labels = self.load_data(dataset_directory)
         self.number_epochs = number_epochs or self.number_epochs
         self.size_batch = batch_size or self.size_batch
         self.number_splits = number_splits or self.number_splits

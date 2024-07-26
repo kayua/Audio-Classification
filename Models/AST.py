@@ -495,8 +495,8 @@ class AudioAST(MetricsCalculator):
 
         return numpy.array(array_features, dtype=numpy.float32), array_labels
 
-    def train(self, train_data_directory: str, number_epochs: int = None, batch_size: int = None,
-              number_splits: int = None) -> tuple:
+    def train(self, dataset_directory, number_epochs, batch_size, number_splits,
+              loss, sample_rate, overlap, number_classes) -> tuple:
         """
         Trains the model using cross-validation.
 
@@ -520,9 +520,13 @@ class AudioAST(MetricsCalculator):
         number_epochs = number_epochs or self.number_epochs
         number_splits = number_splits or self.number_splits
         batch_size = batch_size or self.size_batch
+        self.loss_function = loss or self.loss_function
+        self.sample_rate = sample_rate or self.sample_rate
+        self.overlap = overlap or overlap
+        self.number_classes = number_classes or self.number_classes
 
         # Load the training file paths and labels
-        features, labels = self.load_dataset(train_data_directory)
+        features, labels = self.load_dataset(dataset_directory)
 
         number_patches = features.shape[1]
         metrics_list, confusion_matriz_list = [], []

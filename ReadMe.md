@@ -119,7 +119,7 @@ Visualization of the training curves for each of the six model topologies, showi
             <th width="10%">Conformer Topology</th>
         </tr>
         <tr>
-            <td><img src="Results/AST_loss.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/AudioSpectrogramTransformer_loss.png" alt="" style="max-width:100%;"></td>
             <td><img src="Results/LSTM_loss.png" alt="" style="max-width:100%;"></td>
             <td><img src="Results/Conformer_loss.png" alt="" style="max-width:100%;"></td>
         </tr>
@@ -131,8 +131,8 @@ Visualization of the training curves for each of the six model topologies, showi
         </tr>
         <tr>
             <td><img src="Results/Wav2Vec2_loss.png" alt="" style="max-width:100%;"></td>
-            <td><img src="Results/Residual_loss.png" alt="" style="max-width:100%;"></td>
-            <td><img src="Results/Dense_loss.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/ResidualModel_loss.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/MLP_loss.png" alt="" style="max-width:100%;"></td>
         </tr>
 
 </table>
@@ -150,9 +150,9 @@ Multiclass confusion matrices for each of the evaluated models. The configuratio
             <th width="10%">Conformer Topology</th>
         </tr>
         <tr>
-            <td><img src="Layout/matrix_5.png" alt="" style="max-width:100%;"></td>
-            <td><img src="Layout/matrix_2.png" alt="" style="max-width:100%;"></td>
-            <td><img src="Layout/matrix_3.png" alt="2" style="max-width:100%;"></td>
+            <td><img src="Results/matrix_5.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/matrix_2.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/matrix_3.png" alt="2" style="max-width:100%;"></td>
         </tr>
    <tbody> 
         <tr>
@@ -161,9 +161,9 @@ Multiclass confusion matrices for each of the evaluated models. The configuratio
             <th width="10%">MLP</th>
         </tr>
         <tr>
-            <td><img src="Layout/matrix_1.png" alt="" style="max-width:100%;"></td>
-            <td><img src="Layout/matrix_4.png" alt="" style="max-width:100%;"></td>
-            <td><img src="Layout/matrix_6.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/matrix_1.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/matrix_4.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/matrix_6.png" alt="" style="max-width:100%;"></td>
         </tr>
 
 </table>
@@ -177,7 +177,7 @@ Comparison of topologies MLP, LSTM (LS), and CNN for probabilistic injected fail
             <th width="10%">Probabilistic Injected Failure</th>
         </tr>
         <tr>
-            <td><img src="Results/Evaluation_metrics.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/metrics.png" alt="" style="max-width:100%;"></td>
         </tr>
         
 </table>
