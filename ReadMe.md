@@ -153,6 +153,8 @@ Multiclass confusion matrices for each of the evaluated models. The configuratio
 </table>
 
 ## Training Parameters
+---------------------
+
 ### Parameters evaluated
 | Parameter                  | Description                                 | Evaluated Value            |
 |----------------------------|---------------------------------------------|----------------------------|
