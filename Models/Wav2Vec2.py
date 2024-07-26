@@ -146,6 +146,7 @@ class AudioWav2Vec2(MetricsCalculator):
         # Dense layer
         dense_layer = TimeDistributed(Dense(self.number_classes,
                                             activation=self.intermediary_layer_activation))(flatten_flow)
+
         def create_mask(seq_len):
             mask = tensorflow.linalg.band_part(tensorflow.ones((seq_len, seq_len)), -1, 0)
             return mask
@@ -310,13 +311,13 @@ class AudioWav2Vec2(MetricsCalculator):
         mean_metrics = {
             'model_name': self.model_name,
             'Acc.': {'value': numpy.mean([metric['Accuracy'] for metric in metrics_list]),
-                         'std': numpy.std([metric['Accuracy'] for metric in metrics_list])},
+                     'std': numpy.std([metric['Accuracy'] for metric in metrics_list])},
             'Prec.': {'value': numpy.mean([metric['Precision'] for metric in metrics_list]),
-                          'std': numpy.std([metric['Precision'] for metric in metrics_list])},
+                      'std': numpy.std([metric['Precision'] for metric in metrics_list])},
             'Rec.': {'value': numpy.mean([metric['Recall'] for metric in metrics_list]),
-                       'std': numpy.std([metric['Recall'] for metric in metrics_list])},
+                     'std': numpy.std([metric['Recall'] for metric in metrics_list])},
             'F1.': {'value': numpy.mean([metric['F1-Score'] for metric in metrics_list]),
-                         'std': numpy.std([metric['F1-Score'] for metric in metrics_list])},
+                    'std': numpy.std([metric['F1-Score'] for metric in metrics_list])},
         }
 
         confusion_matrix_array = numpy.array(confusion_matriz_list)

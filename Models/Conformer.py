@@ -382,13 +382,13 @@ class Conformer(MetricsCalculator):
         mean_metrics = {
             'model_name': self.model_name,
             'Acc.': {'value': numpy.mean([metric['Accuracy'] for metric in metrics_list]),
-                         'std': numpy.std([metric['Accuracy'] for metric in metrics_list])},
+                     'std': numpy.std([metric['Accuracy'] for metric in metrics_list])},
             'Prec.': {'value': numpy.mean([metric['Precision'] for metric in metrics_list]),
-                          'std': numpy.std([metric['Precision'] for metric in metrics_list])},
+                      'std': numpy.std([metric['Precision'] for metric in metrics_list])},
             'Rec.': {'value': numpy.mean([metric['Recall'] for metric in metrics_list]),
-                       'std': numpy.std([metric['Recall'] for metric in metrics_list])},
+                     'std': numpy.std([metric['Recall'] for metric in metrics_list])},
             'F1.': {'value': numpy.mean([metric['F1-Score'] for metric in metrics_list]),
-                         'std': numpy.std([metric['F1-Score'] for metric in metrics_list])},
+                    'std': numpy.std([metric['F1-Score'] for metric in metrics_list])},
         }
 
         confusion_matrix_array = numpy.array(confusion_matriz_list)

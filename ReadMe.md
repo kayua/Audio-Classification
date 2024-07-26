@@ -174,7 +174,7 @@ This comprehensive analysis evaluates the performance of several models by compa
 <table>
     <tbody> 
         <tr>
-            <th width="10%">Probabilistic Injected Failure</th>
+            <th width="10%">Comparison Between Models.</th>
         </tr>
         <tr>
             <td><img src="Results/metrics.png" alt="" style="max-width:100%;"></td>

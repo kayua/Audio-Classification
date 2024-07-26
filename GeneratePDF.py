@@ -4,6 +4,7 @@ import markdown
 import pdfkit
 import os
 
+
 def convert_md_to_html(md_file_path, html_file_path):
     # Read the markdown file
     with open(md_file_path, 'r', encoding='utf-8') as md_file:
@@ -35,6 +36,7 @@ def convert_md_to_html(md_file_path, html_file_path):
     with open(html_file_path, 'w', encoding='utf-8') as html_file:
         html_file.write(html_content)
 
+
 def convert_html_to_pdf(html_file_path, pdf_file_path):
     # Path to wkhtmltopdf
     path_wkhtmltopdf = '/usr/bin/wkhtmltopdf'
@@ -55,6 +57,7 @@ def convert_html_to_pdf(html_file_path, pdf_file_path):
         pdfkit.from_file(html_file_path, pdf_file_path, configuration=config, options=options)
     except Exception as e:
         print(f'Error converting HTML to PDF: {e}')
+
 
 if __name__ == '__main__':
     # Criação do parser de argumentos
