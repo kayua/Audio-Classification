@@ -216,6 +216,7 @@ Impact, in terms of number (left) and duration (right) of a trace (S1) failed (F
 </table>
 
 ## Steps to Install:
+---------------------
 
 1. Upgrade and update
     - sudo apt-get update
@@ -230,6 +231,7 @@ Impact, in terms of number (left) and duration (right) of a trace (S1) failed (F
 
 
 ## Run experiments:
+---------------------
 
 ###  Run (all F_prob experiments)
 `python3 run_jnsm_mif.py -c lstm`
@@ -262,6 +264,7 @@ Impact, in terms of number (left) and duration (right) of a trace (S1) failed (F
 
 
 ## Requirements:
+---------------------
 
 `matplotlib 3.4.1`
 `tensorflow 2.4.1`
