@@ -5,31 +5,16 @@ __author__ = 'unknown'
 __email__ = 'unknown@unknown.com.br'
 __version__ = '{1}.{0}.{0}'
 __initial_data__ = '2024/07/17'
-__last_update__ = '2024/07/17'
+__last_update__ = '2024/07/26'
 __credits__ = ['unknown']
-
 
 try:
     import sys
-    import numpy
-    import math
+    import numpy as np
     import gc
     import subprocess
     import argparse
     import seaborn as sns
-    from typing import List
-    from typing import Dict
-    from typing import Tuple
-    from typing import Union
-    from typing import Optional
-
-    from Models.AST import AudioAST
-    from Models.LSTM import AudioLSTM
-    from Models.MLP import AudioDense
-    from Models.Conformer import Conformer
-    from Models.Wav2Vec2 import AudioWav2Vec2
-    from Models.ResidualModel import ResidualModel
-
     import matplotlib.pyplot as plt
     from sklearn.metrics import accuracy_score
     from sklearn.metrics import precision_score
@@ -37,13 +22,17 @@ try:
     from sklearn.metrics import f1_score
     from sklearn.metrics import roc_auc_score
     from sklearn.metrics import confusion_matrix
-
+    from Models.AST import AudioAST
+    from Models.LSTM import AudioLSTM
+    from Models.MLP import AudioDense
+    from Models.Conformer import Conformer
+    from Models.Wav2Vec2 import AudioWav2Vec2
+    from Models.ResidualModel import ResidualModel
 except ImportError as error:
     print(error)
     print("1. Install requirements:")
     print("  pip3 install --upgrade pip")
-    print("  pip3 install -r requirements.txt ")
-    print()
+    print("  pip3 install -r requirements.txt")
     sys.exit(-1)
 
 DEFAULT_MATRIX_FIGURE_SIZE = (5, 5)
@@ -60,157 +49,110 @@ DEFAULT_LOSS = 'sparse_categorical_crossentropy'
 DEFAULT_SAMPLE_RATE = 8000
 DEFAULT_OVERLAP = 2
 DEFAULT_NUMBER_CLASSES = 4
+DEFAULT_OUTPUT_DIRECTORY = "Results/"
+DEFAULT_PLOT_WIDTH = 12
+DEFAULT_PLOT_HEIGHT = 8
+DEFAULT_PLOT_BAR_WIDTH = 0.20
+DEFAULT_PLOT_CAP_SIZE = 10
 
 
 class EvaluationModels:
 
     def __init__(self):
-
         self.mean_metrics = []
         self.mean_history = []
         self.mean_matrices = []
-        pass
 
     @staticmethod
-    def calculate_accuracy(label_true: List[int], label_predicted: List[int]) -> float:
+    def calculate_accuracy(label_true, label_predicted):
         try:
             return accuracy_score(label_true, label_predicted)
         except Exception as e:
             raise ValueError(f"Error calculating accuracy: {e}")
 
     @staticmethod
-    def calculate_precision(label_true: List[int], label_predicted: List[int]) -> float:
+    def calculate_precision(label_true, label_predicted):
         try:
             return precision_score(label_true, label_predicted, average='weighted')
         except Exception as e:
             raise ValueError(f"Error calculating precision: {e}")
 
     @staticmethod
-    def calculate_recall(label_true: List[int], label_predicted: List[int]) -> float:
+    def calculate_recall(label_true, label_predicted):
         try:
             return recall_score(label_true, label_predicted, average='weighted')
         except Exception as e:
             raise ValueError(f"Error calculating recall: {e}")
 
     @staticmethod
-    def calculate_f1_score(label_true: List[int], label_predicted: List[int]) -> float:
+    def calculate_f1_score(label_true, label_predicted):
         try:
             return f1_score(label_true, label_predicted, average='weighted')
         except Exception as e:
             raise ValueError(f"Error calculating F1 score: {e}")
 
     @staticmethod
-    def calculate_auc(label_true: List[int], label_predicted_probability: List[float]) -> float:
+    def calculate_auc(label_true, label_predicted_probability):
         try:
             return roc_auc_score(label_true, label_predicted_probability, multi_class='ovr')
         except Exception as e:
             raise ValueError(f"Error calculating AUC: {e}")
 
     @staticmethod
-    def calculate_confusion_matrix(label_true: List[int], label_predicted: List[int]) -> Union[List[List[int]], None]:
+    def calculate_confusion_matrix(label_true, label_predicted):
         try:
             return confusion_matrix(label_true, label_predicted).tolist()
         except Exception as e:
             raise ValueError(f"Error calculating confusion matrix: {e}")
 
-    def calculate_metrics(self, label_true: List[int], label_predicted: List[int]
-                          ) -> Tuple[Dict[str, float], Union[List[List[int]], None]]:
-
+    def calculate_metrics(self, label_true, label_predicted):
         metrics = {}
-
         try:
             metrics['accuracy'] = self.calculate_accuracy(label_true, label_predicted)
             metrics['precision'] = self.calculate_precision(label_true, label_predicted)
             metrics['recall'] = self.calculate_recall(label_true, label_predicted)
             metrics['f1_score'] = self.calculate_f1_score(label_true, label_predicted)
-
             confusion_matrix_result = self.calculate_confusion_matrix(label_true, label_predicted)
-
         except ValueError as e:
             print(f"An error occurred while calculating metrics: {e}")
             return {}, None
-
         return metrics, confusion_matrix_result
 
     @staticmethod
-    def plot_comparative_metrics(dictionary_metrics_list, file_name):
-        """
-        Plots a comparative bar chart for accuracy, recall, f1-score, precision, and auc, and saves it to a file.
-
-        Parameters:
-            dictionary_metrics_list (List[Dict]): A list of dictionaries containing the list_metrics values,
-                                       their standard deviations, and the model_name names.
-            file_name (str): The path and name of the file to save the plot.
-        """
+    def plot_comparative_metrics(dictionary_metrics_list, file_name, width=12, height=8, bar_width=0.20, cap_size=10):
         list_metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score']
         base_colors = {'Accuracy': 'Blues', 'Precision': 'Greens', 'Recall': 'Reds', 'F1-Score': 'Purples'}
-
         number_metrics = len(list_metrics)
         number_models = len(dictionary_metrics_list)
+        fig, ax = plt.subplots(figsize=(width, height))
+        positions = np.arange(number_metrics)
 
-        # Initialize the figure and axis
-        fig, ax = plt.subplots(figsize=(12, 8))
-
-        # Set width of bar
-        bar_width = 0.20
-
-        # Set position of bar on X axis
-        positions = numpy.arange(number_metrics)
-
-        # Iterate through list_metrics and plot each
         for i, key_metric in enumerate(list_metrics):
-
             for j, model_name in enumerate(dictionary_metrics_list):
-
                 values = model_name[key_metric]['value']
                 stds = model_name[key_metric]['std']
                 color = plt.get_cmap(base_colors[key_metric])(j / (number_models - 1))
                 bar = ax.bar(positions[i] + j * bar_width, values, yerr=stds, color=color, width=bar_width,
-                             edgecolor='grey', capsize=10,
+                             edgecolor='grey', capsize=cap_size,
                              label=f"{model_name['model_name']}" if i == 0 else "")
-
-                # Add text on the top of each bar
                 for rect in bar:
                     height = rect.get_height()
                     ax.annotate(f'{height:.2f}', xy=(rect.get_x() + rect.get_width() / 2, height), xytext=(0, 10),
                                 textcoords="offset points", ha='center', va='bottom')
-
         ax.set_xlabel('Metric', fontweight='bold')
         ax.set_xticks([r + bar_width * (number_models - 1) / 2 for r in positions])
         ax.set_xticklabels(list_metrics)
-
-        # Add labels
         ax.set_ylabel('Score', fontweight='bold')
         ax.set_title('Comparative Metrics', fontweight='bold')
         ax.legend(loc='lower center', bbox_to_anchor=(0.5, -0.25), ncol=number_models)
-
-        # Save the plot to a file
         plt.tight_layout()
         plt.savefig(f'{file_name}metrics.png')
         plt.close()
 
     @staticmethod
-    def plot_confusion_matrices(confusion_matrix_list, file_name_path: str, fig_size: tuple = (5, 5),
-                                cmap: str = 'Blues', annot_font_size: int = 10, label_font_size: int = 12,
-                                title_font_size: int = 14, show_plot: bool = False):
-        """
-        Plots each confusion matrix separately and saves each plot to a file.
-
-        Parameters:
-            :param confusion_matrix_list: A list of dictionaries containing confusion matrices.
-            :param file_name_path: The file path for saving the plots. The file names will be generated based on this path.
-            :param fig_size: Size of the figure for each subplot (width, height).
-            :param cmap: Color map to use for the heatmap.
-            :param annot_font_size: Font size for the annotations in the heatmap.
-            :param label_font_size: Font size for the axis labels.
-            :param title_font_size: Font size for the subplot titles.
-            :param show_plot: Whether to display the plot or not.
-        """
-
-        # Loop through the list of confusion matrices
+    def plot_confusion_matrices(confusion_matrix_list, file_name_path, fig_size=(5, 5), cmap='Blues', annot_font_size=10, label_font_size=12, title_font_size=14, show_plot=False):
         for index, confusion_matrix_dictionary in enumerate(confusion_matrix_list):
-            confusion_matrix_instance = numpy.array(confusion_matrix_dictionary["confusion_matrix"])
-
+            confusion_matrix_instance = np.array(confusion_matrix_dictionary["confusion_matrix"])
             plt.figure(figsize=fig_size)
             sns.heatmap(
                 confusion_matrix_instance,
@@ -219,15 +161,12 @@ class EvaluationModels:
                 cmap=cmap,
                 xticklabels=confusion_matrix_dictionary["class_names"],
                 yticklabels=confusion_matrix_dictionary["class_names"],
-                annot_kws={"size": annot_font_size}  # Adjust annotation font size
+                annot_kws={"size": annot_font_size}
             )
-
             plt.xlabel('Predicted Labels', fontsize=label_font_size)
             plt.ylabel('True Labels', fontsize=label_font_size)
             title = confusion_matrix_dictionary.get("title", f'Confusion Matrix {index + 1}')
             plt.title(title, fontsize=title_font_size)
-
-            # Save each plot to a file
             file_path = f"{file_name_path}matrix_{index + 1}.png"
             plt.tight_layout()
             if show_plot:
@@ -241,36 +180,28 @@ class EvaluationModels:
         for history_dict in history_dict_list:
             model_name = history_dict['Name']
             history = history_dict['History']
-
             if 'loss' not in history:
                 continue
-
             plt.figure(figsize=(10, 6))
-
             for metric in history:
                 if 'loss' in metric:
                     plt.plot(history['loss'], label=f'Loss - {metric}')
-
             plt.title(f'Loss para o modelo {model_name}')
             plt.xlabel('Epochs')
             plt.ylabel('Loss')
             plt.legend()
-
             plt.savefig(f'{path_output}{model_name}_loss.png')
             plt.close()
 
     @staticmethod
-    def train_and_collect_metrics(model_class, dataset_directory, number_epochs, batch_size, number_splits, loss,
-                                  sample_rate, overlap, number_classes):
+    def train_and_collect_metrics(model_class, dataset_directory, number_epochs, batch_size, number_splits, loss, sample_rate, overlap, number_classes):
         instance = model_class()
         metrics, history, matrices = instance.train(dataset_directory, number_epochs, batch_size, number_splits,
                                                     loss, sample_rate, overlap, number_classes)
         gc.collect()
         return metrics, history, matrices
 
-    def run(self, models, dataset_directory, number_epochs, batch_size, number_splits, loss, sample_rate,
-            overlap, number_classes):
-
+    def run(self, models, dataset_directory, number_epochs, batch_size, number_splits, loss, sample_rate, overlap, number_classes, output_directory, plot_width, plot_height, plot_bar_width, plot_cap_size):
         for model_class in models:
             metrics, history, matrices = self.train_and_collect_metrics(model_class=model_class,
                                                                         dataset_directory=dataset_directory,
@@ -281,74 +212,68 @@ class EvaluationModels:
                                                                         sample_rate=sample_rate,
                                                                         overlap=overlap,
                                                                         number_classes=number_classes)
+
             self.mean_metrics.append(metrics)
             self.mean_history.append(history)
             self.mean_matrices.append(matrices)
 
-        self.plot_confusion_matrices(self.mean_matrices, "Results/")
-        self.plot_comparative_metrics(self.mean_metrics, "Results/")
-        self.plot_and_save_loss(self.mean_history, "Results/")
-        self.run_python_script('--output', "TestFile.pdf")
+        self.plot_comparative_metrics(dictionary_metrics_list=self.mean_metrics,
+                                      file_name=output_directory,
+                                      width=plot_width,
+                                      height=plot_height,
+                                      bar_width=plot_bar_width,
+                                      cap_size=plot_cap_size)
 
-    def get_results(self):
-        return self.mean_metrics, self.mean_history, self.mean_matrices
+        self.plot_confusion_matrices(confusion_matrix_list=self.mean_matrices,
+                                     file_name_path=output_directory,
+                                     fig_size=DEFAULT_MATRIX_FIGURE_SIZE,
+                                     cmap=DEFAULT_MATRIX_COLOR_MAP,
+                                     annot_font_size=DEFAULT_MATRIX_ANNOTATION_FONT_SIZE,
+                                     label_font_size=DEFAULT_MATRIX_LABEL_FONT_SIZE,
+                                     title_font_size=DEFAULT_MATRIX_TITLE_FONT_SIZE,
+                                     show_plot=DEFAULT_SHOW_PLOT)
 
-    @staticmethod
-    def run_python_script(*args) -> int:
-        try:
-            # Prepare the command to run the script
-            command = ['python3', 'GeneratePDF.py'] + list(args)
-
-            # Execute the command
-            result = subprocess.run(command, check=True, capture_output=True, text=True)
-
-            # Print standard output and standard error
-            print("Standard Output:\n", result.stdout)
-            if result.stderr:
-                print("Standard Error:\n", result.stderr)
-
-            return result.returncode
-
-        except subprocess.CalledProcessError as e:
-            print(f"An error occurred while executing the script: {e}")
-            print("Standard Output:\n", e.stdout)
-            print("Standard Error:\n", e.stderr)
-            return e.returncode
+        self.plot_and_save_loss(history_dict_list=self.mean_history, path_output=output_directory)
 
 
-def main():
-    parser = argparse.ArgumentParser(description='Run model training with specified parameters.')
-    parser.add_argument('--dataset_directory', type=str, default=DEFAULT_DATASET_DIRECTORY,
-                        help='Path to the dataset directory.')
-    parser.add_argument('--number_epochs', type=int, default=DEFAULT_NUMBER_EPOCHS,
-                        help='Number of epochs for training.')
-    parser.add_argument('--batch_size', type=int, default=DEFAULT_BATCH_SIZE,
-                        help='Batch size for training.')
-    parser.add_argument('--number_splits', type=int, default=DEFAULT_NUMBER_SPLITS,
-                        help='Number of splits for dataset.')
-    parser.add_argument('--loss', type=str, default=DEFAULT_LOSS,
-                        help='Loss function to use.')
-    parser.add_argument('--sample_rate', type=int, default=DEFAULT_SAMPLE_RATE,
-                        help='Sample rate for audio data.')
-    parser.add_argument('--overlap', type=int, default=DEFAULT_OVERLAP,
-                        help='Overlap for audio processing.')
-    parser.add_argument('--number_classes', type=int, default=DEFAULT_NUMBER_CLASSES,
-                        help='Number of classes in the dataset.')
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Model evaluation with metrics and confusion matrices.")
+    parser.add_argument("--dataset_directory", type=str, default=DEFAULT_DATASET_DIRECTORY,
+                        help="Directory containing the dataset.")
+    parser.add_argument("--number_epochs", type=int, default=DEFAULT_NUMBER_EPOCHS, help="Number of training epochs.")
+    parser.add_argument("--batch_size", type=int, default=DEFAULT_BATCH_SIZE, help="Size of the batches for training.")
+    parser.add_argument("--number_splits", type=int, default=DEFAULT_NUMBER_SPLITS,
+                        help="Number of splits for cross-validation.")
+    parser.add_argument("--loss", type=str, default=DEFAULT_LOSS, help="Loss function to use during training.")
+    parser.add_argument("--sample_rate", type=int, default=DEFAULT_SAMPLE_RATE, help="Sample rate of the audio files.")
+    parser.add_argument("--overlap", type=int, default=DEFAULT_OVERLAP, help="Overlap for the audio segments.")
+    parser.add_argument("--number_classes", type=int, default=DEFAULT_NUMBER_CLASSES,
+                        help="Number of classes in the dataset.")
+    parser.add_argument("--output_directory", type=str, default=DEFAULT_OUTPUT_DIRECTORY,
+                        help="Directory to save output files.")
+    parser.add_argument("--plot_width", type=float, default=DEFAULT_PLOT_WIDTH, help="Width of the plots.")
+    parser.add_argument("--plot_height", type=float, default=DEFAULT_PLOT_HEIGHT, help="Height of the plots.")
+    parser.add_argument("--plot_bar_width", type=float, default=DEFAULT_PLOT_BAR_WIDTH,
+                        help="Width of the bars in the bar plots.")
+    parser.add_argument("--plot_cap_size", type=float, default=DEFAULT_PLOT_CAP_SIZE,
+                        help="Capsize of the error bars in the bar plots.")
 
     args = parser.parse_args()
 
-    InstanceEvaluation = EvaluationModels()
+    available_models = [AudioAST, AudioLSTM, AudioDense, Conformer, AudioWav2Vec2, ResidualModel]
 
-    InstanceEvaluation.run(models=[AudioWav2Vec2, AudioLSTM, Conformer, ResidualModel, AudioAST, AudioDense],
-                           dataset_directory=args.dataset_directory,
-                           number_epochs=args.number_epochs,
-                           batch_size=args.batch_size,
-                           number_splits=args.number_splits,
-                           loss=args.loss,
-                           sample_rate=args.sample_rate,
-                           overlap=args.overlap,
-                           number_classes=args.number_classes)
-
-
-if __name__ == '__main__':
-    main()
+    evaluation = EvaluationModels()
+    evaluation.run(models=available_models,
+                   dataset_directory=args.dataset_directory,
+                   number_epochs=args.number_epochs,
+                   batch_size=args.batch_size,
+                   number_splits=args.number_splits,
+                   loss=args.loss,
+                   sample_rate=args.sample_rate,
+                   overlap=args.overlap,
+                   number_classes=args.number_classes,
+                   output_directory=args.output_directory,
+                   plot_width=args.plot_width,
+                   plot_height=args.plot_height,
+                   plot_bar_width=args.plot_bar_width,
+                   plot_cap_size=args.plot_cap_size)
