@@ -65,7 +65,7 @@ Description of the datasets used for training and validating the models as well 
             <th width="10%">Dataset Description</th>
         </tr>
         <tr>
-            <td><img src="Layout/Dataset-Description.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Layout/Dataset-Description-RAW.png" alt="" style="max-width:100%;"></td>
         </tr>
 
 </table>
@@ -80,7 +80,7 @@ Description of the datasets used for training and validating the models as well 
             <th width="10%">Dataset Description</th>
         </tr>
         <tr>
-            <td><img src="Layout/Dataset-Description.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Layout/Dataset-Description-Processed.png" alt="" style="max-width:100%;"></td>
         </tr>
 
 </table>
