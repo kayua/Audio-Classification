@@ -142,7 +142,7 @@ class ResidualModel(MetricsCalculator):
         if filters_per_block is None:
             filters_per_block = DEFAULT_FILTERS_PER_BLOCK
 
-        self.model_name = "Residual Model"
+        self.model_name = "ResidualModel"
         self.neural_network_model = None
         self.sample_rate = sample_rate
         self.size_batch = size_batch

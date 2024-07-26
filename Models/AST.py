@@ -157,7 +157,7 @@ class AudioAST(MetricsCalculator):
         self.projection_dimension = projection_dimension
         self.intermediary_activation = intermediary_activation
         self.audio_duration = audio_duration
-        self.model_name = "Audio Spectrogram Transformer"
+        self.model_name = "AudioSpectrogramTransformer"
         self.sound_file_format = file_extension
         self.decibel_scale_factor = decibel_scale_factor
         self.window_size_fft = window_size_fft

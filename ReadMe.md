@@ -141,7 +141,6 @@ Visualization of the training curves for each of the six model topologies, showi
 
 ---------------------
 ### Confusion Matrices
-
 Multiclass confusion matrices for each of the evaluated models. The configurations were defined based on the best configuration found among those evaluated.
 <table>
     <tbody> 
@@ -151,9 +150,9 @@ Multiclass confusion matrices for each of the evaluated models. The configuratio
             <th width="10%">Conformer Topology</th>
         </tr>
         <tr>
-            <td><img src="Layout/ConfusionMatrices_AST.png" alt="" style="max-width:100%;"></td>
-            <td><img src="Layout/ConfusionMatrices_LSTM.png" alt="" style="max-width:100%;"></td>
-            <td><img src="Layout/ConfusionMatrices_Conformer.png" alt="2" style="max-width:100%;"></td>
+            <td><img src="Layout/matrix_5.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Layout/matrix_2.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Layout/matrix_3.png" alt="2" style="max-width:100%;"></td>
         </tr>
    <tbody> 
         <tr>
@@ -162,9 +161,9 @@ Multiclass confusion matrices for each of the evaluated models. The configuratio
             <th width="10%">MLP</th>
         </tr>
         <tr>
-            <td><img src="Layout/ConfusionMatrices_Wav2Vec2.png" alt="" style="max-width:100%;"></td>
-            <td><img src="Layout/ConfusionMatrices_Residual.png" alt="" style="max-width:100%;"></td>
-            <td><img src="Layout/ConfusionMatrices_MLP.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Layout/matrix_1.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Layout/matrix_4.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Layout/matrix_6.png" alt="" style="max-width:100%;"></td>
         </tr>
 
 </table>

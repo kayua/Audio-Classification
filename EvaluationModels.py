@@ -55,6 +55,10 @@ DEFAULT_SHOW_PLOT = False
 class EvaluationModels:
 
     def __init__(self):
+
+        self.mean_metrics = []
+        self.mean_history = []
+        self.mean_matrices = []
         pass
 
     @staticmethod
@@ -180,11 +184,11 @@ class EvaluationModels:
                                 cmap: str = 'Blues', annot_font_size: int = 10, label_font_size: int = 12,
                                 title_font_size: int = 14, show_plot: bool = False):
         """
-        Plots multiple confusion matrices in a single figure.
+        Plots each confusion matrix separately and saves each plot to a file.
 
         Parameters:
             :param confusion_matrix_list: A list of dictionaries containing confusion matrices.
-            :param file_name_path: The name for the file to save the plot.
+            :param file_name_path: The file path for saving the plots. The file names will be generated based on this path.
             :param fig_size: Size of the figure for each subplot (width, height).
             :param cmap: Color map to use for the heatmap.
             :param annot_font_size: Font size for the annotations in the heatmap.
@@ -193,59 +197,34 @@ class EvaluationModels:
             :param show_plot: Whether to display the plot or not.
         """
 
-        number_matrices = len(confusion_matrix_list)
-
-        # Determine the number of rows and columns for subplots
-        if number_matrices <= 2:
-            rows, cols = 1, number_matrices
-        elif number_matrices == 3:
-            rows, cols = 1, 3
-        elif number_matrices == 4:
-            rows, cols = 2, 2
-        elif number_matrices == 5:
-            rows, cols = 3, 2
-        elif number_matrices == 6:
-            rows, cols = 2, 3
-        elif number_matrices == 7:
-            rows, cols = 3, 3
-        else:
-            rows, cols = math.ceil(number_matrices / 4), 4
-
-        fig, axes = plt.subplots(nrows=rows, ncols=cols, figsize=(fig_size[0] * cols, fig_size[1] * rows))
-
-        # Flatten axes array for easier iteration if there are multiple rows and columns
-        axes = axes.flatten() if number_matrices > 1 else [axes]
-
+        # Loop through the list of confusion matrices
         for index, confusion_matrix_dictionary in enumerate(confusion_matrix_list):
             confusion_matrix_instance = numpy.array(confusion_matrix_dictionary["confusion_matrix"])
-            ax = axes[index]
+
+            plt.figure(figsize=fig_size)
             sns.heatmap(
                 confusion_matrix_instance,
                 annot=True,
                 fmt='d',
                 cmap=cmap,
-                ax=ax,
                 xticklabels=confusion_matrix_dictionary["class_names"],
                 yticklabels=confusion_matrix_dictionary["class_names"],
                 annot_kws={"size": annot_font_size}  # Adjust annotation font size
             )
 
-            ax.set_xlabel('Predicted Labels', fontsize=label_font_size)
-            ax.set_ylabel('True Labels', fontsize=label_font_size)
+            plt.xlabel('Predicted Labels', fontsize=label_font_size)
+            plt.ylabel('True Labels', fontsize=label_font_size)
             title = confusion_matrix_dictionary.get("title", f'Confusion Matrix {index + 1}')
-            ax.set_title(title, fontsize=title_font_size)
+            plt.title(title, fontsize=title_font_size)
 
-        # Remove any unused subplots
-        for i in range(number_matrices, len(axes)):
-            fig.delaxes(axes[i])
-
-        plt.tight_layout()
-        if show_plot:
-            plt.show()
-        else:
-            plt.savefig(file_name_path)
-        plt.close()
-
+            # Save each plot to a file
+            file_path = f"{file_name_path}matrix_{index + 1}.png"
+            plt.tight_layout()
+            if show_plot:
+                plt.show()
+            else:
+                plt.savefig(file_path)
+            plt.close()
     @staticmethod
     def plot_and_save_loss(history_dict_list):
         for history_dict in history_dict_list:
@@ -269,48 +248,33 @@ class EvaluationModels:
             plt.savefig(f'{model_name}_loss.png')
             plt.close()
 
+    @staticmethod
+    def train_and_collect_metrics(model_class, dataset_training_evaluation):
+        instance = model_class()
+        metrics, history, matrices = instance.train(dataset_training_evaluation)
+        gc.collect()
+        return metrics, history, matrices
+
+    def run(self, models, dataset_directory):
+        for model_class in models:
+            metrics, history, matrices = self.train_and_collect_metrics(model_class, dataset_directory)
+            self.mean_metrics.append(metrics)
+            self.mean_history.append(history)
+            self.mean_matrices.append(matrices)
+
+        self.plot_confusion_matrices(self.mean_matrices, "Results/")
+        self.plot_comparative_metrics(self.mean_metrics, "Results/")
+        self.plot_and_save_loss(self.mean_history)
+
+    def get_results(self):
+        return self.mean_metrics, self.mean_history, self.mean_matrices
+
 
 InstanceEvaluation = EvaluationModels()
 
-Wav2Vec2_instance = AudioWav2Vec2()
-mean_metrics_Wav2Vec2, mean_history_Wav2Vec2, mean_matrices_Wav2Vec2 = Wav2Vec2_instance.train('Dataset')
-Wav2Vec2_instance = None
-gc.collect()
+model_classes = [AudioWav2Vec2, AudioLSTM, Conformer, ResidualModel, AudioAST, AudioDense]
 
-LSTM_instance = AudioLSTM()
-mean_metrics_LSTM, mean_history_LSTM, mean_matrices_LSTM = LSTM_instance.train('Dataset')
-LSTM_instance = None
-gc.collect()
+# Dataset
+dataset = 'Dataset'
 
-Conformer_instance = Conformer()
-mean_metrics_Conformer, mean_history_Conformer, mean_matrices_Conformer = Conformer_instance.train('Dataset')
-Conformer_instance = None
-gc.collect()
-
-Residual_instance = ResidualModel()
-mean_metrics_Residual, mean_history_Residual, mean_matrices_Residual = Residual_instance.train('Dataset')
-Residual_instance = None
-gc.collect()
-
-AST_instance = AudioAST()
-mean_metrics_AST, mean_history_AST, mean_matrices_AST = AST_instance.train('Dataset')
-AST_instance = None
-gc.collect()
-
-Dense_instance = AudioDense()
-mean_metrics_Dense, mean_history_Dense, mean_matrices_Dense = Dense_instance.train('Dataset')
-Dense_instance = None
-gc.collect()
-
-mean_metrics = [mean_metrics_Wav2Vec2, mean_metrics_LSTM, mean_metrics_Conformer,
-                mean_metrics_Residual, mean_metrics_AST, mean_metrics_Dense]
-
-mean_history = [mean_history_Wav2Vec2, mean_history_LSTM, mean_history_Conformer,
-                mean_history_Residual, mean_history_AST, mean_history_Dense]
-
-mean_matrices = [mean_matrices_Wav2Vec2, mean_matrices_LSTM, mean_matrices_Conformer,
-                 mean_matrices_Residual, mean_matrices_AST, mean_matrices_Dense]
-
-InstanceEvaluation.plot_confusion_matrices(mean_matrices, "confusion_matrices.png")
-InstanceEvaluation.plot_comparative_metrics(mean_metrics, "metrics.png")
-InstanceEvaluation.plot_and_save_loss(mean_history)
+InstanceEvaluation.run(model_classes, dataset)
