@@ -170,7 +170,7 @@ Multiclass confusion matrices for each of the evaluated models. The configuratio
 
 
 ### Comparing our Neural Networks
-Comparison of topologies MLP, LSTM (LS), and CNN for probabilistic injected failure and monitoring injected failure.
+This comprehensive analysis evaluates the performance of several models by comparing key metrics, including accuracy, precision, recall, and F1-score. These metrics provide insights into each model's ability to correctly classify data, balance false positives and false negatives, and overall performance. The comparison aims to identify the most effective model for the given task.
 <table>
     <tbody> 
         <tr>
@@ -198,25 +198,28 @@ Comparison of topologies MLP, LSTM (LS), and CNN for probabilistic injected fail
 ## Run experiments:
 ---------------------
 
-###  Run (all F_prob experiments)
-`python3 Evaluation.py`
+###  Run (EvaluationModels.py)
+`python3 EvaluationModels.py`
 
 
 ### Input parameters:
 
-    Arguments(run_TNSM.py):
-        
-       -h, --help            Show this help message and exit
+    Arguments:
+      --dataset_directory", Directory containing the dataset.
+      --number_epochs", Number of training epochs.
+      --batch_size", Size of the batches for training.
+      --number_splits", Number of splits for cross-validation.
+      --loss", Loss function to use during training.
+      --sample_rate", Sample rate of the audio files.
+      --overlap", Overlap for the audio segments.
+      --number_classes", Number of classes in the dataset.
+      --output_directory", Directory to save output files.
+      --plot_width", Width of the plots.
+      --plot_height", Height of the plots.
+      --plot_bar_width", Width of the bars in the bar plots.
+      --plot_cap_size", Capsize of the error bars in the bar plots.
 
     --------------------------------------------------------------
-   
-    Arguments(main.py):
-
-          -h, --help            Show this help message and exit
-
-        --------------------------------------------------------------
-
-
 
 
 ## Requirements:

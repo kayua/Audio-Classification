@@ -50,9 +50,9 @@ DEFAULT_SAMPLE_RATE = 8000
 DEFAULT_OVERLAP = 2
 DEFAULT_NUMBER_CLASSES = 4
 DEFAULT_OUTPUT_DIRECTORY = "Results/"
-DEFAULT_PLOT_WIDTH = 12
+DEFAULT_PLOT_WIDTH = 14
 DEFAULT_PLOT_HEIGHT = 8
-DEFAULT_PLOT_BAR_WIDTH = 0.20
+DEFAULT_PLOT_BAR_WIDTH = 0.15
 DEFAULT_PLOT_CAP_SIZE = 10
 
 
@@ -120,8 +120,8 @@ class EvaluationModels:
 
     @staticmethod
     def plot_comparative_metrics(dictionary_metrics_list, file_name, width=12, height=8, bar_width=0.20, cap_size=10):
-        list_metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score']
-        base_colors = {'Accuracy': 'Blues', 'Precision': 'Greens', 'Recall': 'Reds', 'F1-Score': 'Purples'}
+        list_metrics = ['Acc.', 'Prec.', 'Rec.', 'F1.']
+        base_colors = {'Acc.': 'Blues', 'Prec.': 'Greens', 'Rec.': 'Reds', 'F1.': 'Purples'}
         number_metrics = len(list_metrics)
         number_models = len(dictionary_metrics_list)
         fig, ax = plt.subplots(figsize=(width, height))
@@ -132,13 +132,15 @@ class EvaluationModels:
                 values = model_name[key_metric]['value']
                 stds = model_name[key_metric]['std']
                 color = plt.get_cmap(base_colors[key_metric])(j / (number_models - 1))
+                label = f"{key_metric} {model_name['model_name']}"
                 bar = ax.bar(positions[i] + j * bar_width, values, yerr=stds, color=color, width=bar_width,
-                             edgecolor='grey', capsize=cap_size,
-                             label=f"{model_name['model_name']}" if i == 0 else "")
+                             edgecolor='grey', capsize=cap_size, label=label)
+
                 for rect in bar:
                     height = rect.get_height()
                     ax.annotate(f'{height:.2f}', xy=(rect.get_x() + rect.get_width() / 2, height), xytext=(0, 10),
                                 textcoords="offset points", ha='center', va='bottom')
+
         ax.set_xlabel('Metric', fontweight='bold')
         ax.set_xticks([r + bar_width * (number_models - 1) / 2 for r in positions])
         ax.set_xticklabels(list_metrics)
@@ -150,7 +152,8 @@ class EvaluationModels:
         plt.close()
 
     @staticmethod
-    def plot_confusion_matrices(confusion_matrix_list, file_name_path, fig_size=(5, 5), cmap='Blues', annot_font_size=10, label_font_size=12, title_font_size=14, show_plot=False):
+    def plot_confusion_matrices(confusion_matrix_list, file_name_path, fig_size=(5, 5), cmap='Blues',
+                                annot_font_size=10, label_font_size=12, title_font_size=14, show_plot=False):
         for index, confusion_matrix_dictionary in enumerate(confusion_matrix_list):
             confusion_matrix_instance = np.array(confusion_matrix_dictionary["confusion_matrix"])
             plt.figure(figsize=fig_size)
@@ -194,14 +197,16 @@ class EvaluationModels:
             plt.close()
 
     @staticmethod
-    def train_and_collect_metrics(model_class, dataset_directory, number_epochs, batch_size, number_splits, loss, sample_rate, overlap, number_classes):
+    def train_and_collect_metrics(model_class, dataset_directory, number_epochs, batch_size, number_splits, loss,
+                                  sample_rate, overlap, number_classes):
         instance = model_class()
         metrics, history, matrices = instance.train(dataset_directory, number_epochs, batch_size, number_splits,
                                                     loss, sample_rate, overlap, number_classes)
         gc.collect()
         return metrics, history, matrices
 
-    def run(self, models, dataset_directory, number_epochs, batch_size, number_splits, loss, sample_rate, overlap, number_classes, output_directory, plot_width, plot_height, plot_bar_width, plot_cap_size):
+    def run(self, models, dataset_directory, number_epochs, batch_size, number_splits, loss, sample_rate, overlap,
+            number_classes, output_directory, plot_width, plot_height, plot_bar_width, plot_cap_size):
         for model_class in models:
             metrics, history, matrices = self.train_and_collect_metrics(model_class=model_class,
                                                                         dataset_directory=dataset_directory,
@@ -234,6 +239,29 @@ class EvaluationModels:
                                      show_plot=DEFAULT_SHOW_PLOT)
 
         self.plot_and_save_loss(history_dict_list=self.mean_history, path_output=output_directory)
+        self.run_python_script('--output', "Results.pdf")
+
+    @staticmethod
+    def run_python_script(*args) -> int:
+        try:
+            # Prepare the command to run the script
+            command = ['python3', 'GeneratePDF.py'] + list(args)
+
+            # Execute the command
+            result = subprocess.run(command, check=True, capture_output=True, text=True)
+
+            # Print standard output and standard error
+            print("Standard Output:\n", result.stdout)
+            if result.stderr:
+                print("Standard Error:\n", result.stderr)
+
+            return result.returncode
+
+        except subprocess.CalledProcessError as e:
+            print(f"An error occurred while executing the script: {e}")
+            print("Standard Output:\n", e.stdout)
+            print("Standard Error:\n", e.stderr)
+            return e.returncode
 
 
 if __name__ == "__main__":
