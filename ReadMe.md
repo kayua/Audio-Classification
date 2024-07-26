@@ -62,7 +62,7 @@ Description of the datasets used for training and validating the models as well 
 <table>
     <tbody> 
         <tr>
-            <th width="10%">Dataset Description</th>
+            <th width="10%">Dataset RAW</th>
         </tr>
         <tr>
             <td><img src="Layout/Dataset-Description-RAW.png" alt="" style="max-width:100%;"></td>
@@ -77,7 +77,7 @@ Description of the datasets used for training and validating the models as well 
 <table>
     <tbody> 
         <tr>
-            <th width="10%">Dataset Description</th>
+            <th width="10%">Dataset Processed</th>
         </tr>
         <tr>
             <td><img src="Layout/Dataset-Description-Processed.png" alt="" style="max-width:100%;"></td>
@@ -91,8 +91,9 @@ Description of the datasets used for training and validating the models as well 
 ## Fitting Analysis
 
 ---------------------
-Impact of the number of epochs on average error for Dense topology (arrangements A=3, window width W=11), LSTM topology (arrangements A=3, window width W=11), and Conv. topology (arrangements A=8, squared window width W=H=256).
+### Training Curve
 
+Visualization of the training curves for each of the six model topologies, showing both the training curve and the validation curve. Using cross entropy as a metric, these curves allow a detailed evaluation of the performance of two models and are used to identify possible problems during training, such as non-convergence or overfitting.
 <table>
     <tbody> 
         <tr>
@@ -119,7 +120,11 @@ Impact of the number of epochs on average error for Dense topology (arrangements
 
 </table>
 
+## Evaluation Analysis
+
+---------------------
 ### Confusion Matrices
+
 Multiclass confusion matrices for each of the evaluated models. The configurations were defined based on the best configuration found among those evaluated.
 <table>
     <tbody> 
