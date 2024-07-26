@@ -144,7 +144,7 @@ class AudioWav2Vec2(MetricsCalculator):
         flatten_flow = TimeDistributed(Flatten())(neural_network_flow)
 
         # Dense layer
-        dense_layer = TimeDistributed(Dense(4,
+        dense_layer = TimeDistributed(Dense(self.number_classes,
                                             activation=self.intermediary_layer_activation))(flatten_flow)
         def create_mask(seq_len):
             mask = tensorflow.linalg.band_part(tensorflow.ones((seq_len, seq_len)), -1, 0)
@@ -153,15 +153,15 @@ class AudioWav2Vec2(MetricsCalculator):
         causal_mask = create_mask(128)
         # Transformer Block
         transformer_attention = MultiHeadAttention(
-            num_heads=2, key_dim=4)(dense_layer, dense_layer, attention_mask=causal_mask)
+            num_heads=self.number_heads, key_dim=4)(dense_layer, dense_layer, attention_mask=causal_mask)
 
         # Add & Normalize (LayerNormalization)
         transformer_attention = Add()([dense_layer, transformer_attention])
         transformer_attention = LayerNormalization()(transformer_attention)
 
         # Feed Forward Network
-        ff_network = Dense(4, activation="relu")(transformer_attention)
-        ff_network = Dense(4, activation="relu")(ff_network)
+        ff_network = Dense(self.number_classes, activation="relu")(transformer_attention)
+        ff_network = Dense(self.number_classes, activation="relu")(ff_network)
 
         # Add & Normalize (LayerNormalization)
         transformer_output = Add()([transformer_attention, ff_network])

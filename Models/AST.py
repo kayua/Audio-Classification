@@ -48,7 +48,6 @@ DEFAULT_WINDOW_SIZE_FACTOR = 40
 DEFAULT_PROJECTION_DIMENSION = 64  # Dimension of the linear projection
 DEFAULT_HEAD_SIZE = 256  # Size of each attention head
 DEFAULT_NUMBER_HEADS = 2  # Number of attention heads
-DEFAULT_MLP_OUTPUT = 128  # Output size of the MLP layer
 DEFAULT_NUMBER_BLOCKS = 2  # Number of transformer encoder blocks
 DEFAULT_NUMBER_CLASSES = 4  # Number of output classes for classification
 DEFAULT_SAMPLE_RATE = 8000  # Sample rate for loading audio
@@ -60,7 +59,6 @@ DEFAULT_OVERLAP = 2  # Overlap ratio between patches
 DEFAULT_DROPOUT_RATE = 0.2  # Dropout rate
 DEFAULT_NUMBER_EPOCHS = 2  # Number of training epochs
 DEFAULT_SIZE_BATCH = 32  # Batch size for training
-DEFAULT_KERNEL_SIZE = 3  # Kernel size for convolutional layers
 DEFAULT_NUMBER_SPLITS = 2  # Number of splits for cross-validation
 DEFAULT_NORMALIZATION_EPSILON = 1e-6  # Epsilon value for layer normalization
 DEFAULT_INTERMEDIARY_ACTIVATION = 'relu'  # Activation function for intermediary layers
@@ -85,15 +83,13 @@ class AudioAST(MetricsCalculator):
     def __init__(self, projection_dimension: int = DEFAULT_PROJECTION_DIMENSION,
                  head_size: int = DEFAULT_HEAD_SIZE,
                  num_heads: int = DEFAULT_NUMBER_HEADS,
-                 mlp_output: int = DEFAULT_MLP_OUTPUT,
                  number_blocks: int = DEFAULT_NUMBER_BLOCKS,
                  number_classes: int = DEFAULT_NUMBER_CLASSES,
                  sample_rate: int = DEFAULT_SAMPLE_RATE,
-                 number_filters: int = DEFAULT_NUMBER_FILTERS,
                  hop_length: int = DEFAULT_HOP_LENGTH,
                  size_fft: int = DEFAULT_SIZE_FFT,
                  patch_size: tuple = DEFAULT_SIZE_PATCH,
-                 overlap: float = DEFAULT_OVERLAP,
+                 overlap: int = DEFAULT_OVERLAP,
                  number_epochs: int = DEFAULT_NUMBER_EPOCHS,
                  size_batch: int = DEFAULT_SIZE_BATCH,
                  dropout: float = DEFAULT_DROPOUT_RATE,
@@ -101,7 +97,6 @@ class AudioAST(MetricsCalculator):
                  loss_function: str = DEFAULT_LOSS_FUNCTION,
                  last_activation_layer: str = DEFAULT_LAST_LAYER_ACTIVATION,
                  optimizer_function: str = DEFAULT_OPTIMIZER_FUNCTION,
-                 kernel_size: int = DEFAULT_KERNEL_SIZE,
                  number_splits: int = DEFAULT_NUMBER_SPLITS,
                  normalization_epsilon: float = DEFAULT_NORMALIZATION_EPSILON,
                  audio_duration: int = DEFAULT_AUDIO_DURATION,
@@ -144,14 +139,11 @@ class AudioAST(MetricsCalculator):
         self.neural_network_model = None
         self.head_size = head_size
         self.number_heads = num_heads
-        self.mlp_output = mlp_output
         self.number_blocks = number_blocks
         self.number_classes = number_classes
         self.sample_rate = sample_rate
-        self.number_filters = number_filters
         self.hop_length = hop_length
         self.size_fft = size_fft
-        self.kernel_size = kernel_size
         self.patch_size = patch_size
         self.overlap = overlap
         self.number_epochs = number_epochs
@@ -445,7 +437,7 @@ class AudioAST(MetricsCalculator):
             yield start, start + window_size
             start += (window_size // overlap)
 
-    def load_dataset(self, sub_directories: str = None, file_extension: str = None, patch_mode: bool = True) -> tuple:
+    def load_dataset(self, sub_directories: str = None, file_extension: str = None) -> tuple:
         """
         Loads audio data, extracts features, and prepares labels.
 
@@ -478,7 +470,7 @@ class AudioAST(MetricsCalculator):
                 signal, _ = librosa.load(file_name, sr=self.sample_rate)
                 label = file_name.split('/')[-2].split('_')[0]
 
-                for (start, end) in self.windows(signal, self.window_size, 2):
+                for (start, end) in self.windows(signal, self.window_size, self.overlap):
 
                     if len(signal[start:end]) == self.window_size:
                         signal = signal[start:end]
@@ -510,7 +502,7 @@ class AudioAST(MetricsCalculator):
 
         Parameters
         ----------
-        train_data_dir : str
+        train_data_directory
             Directory containing the training data.
         number_epochs : int, optional
             Number of training epochs.

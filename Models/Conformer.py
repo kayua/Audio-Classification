@@ -45,8 +45,6 @@ DEFAULT_NUMBER_HEADS = 4
 DEFAULT_MAX_LENGTH = 100
 DEFAULT_KERNEL_SIZE = 3
 DEFAULT_DROPOUT_DECAY = 0.2
-DEFAULT_FREQUENCY_MASK = 15
-DEFAULT_TIME_MASK = 25
 DEFAULT_NUMBER_CLASSES = 4
 DEFAULT_SIZE_KERNEL = (3, 3)
 DEFAULT_SAMPLE_RATE = 8000
@@ -97,9 +95,6 @@ class Conformer(MetricsCalculator):
                  embedding_dimension: int = DEFAULT_EMBEDDING_DIMENSION,
                  number_heads: int = DEFAULT_NUMBER_HEADS,
                  size_kernel: tuple = DEFAULT_KERNEL_SIZE,
-                 max_length: int = DEFAULT_MAX_LENGTH,
-                 frequency_mask: int = DEFAULT_FREQUENCY_MASK,
-                 time_mask: int = DEFAULT_TIME_MASK,
                  number_classes: int = DEFAULT_NUMBER_CLASSES,
                  last_layer_activation: str = DEFAULT_LAST_LAYER_ACTIVATION,
                  size_batch: int = DEFAULT_SIZE_BATCH,
@@ -126,9 +121,6 @@ class Conformer(MetricsCalculator):
         embedding_dimension: Dimensionality of the embedding space.
         number_heads: Number of attention heads in the multi-head attention mechanism.
         size_kernel: Size of the kernel for convolutional layers.
-        max_length: Maximum length for positional embeddings.
-        frequency_mask: Frequency masking parameter.
-        time_mask: Time masking parameter.
         number_classes: Number of output classes for classification.
         last_layer_activation: Activation function for the final dense layer.
         size_batch: Batch size for training and evaluation.
@@ -165,12 +157,9 @@ class Conformer(MetricsCalculator):
         self.number_conformer_blocks = number_conformer_blocks
         self.embedding_dimension = embedding_dimension
         self.number_heads = number_heads
-
         self.number_classes = number_classes
-        self.frequency_mask = frequency_mask
         self.kernel_size = size_kernel
         self.dropout_rate = dropout_rate
-        self.time_mask = time_mask
         self.model_name = "Conformer"
         self.last_layer_activation = last_layer_activation
 

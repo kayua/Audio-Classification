@@ -52,8 +52,7 @@ DEFAULT_WINDOW_SIZE_FACTOR = 40
 DEFAULT_LAST_LAYER_ACTIVATION = 'softmax'
 DEFAULT_FILE_EXTENSION = "*.wav"
 DEFAULT_OPTIMIZER_FUNCTION = 'adam'
-DEFAULT_RECURRENT_ACTIVATION = 'sigmoid'
-DEFAULT_INTERMEDIARY_LAYER_ACTIVATION = 'tanh'
+DEFAULT_INTERMEDIARY_LAYER_ACTIVATION = 'relu'
 DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
 
 
@@ -80,7 +79,6 @@ class AudioDense(MetricsCalculator):
                  dropout_rate: float = DEFAULT_DROPOUT_RATE,
                  file_extension: str = DEFAULT_FILE_EXTENSION,
                  intermediary_layer_activation: str = DEFAULT_INTERMEDIARY_LAYER_ACTIVATION,
-                 recurrent_activation: str = DEFAULT_RECURRENT_ACTIVATION,
                  input_dimension: tuple = DEFAULT_INPUT_DIMENSION,
                  list_lstm_cells=None):
         """
@@ -118,7 +116,6 @@ class AudioDense(MetricsCalculator):
         self.window_size_factor = window_size_factor
         self.decibel_scale_factor = decibel_scale_factor
         self.hop_length = hop_length
-        self.recurrent_activation = recurrent_activation
         self.intermediary_layer_activation = intermediary_layer_activation
         self.overlap = overlap
         self.window_size = self.hop_length * self.window_size_factor
@@ -319,8 +316,3 @@ class AudioDense(MetricsCalculator):
         }
 
         return mean_metrics, {"Name": self.model_name, "History": list_history_model}, mean_confusion_matrices
-
-
-if __name__ == "__main__":
-    lstm_model = AudioLSTM()
-    lstm_model.train('Dataset')
