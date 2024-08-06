@@ -219,7 +219,7 @@ class AudioWav2Vec2(MetricsCalculator):
 
         for _, sub_directory in enumerate(list_class_path):
 
-            for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))[0:100]):
+            for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
 
                 signal, _ = librosa.load(file_name, sr=self.sample_rate)
 
