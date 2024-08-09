@@ -42,9 +42,9 @@ DEFAULT_MATRIX_LABEL_FONT_SIZE = 12
 DEFAULT_MATRIX_TITLE_FONT_SIZE = 14
 DEFAULT_SHOW_PLOT = False
 DEFAULT_DATASET_DIRECTORY = "Dataset/"
-DEFAULT_NUMBER_EPOCHS = 10
+DEFAULT_NUMBER_EPOCHS = 2
 DEFAULT_BATCH_SIZE = 32
-DEFAULT_NUMBER_SPLITS = 5
+DEFAULT_NUMBER_SPLITS = 2
 DEFAULT_LOSS = 'sparse_categorical_crossentropy'
 DEFAULT_SAMPLE_RATE = 8000
 DEFAULT_OVERLAP = 2
@@ -180,19 +180,36 @@ class EvaluationModels:
 
     @staticmethod
     def plot_and_save_loss(history_dict_list, path_output):
+        """
+        Plots and saves the training and validation loss curves for each model in the history dictionary list.
+
+        Args:
+            history_dict_list (list): A list of dictionaries, each containing a model's history and name.
+            path_output (str): The path where the loss plot images should be saved.
+        """
         for history_dict in history_dict_list:
             model_name = history_dict['Name']
             history = history_dict['History']
+
+            # Check if the history contains loss data
             if 'loss' not in history:
                 continue
+
             plt.figure(figsize=(10, 6))
-            for metric in history:
-                if 'loss' in metric:
-                    plt.plot(history['loss'], label=f'Loss - {metric}')
-            plt.title(f'Loss para o modelo {model_name}')
+
+            # Plot training loss
+            plt.plot(history['loss'], label='Training Loss')
+
+            # Plot validation loss if available
+            if 'val_loss' in history:
+                plt.plot(history['val_loss'], label='Validation Loss')
+
+            plt.title(f'Loss for model {model_name}')
             plt.xlabel('Epochs')
             plt.ylabel('Loss')
             plt.legend()
+
+            # Save the plot to the specified output path
             plt.savefig(f'{path_output}{model_name}_loss.png')
             plt.close()
 
