@@ -464,7 +464,7 @@ class AudioAST(MetricsCalculator):
             list_class_path.append(class_path)
 
         for _, sub_directory in enumerate(list_class_path):
-            print("Class {}".format(_))
+
             for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
 
                 signal, _ = librosa.load(file_name, sr=self.sample_rate)

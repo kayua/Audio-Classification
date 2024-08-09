@@ -23,6 +23,8 @@ except ImportError as error:
     print("  pip3 install -r requirements.txt ")
     print()
     sys.exit(-1)
+
+
 class MultiHeadSelfAttentionModule(Layer):
     """
     Multi-Head Self-Attention Module with Layer Normalization and Relative Positional Embeddings.
