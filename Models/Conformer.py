@@ -353,6 +353,8 @@ class Conformer(MetricsCalculator):
 
         instance_k_fold = StratifiedKFold(n_splits=self.number_splits)
         list_history_model = None
+        probabilities = None
+        real_labels = None
         print("STARTING TRAINING MODEL: {}".format(self.model_name))
         for train_indexes, test_indexes in instance_k_fold.split(features, labels):
             features_train, features_test = features[train_indexes], features[test_indexes]
@@ -366,7 +368,8 @@ class Conformer(MetricsCalculator):
 
             model_predictions = self.neural_network_model.predict(features_test, batch_size=self.size_batch, )
             predicted_labels = numpy.argmax(model_predictions, axis=1)
-
+            probabilities = model_predictions
+            real_labels = labels[test_indexes]
             y_validation_predicted_probability = numpy.array([numpy.argmax(model_predictions[i], axis=-1)
                                                               for i in range(len(model_predictions))])
 
@@ -376,6 +379,12 @@ class Conformer(MetricsCalculator):
             list_history_model = history_model.history
             metrics_list.append(metrics)
             confusion_matriz_list.append(confusion_matrix)
+
+        probabilities_predicted = {
+            'model_name': self.model_name,
+            'predicted': probabilities,
+            'ground_truth': real_labels
+        }
 
         # Calculate mean metrics across all folds
         mean_metrics = {
@@ -403,4 +412,5 @@ class Conformer(MetricsCalculator):
             "title": self.model_name
         }
 
-        return mean_metrics, {"Name": self.model_name, "History": list_history_model}, mean_confusion_matrices
+        return (mean_metrics, {"Name": self.model_name, "History": list_history_model}, mean_confusion_matrices,
+                probabilities_predicted)

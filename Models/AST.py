@@ -534,6 +534,8 @@ class AudioAST(MetricsCalculator):
 
         instance_k_fold = StratifiedKFold(n_splits=number_splits)
         list_history_model = None
+        probabilities = None
+        real_labels = None
         print("STARTING TRAINING MODEL: {}".format(self.model_name))
         for train_indexes, test_indexes in instance_k_fold.split(features, labels):
             features_train, features_test = features[train_indexes], features[test_indexes]
@@ -547,7 +549,8 @@ class AudioAST(MetricsCalculator):
 
             model_predictions = self.neural_network_model.predict(features_test, batch_size=batch_size)
             predicted_labels = numpy.argmax(model_predictions, axis=1)
-
+            probabilities = model_predictions
+            real_labels = labels[test_indexes]
             y_validation_predicted_probability = numpy.array([numpy.argmax(model_predictions[i], axis=-1)
                                                               for i in range(len(model_predictions))])
 
@@ -570,6 +573,11 @@ class AudioAST(MetricsCalculator):
             'F1.': {'value': numpy.mean([metric['F1-Score'] for metric in metrics_list]),
                     'std': numpy.std([metric['F1-Score'] for metric in metrics_list])},
         }
+        probabilities_predicted = {
+            'model_name': self.model_name,
+            'predicted': probabilities,
+            'ground_truth': real_labels
+        }
 
         confusion_matrix_array = numpy.array(confusion_matriz_list)
         confusion_matrix_array = numpy.mean(confusion_matrix_array, axis=0)
@@ -584,4 +592,5 @@ class AudioAST(MetricsCalculator):
             "title": self.model_name
         }
 
-        return mean_metrics, {"Name": self.model_name, "History": list_history_model}, mean_confusion_matrices
+        return (mean_metrics, {"Name": self.model_name, "History": list_history_model}, mean_confusion_matrices,
+                probabilities_predicted)

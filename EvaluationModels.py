@@ -10,12 +10,14 @@ __credits__ = ['unknown']
 
 try:
     import sys
-    import numpy as np
     import gc
+    import numpy
     import subprocess
     import argparse
     import seaborn as sns
     import matplotlib.pyplot as plt
+    from sklearn.metrics import roc_curve, auc
+    from sklearn.preprocessing import label_binarize
     from sklearn.metrics import accuracy_score
     from sklearn.metrics import precision_score
     from sklearn.metrics import recall_score
@@ -62,6 +64,7 @@ class EvaluationModels:
         self.mean_metrics = []
         self.mean_history = []
         self.mean_matrices = []
+        self.list_roc_curve = []
 
     @staticmethod
     def calculate_accuracy(label_true, label_predicted):
@@ -125,7 +128,7 @@ class EvaluationModels:
         number_metrics = len(list_metrics)
         number_models = len(dictionary_metrics_list)
         fig, ax = plt.subplots(figsize=(width, height))
-        positions = np.arange(number_metrics)
+        positions = numpy.arange(number_metrics)
 
         for i, key_metric in enumerate(list_metrics):
             for j, model_name in enumerate(dictionary_metrics_list):
@@ -152,10 +155,54 @@ class EvaluationModels:
         plt.close()
 
     @staticmethod
+    def plot_roc_curve(probabilities_predicted, file_name_path, index):
+        """
+        Plots the ROC curve and calculates AUC for each class based on the predicted probabilities.
+
+        Parameters
+        ----------
+        probabilities_predicted : dict
+            A dictionary containing:
+            - 'model_name': Name of the model.
+            - 'predicted': An array of predicted probabilities for each class.
+            - 'ground_truth': The ground truth labels.
+        """
+        # Extract data from the dictionary
+        model_name = probabilities_predicted['model_name']
+        y_score = probabilities_predicted['predicted']
+        y_true = probabilities_predicted['ground_truth']
+
+        # Binarize the ground truth labels for ROC calculation
+        y_true_bin = label_binarize(y_true, classes=numpy.arange(y_score.shape[1]))
+
+        # Initialize variables for ROC calculation
+        fpr = {}
+        tpr = {}
+        roc_auc = {}
+
+        # Calculate ROC curve and AUC for each class
+        for i in range(y_score.shape[1]):
+            fpr[i], tpr[i], _ = roc_curve(y_true_bin[:, i], y_score[:, i])
+            roc_auc[i] = auc(fpr[i], tpr[i])
+
+        # Plot the ROC curves
+        plt.figure()
+        for i in range(y_score.shape[1]):
+            plt.plot(fpr[i], tpr[i], label=f'Class {i} (AUC = {roc_auc[i]:.2f})')
+
+        plt.plot([0, 1], [0, 1], 'k--')
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title(f'ROC Curve for {model_name}')
+        plt.legend(loc='lower right')
+        file_path = f"{file_name_path}roc_{index + 1}.png"
+        plt.savefig(file_path)
+
+    @staticmethod
     def plot_confusion_matrices(confusion_matrix_list, file_name_path, fig_size=(5, 5), cmap='Blues',
                                 annot_font_size=10, label_font_size=12, title_font_size=14, show_plot=False):
         for index, confusion_matrix_dictionary in enumerate(confusion_matrix_list):
-            confusion_matrix_instance = np.array(confusion_matrix_dictionary["confusion_matrix"])
+            confusion_matrix_instance = numpy.array(confusion_matrix_dictionary["confusion_matrix"])
             plt.figure(figsize=fig_size)
             sns.heatmap(
                 confusion_matrix_instance,
@@ -217,27 +264,29 @@ class EvaluationModels:
     def train_and_collect_metrics(model_class, dataset_directory, number_epochs, batch_size, number_splits, loss,
                                   sample_rate, overlap, number_classes):
         instance = model_class()
-        metrics, history, matrices = instance.train(dataset_directory, number_epochs, batch_size, number_splits,
-                                                    loss, sample_rate, overlap, number_classes)
+        metrics, history, matrices, roc_list = instance.train(dataset_directory, number_epochs, batch_size,
+                                                              number_splits,
+                                                              loss, sample_rate, overlap, number_classes)
         gc.collect()
-        return metrics, history, matrices
+        return metrics, history, matrices, roc_list
 
     def run(self, models, dataset_directory, number_epochs, batch_size, number_splits, loss, sample_rate, overlap,
             number_classes, output_directory, plot_width, plot_height, plot_bar_width, plot_cap_size):
-        for model_class in models:
-            metrics, history, matrices = self.train_and_collect_metrics(model_class=model_class,
-                                                                        dataset_directory=dataset_directory,
-                                                                        number_epochs=number_epochs,
-                                                                        batch_size=batch_size,
-                                                                        number_splits=number_splits,
-                                                                        loss=loss,
-                                                                        sample_rate=sample_rate,
-                                                                        overlap=overlap,
-                                                                        number_classes=number_classes)
+        for i, model_class in enumerate(models):
+            metrics, history, matrices, roc_list = self.train_and_collect_metrics(model_class=model_class,
+                                                                                  dataset_directory=dataset_directory,
+                                                                                  number_epochs=number_epochs,
+                                                                                  batch_size=batch_size,
+                                                                                  number_splits=number_splits,
+                                                                                  loss=loss,
+                                                                                  sample_rate=sample_rate,
+                                                                                  overlap=overlap,
+                                                                                  number_classes=number_classes)
 
             self.mean_metrics.append(metrics)
             self.mean_history.append(history)
             self.mean_matrices.append(matrices)
+            self.plot_roc_curve(roc_list, "Results/", i)
 
         self.plot_comparative_metrics(dictionary_metrics_list=self.mean_metrics,
                                       file_name=output_directory,
@@ -256,6 +305,7 @@ class EvaluationModels:
                                      show_plot=DEFAULT_SHOW_PLOT)
 
         self.plot_and_save_loss(history_dict_list=self.mean_history, path_output=output_directory)
+
         self.run_python_script('--output', "Results.pdf")
 
     @staticmethod
