@@ -323,7 +323,6 @@ class AudioWav2Vec2(MetricsCalculator):
                     'std': numpy.std([metric['F1-Score'] for metric in metrics_list])},
         }
 
-
         probabilities_predicted = {
             'model_name': self.model_name,
             'predicted': probabilities,
