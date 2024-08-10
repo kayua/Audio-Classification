@@ -169,6 +169,38 @@ Multiclass confusion matrices for each of the evaluated models. The configuratio
 </table>
 
 
+### ROC Curve
+Visualization of the ROC curves for each of the six model topologies, showing both the training and validation ROC curves. Using the area under the curve (AUC) metric, these curves provide a detailed evaluation of model performance and help identify potential issues during training, such as model generalization capacity.
+
+<table>
+    <tbody> 
+        <tr>
+            <th width="10%">AST Topology</th>
+            <th width="10%">LSTM Topology</th>
+            <th width="10%">Conformer Topology</th>
+        </tr>
+        <tr>
+            <td><img src="Results/ROC_AudioSpectrogramTransformer.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/ROC_LSTM.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/ROC_Conformer.png" alt="" style="max-width:100%;"></td>
+        </tr>
+   <tbody> 
+        <tr>
+            <th width="10%">Wav2Vec2</th>
+            <th width="10%">Residual</th>
+            <th width="10%">MLP</th>
+        </tr>
+        <tr>
+            <td><img src="Results/ROC_Wav2Vec2.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/ROC_ResidualModel.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/ROC_MLP.png" alt="" style="max-width:100%;"></td>
+        </tr>
+
+</table>
+
+
+
+
 ### Comparing our Neural Networks
 This comprehensive analysis evaluates the performance of several models by comparing key metrics, including accuracy, precision, recall, and F1-score. These metrics provide insights into each model's ability to correctly classify data, balance false positives and false negatives, and overall performance. The comparison aims to identify the most effective model for the given task.
 <table>

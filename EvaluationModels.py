@@ -196,7 +196,7 @@ class EvaluationModels:
         plt.ylabel('True Positive Rate')
         plt.title(f'ROC Curve for {model_name}')
         plt.legend(loc='lower right')
-        file_path = f"{file_name_path}roc_{probabilities_predicted['model_name']}.png"
+        file_path = f"{file_name_path}ROC_{probabilities_predicted['model_name']}.png"
         plt.savefig(file_path)
 
     @staticmethod
