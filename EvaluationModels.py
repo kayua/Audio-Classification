@@ -155,12 +155,13 @@ class EvaluationModels:
         plt.close()
 
     @staticmethod
-    def plot_roc_curve(probabilities_predicted, file_name_path, index):
+    def plot_roc_curve(probabilities_predicted, file_name_path):
         """
         Plots the ROC curve and calculates AUC for each class based on the predicted probabilities.
 
         Parameters
         ----------
+        file_name_path
         probabilities_predicted : dict
             A dictionary containing:
             - 'model_name': Name of the model.
@@ -176,26 +177,26 @@ class EvaluationModels:
         y_true_bin = label_binarize(y_true, classes=numpy.arange(y_score.shape[1]))
 
         # Initialize variables for ROC calculation
-        fpr = {}
-        tpr = {}
+        false_positive_r = {}
+        true_positive_r = {}
         roc_auc = {}
 
         # Calculate ROC curve and AUC for each class
         for i in range(y_score.shape[1]):
-            fpr[i], tpr[i], _ = roc_curve(y_true_bin[:, i], y_score[:, i])
-            roc_auc[i] = auc(fpr[i], tpr[i])
+            false_positive_r[i], true_positive_r[i], _ = roc_curve(y_true_bin[:, i], y_score[:, i])
+            roc_auc[i] = auc(false_positive_r[i], true_positive_r[i])
 
         # Plot the ROC curves
         plt.figure()
         for i in range(y_score.shape[1]):
-            plt.plot(fpr[i], tpr[i], label=f'Class {i} (AUC = {roc_auc[i]:.2f})')
+            plt.plot(false_positive_r[i], true_positive_r[i], label=f'Class {i} (AUC = {roc_auc[i]:.2f})')
 
         plt.plot([0, 1], [0, 1], 'k--')
         plt.xlabel('False Positive Rate')
         plt.ylabel('True Positive Rate')
         plt.title(f'ROC Curve for {model_name}')
         plt.legend(loc='lower right')
-        file_path = f"{file_name_path}roc_{index + 1}.png"
+        file_path = f"{file_name_path}roc_{probabilities_predicted['model_name']}.png"
         plt.savefig(file_path)
 
     @staticmethod
@@ -286,7 +287,7 @@ class EvaluationModels:
             self.mean_metrics.append(metrics)
             self.mean_history.append(history)
             self.mean_matrices.append(matrices)
-            self.plot_roc_curve(roc_list, "Results/", i)
+            self.plot_roc_curve(roc_list, "Results/")
 
         self.plot_comparative_metrics(dictionary_metrics_list=self.mean_metrics,
                                       file_name=output_directory,
