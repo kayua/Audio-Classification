@@ -16,7 +16,7 @@ try:
     import librosa
     import tensorflow
     from tqdm import tqdm
-
+    from sklearn.utils import resample
     from tensorflow.keras import Model
     from tensorflow.keras.layers import Dense
     from tensorflow.keras.layers import Input
@@ -25,6 +25,7 @@ try:
     from tensorflow.keras.layers import Layer, Reshape
     from Modules.Layers.ConformerBlock import ConformerBlock
     from sklearn.model_selection import StratifiedKFold
+    from sklearn.model_selection import train_test_split
     from Modules.Evaluation.MetricsCalculator import MetricsCalculator
     from tensorflow.keras.layers import GlobalAveragePooling1D
     from tensorflow.keras.layers import Concatenate
@@ -324,7 +325,7 @@ class Conformer(MetricsCalculator):
 
         Parameters
         ----------
-        train_data_directory
+        dataset_directory : str
             Directory containing the training data.
         number_epochs : int, optional
             Number of training epochs.
@@ -336,7 +337,8 @@ class Conformer(MetricsCalculator):
         Returns
         -------
         tuple
-            A tuple containing the mean metrics and the training history.
+            A tuple containing the mean metrics, the training history, the mean confusion matrix,
+            and the predicted probabilities along with the ground truth labels.
         """
         # Use default values if not provided
         self.number_epochs = number_epochs or self.number_epochs
@@ -344,47 +346,79 @@ class Conformer(MetricsCalculator):
         self.size_batch = batch_size or self.size_batch
         self.loss_function = loss or self.loss_function
         self.sample_rate = sample_rate or self.sample_rate
-        self.overlap = overlap or overlap
+        self.overlap = overlap or self.overlap
         self.number_classes = number_classes or self.number_classes
-
+        history_model = None
         features, labels = self.load_data(dataset_directory)
         metrics_list, confusion_matriz_list = [], []
         labels = numpy.array(labels).astype(float)
 
-        instance_k_fold = StratifiedKFold(n_splits=self.number_splits, shuffle=True)
-        list_history_model = None
-        probabilities = None
-        real_labels = None
+        # Split data into train/val and test sets
+        features_train_val, features_test, labels_train_val, labels_test = train_test_split(
+            features, labels, test_size=0.2, stratify=labels, random_state=42
+        )
+
+        # Function to balance the classes by resampling
+        def balance_classes(features, labels):
+            unique_classes = numpy.unique(labels)
+            max_samples = max([sum(labels == c) for c in unique_classes])
+
+            balanced_features = []
+            balanced_labels = []
+
+            for c in unique_classes:
+                features_class = features[labels == c]
+                labels_class = labels[labels == c]
+
+                features_class_resampled, labels_class_resampled = resample(
+                    features_class, labels_class,
+                    replace=True,
+                    n_samples=max_samples,
+                    random_state=0
+                )
+
+                balanced_features.append(features_class_resampled)
+                balanced_labels.append(labels_class_resampled)
+
+            balanced_features = numpy.vstack(balanced_features)
+            balanced_labels = numpy.hstack(balanced_labels)
+
+            return balanced_features, balanced_labels
+
+        # Balance training/validation set
+        features_train_val, labels_train_val = balance_classes(features_train_val, labels_train_val)
+
+        # Stratified k-fold cross-validation on the training/validation set
+        instance_k_fold = StratifiedKFold(n_splits=self.number_splits, shuffle=True, random_state=42)
+        list_history_model = []
+        probabilities_list = []
+        real_labels_list = []
+
         print("STARTING TRAINING MODEL: {}".format(self.model_name))
-        for train_indexes, test_indexes in instance_k_fold.split(features, labels):
-            features_train, features_test = features[train_indexes], features[test_indexes]
-            labels_train, labels_test = labels[train_indexes], labels[test_indexes]
+        for train_indexes, val_indexes in instance_k_fold.split(features_train_val, labels_train_val):
+            features_train, features_val = features_train_val[train_indexes], features_train_val[val_indexes]
+            labels_train, labels_val = labels_train_val[train_indexes], labels_train_val[val_indexes]
+
+            # Balance the training set for this fold
+            features_train, labels_train = balance_classes(features_train, labels_train)
 
             self.build_model()
             self.neural_network_model.summary()
+
             history_model = self.compile_and_train(features_train, labels_train, epochs=self.number_epochs,
                                                    batch_size=self.size_batch,
-                                                   validation_data=(features_test, labels_test))
+                                                   validation_data=(features_val, labels_val))
 
-            model_predictions = self.neural_network_model.predict(features_test, batch_size=self.size_batch, )
+            model_predictions = self.neural_network_model.predict(features_val)
             predicted_labels = numpy.argmax(model_predictions, axis=1)
-            probabilities = model_predictions
-            real_labels = labels[test_indexes]
-            y_validation_predicted_probability = numpy.array([numpy.argmax(model_predictions[i], axis=-1)
-                                                              for i in range(len(model_predictions))])
+
+            probabilities_list.append(model_predictions)
+            real_labels_list.append(labels_val)
 
             # Calculate and store the metrics for this fold
-            metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_test,
-                                                               y_validation_predicted_probability)
-            list_history_model = history_model.history
+            metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_val, predicted_labels)
             metrics_list.append(metrics)
             confusion_matriz_list.append(confusion_matrix)
-
-        probabilities_predicted = {
-            'model_name': self.model_name,
-            'predicted': probabilities,
-            'ground_truth': real_labels
-        }
 
         # Calculate mean metrics across all folds
         mean_metrics = {
@@ -399,12 +433,15 @@ class Conformer(MetricsCalculator):
                     'std': numpy.std([metric['F1-Score'] for metric in metrics_list])},
         }
 
-        confusion_matrix_array = numpy.array(confusion_matriz_list)
-        confusion_matrix_array = numpy.mean(confusion_matrix_array, axis=0)
-        mean_confusion_matrix = numpy.round(confusion_matrix_array).astype(numpy.int32)
+        probabilities_predicted = {
+            'model_name': self.model_name,
+            'predicted': numpy.concatenate(probabilities_list),
+            'ground_truth': numpy.concatenate(real_labels_list)
+        }
 
-        # Calculate the average across the first dimension (number of matrices)
-        mean_confusion_matrix = mean_confusion_matrix.tolist()
+        confusion_matrix_array = numpy.array(confusion_matriz_list)
+        mean_confusion_matrix = numpy.mean(confusion_matrix_array, axis=0)
+        mean_confusion_matrix = numpy.round(mean_confusion_matrix).astype(numpy.int32).tolist()
 
         mean_confusion_matrices = {
             "confusion_matrix": mean_confusion_matrix,
@@ -412,5 +449,5 @@ class Conformer(MetricsCalculator):
             "title": self.model_name
         }
 
-        return (mean_metrics, {"Name": self.model_name, "History": list_history_model}, mean_confusion_matrices,
+        return (mean_metrics, {"Name": self.model_name, "History": history_model.history}, mean_confusion_matrices,
                 probabilities_predicted)

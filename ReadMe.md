@@ -157,8 +157,8 @@ Multiclass confusion matrices for each of the evaluated models. The configuratio
    <tbody> 
         <tr>
             <th width="10%">Wav2Vec2</th>
-            <th width="10%">Residual</th>
             <th width="10%">MLP</th>
+            <th width="10%">Residual</th>
         </tr>
         <tr>
             <td><img src="Results/matrix_1.png" alt="" style="max-width:100%;"></td>
@@ -180,7 +180,7 @@ Visualization of the ROC curves for each of the six model topologies, showing bo
             <th width="10%">Conformer Topology</th>
         </tr>
         <tr>
-            <td><img src="Results/ROC_AudioSpectrogramTransformer.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/ROC_AST.png" alt="" style="max-width:100%;"></td>
             <td><img src="Results/ROC_LSTM.png" alt="" style="max-width:100%;"></td>
             <td><img src="Results/ROC_Conformer.png" alt="" style="max-width:100%;"></td>
         </tr>
