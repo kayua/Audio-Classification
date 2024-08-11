@@ -282,7 +282,7 @@ class AudioWav2Vec2(MetricsCalculator):
         metrics_list, confusion_matriz_list = [], []
         labels = numpy.array(labels).astype(float)
 
-        instance_k_fold = StratifiedKFold(n_splits=self.number_splits)
+        instance_k_fold = StratifiedKFold(n_splits=self.number_splits, shuffle=True)
         print("STARTING TRAINING MODEL: {}".format(self.model_name))
         list_history_model = None
         probabilities = None

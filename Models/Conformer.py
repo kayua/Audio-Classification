@@ -351,7 +351,7 @@ class Conformer(MetricsCalculator):
         metrics_list, confusion_matriz_list = [], []
         labels = numpy.array(labels).astype(float)
 
-        instance_k_fold = StratifiedKFold(n_splits=self.number_splits)
+        instance_k_fold = StratifiedKFold(n_splits=self.number_splits, shuffle=True)
         list_history_model = None
         probabilities = None
         real_labels = None

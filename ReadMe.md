@@ -119,7 +119,7 @@ Visualization of the training curves for each of the six model topologies, showi
             <th width="10%">Conformer Topology</th>
         </tr>
         <tr>
-            <td><img src="Results/AudioSpectrogramTransformer_loss.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/AST_loss.png" alt="" style="max-width:100%;"></td>
             <td><img src="Results/LSTM_loss.png" alt="" style="max-width:100%;"></td>
             <td><img src="Results/Conformer_loss.png" alt="" style="max-width:100%;"></td>
         </tr>
