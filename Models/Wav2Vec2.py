@@ -383,5 +383,5 @@ class AudioWav2Vec2(MetricsCalculator):
             "title": self.model_name
         }
 
-        return (mean_metrics, {"Name": self.model_name, "History": history_model}, mean_confusion_matrices,
+        return (mean_metrics, {"Name": self.model_name, "History": history_model.history}, mean_confusion_matrices,
                 probabilities_predicted)

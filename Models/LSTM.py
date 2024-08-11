@@ -393,7 +393,3 @@ class AudioLSTM(MetricsCalculator):
         return (mean_metrics, {"Name": self.model_name, "History": history_model.history}, mean_confusion_matrices,
                 probabilities_predicted)
 
-
-if __name__ == "__main__":
-    lstm_model = AudioLSTM()
-    lstm_model.train('Dataset')
