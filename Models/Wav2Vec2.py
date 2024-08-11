@@ -324,6 +324,7 @@ class AudioWav2Vec2(MetricsCalculator):
         instance_k_fold = StratifiedKFold(n_splits=self.number_splits, shuffle=True, random_state=42)
         print("STARTING TRAINING MODEL: {}".format(self.model_name))
         list_history_model = []
+        history_model = None
         probabilities_list = []
         real_labels_list = []
 
@@ -350,7 +351,6 @@ class AudioWav2Vec2(MetricsCalculator):
             # Calculate and store the metrics for this fold
             metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_val,
                                                                predicted_labels)
-            list_history_model.append(history_model.history)
             metrics_list.append(metrics)
             confusion_matriz_list.append(confusion_matrix)
 
@@ -383,5 +383,5 @@ class AudioWav2Vec2(MetricsCalculator):
             "title": self.model_name
         }
 
-        return (mean_metrics, {"Name": self.model_name, "History": list_history_model}, mean_confusion_matrices,
+        return (mean_metrics, {"Name": self.model_name, "History": history_model}, mean_confusion_matrices,
                 probabilities_predicted)
