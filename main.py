@@ -380,6 +380,7 @@ class EvaluationModels:
                 if show_plot:
                     plt.show()
                     logging.debug(f"Confusion matrix {index + 1} displayed on screen.")
+
                 else:
                     plt.savefig(file_path)
                     logging.debug(f"Confusion matrix {index + 1} saved to {file_path}.")
@@ -388,6 +389,7 @@ class EvaluationModels:
 
             except KeyError as e:
                 logging.error(f"Missing key in confusion matrix dictionary: {e}")
+
             except Exception as e:
                 logging.error(f"Error occurred while plotting confusion matrix {index + 1}: {e}")
                 raise
@@ -407,6 +409,7 @@ class EvaluationModels:
         logging.info("Starting to plot and save loss curves for models.")
 
         for history_dict in history_dict_list:
+
             try:
                 model_name = history_dict['Name']
                 history = history_dict['History']

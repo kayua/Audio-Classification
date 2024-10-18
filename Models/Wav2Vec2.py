@@ -8,6 +8,7 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+import logging
 
 try:
     import os
@@ -191,25 +192,56 @@ class AudioWav2Vec2(MetricsCalculator):
 
     def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,
                           batch_size: int, validation_data: tuple = None) -> tensorflow.keras.callbacks.History:
+        """
+        Compiles and trains the neural network model using the specified training data and configuration.
 
-        self.neural_network_model.compile(optimizer=self.optimizer_function, loss=ContrastiveLoss(margin=0.75))
+        Args:
+            train_data (tensorflow.Tensor): The input training data.
+            train_labels (tensorflow.Tensor): The corresponding labels for the training data.
+            epochs (int): Number of training epochs.
+            batch_size (int): Size of the batches for each training step.
+            validation_data (tuple, optional): A tuple containing validation data and labels.
 
+        Returns:
+            tensorflow.keras.callbacks.History: The history object containing training metrics and performance.
+        """
+        logging.info("Starting the initial compilation and training phase.")
+
+        # Step 1: Compile the model for initial training using ContrastiveLoss
+        self.neural_network_model.compile(optimizer=self.optimizer_function,
+                                          loss=ContrastiveLoss(margin=0.75))
+        logging.info("Model compiled with ContrastiveLoss.")
+
+        # Step 2: Train the model on the training data
+        logging.info(f"Training model for {epochs} epochs with batch size {batch_size}.")
         self.neural_network_model.fit(train_data, train_data, epochs=epochs, batch_size=batch_size)
+        logging.info("Initial training completed. Setting the model as non-trainable.")
+
+        # Step 3: Set the model as non-trainable and flatten the output
         self.neural_network_model.trainable = False
         neural_network_flow = Flatten()(self.neural_network_model.output[0])
-        neural_network_flow = Dense(self.number_classes,
-                                    activation=self.last_layer_activation)(neural_network_flow)
 
+        # Step 4: Add a Dense layer with the number of classes and specified activation function
+        neural_network_flow = Dense(self.number_classes, activation=self.last_layer_activation)(neural_network_flow)
+        logging.info(f"Added Dense layer with {self.number_classes} classes and '{self.last_layer_activation}' activation.")
+
+        # Step 5: Recreate the model with new output
         self.neural_network_model = Model(inputs=self.neural_network_model.inputs, outputs=neural_network_flow)
 
-        # Compile the model with the specified optimizer, loss function, and metrics
+        # Step 6: Compile the new model with the specified optimizer, loss function, and accuracy metric
         self.neural_network_model.compile(optimizer=self.optimizer_function,
                                           loss=self.loss_function,
                                           metrics=['accuracy'])
+        logging.info("Recompiled the model with the final configuration (optimizer, loss, metrics).")
 
-        training_history = self.neural_network_model.fit(train_data, train_labels, epochs=epochs,
+        # Step 7: Train the model with the actual training data and labels
+        logging.info(f"Final training for {epochs} epochs with batch size {batch_size}.")
+        training_history = self.neural_network_model.fit(train_data, train_labels,
+                                                         epochs=epochs,
                                                          batch_size=batch_size,
                                                          validation_data=validation_data)
+        logging.info("Training completed successfully.")
+
         return training_history
 
     @staticmethod
@@ -221,44 +253,73 @@ class AudioWav2Vec2(MetricsCalculator):
             start += (window_size // overlap)
 
     def load_data(self, sub_directories: str = None, file_extension: str = None) -> tuple:
+        """
+        Loads audio data, extracts spectrogram's using sliding windows, normalizes them, and
+        associates labels based on the directory structure.
 
+        Args:
+            sub_directories (str): Path to the main directory containing class subdirectories.
+            file_extension (str): Optional file extension to filter the files.
+
+        Returns:
+            tuple: A tuple containing two numpy arrays:
+                - array_features (numpy.ndarray): Array of normalized signal features.
+                - array_labels (numpy.ndarray): Array of integer labels for each sample.
+        """
+        logging.info("Starting data loading process.")
         list_spectrogram, list_labels, list_class_path = [], [], []
         file_extension = file_extension or self.file_extension
 
+        # Traverse through class directories
         for class_dir in os.listdir(sub_directories):
             class_path = os.path.join(sub_directories, class_dir)
             list_class_path.append(class_path)
+            logging.info(f"Added class path: {class_path}")
 
+        # Process each class path
         for _, sub_directory in enumerate(list_class_path):
+            logging.info(f"Processing directory: {sub_directory}")
 
+            # Iterate through all audio files in the directory with the specified extension
             for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
 
+                # Load the audio signal
                 signal, _ = librosa.load(file_name, sr=self.sample_rate)
 
+                # Extract label from file name (assumes directory structure encodes label)
                 label = int(file_name.split('/')[-2].split('_')[0])
 
+                # Segment the signal using sliding windows
                 for (start, end) in self.windows(signal, self.window_size, self.overlap):
 
+                    # Check if the windowed signal has the required length
                     if len(signal[start:end]) == self.window_size:
 
-                        signal = numpy.abs(numpy.array(signal[start:end]))
+                        # Extract the signal window
+                        signal_window = numpy.abs(numpy.array(signal[start:end]))
 
-                        signal_min = numpy.min(signal)
-                        signal_max = numpy.max(signal)
+                        # Normalize the signal window
+                        signal_min = numpy.min(signal_window)
+                        signal_max = numpy.max(signal_window)
 
                         if signal_max != signal_min:
-                            normalized_signal = (signal - signal_min) / (
-                                    signal_max - signal_min)
+                            normalized_signal = (signal_window - signal_min) / (signal_max - signal_min)
                         else:
-                            normalized_signal = numpy.zeros_like(signal)
+                            normalized_signal = numpy.zeros_like(signal_window)
 
                         list_spectrogram.append(normalized_signal)
                         list_labels.append(label)
 
+        # Convert lists to numpy arrays for efficient processing
         array_features = numpy.array(list_spectrogram, dtype=numpy.float32)
-        array_features = numpy.expand_dims(array_features, axis=-1)
+        array_features = numpy.expand_dims(array_features, axis=-1)  # Add channel dimension
 
-        return array_features, numpy.array(list_labels, dtype=numpy.int32)
+        array_labels = numpy.array(list_labels, dtype=numpy.int32)
+
+        logging.info("Data loading completed successfully.")
+        logging.info(f"Total samples loaded: {len(array_labels)}")
+
+        return array_features, array_labels
 
     def train(self, dataset_directory, number_epochs, batch_size, number_splits,
               loss, sample_rate, overlap, number_classes, arguments) -> tuple:
@@ -415,12 +476,6 @@ class AudioWav2Vec2(MetricsCalculator):
 
 def get_wav_to_vec_args(parser):
 
-    parser.add_argument('--wav_to_vec_input_dimension', type=tuple,
-                        default=(10240,), help='Input dimension of the model')
-
-    parser.add_argument('--wav_to_vec_number_classes', type=int,
-                        default=DEFAULT_NUMBER_CLASSES, help='Number of output classes')
-
     parser.add_argument('--wav_to_vec_number_heads', type=int,
                         default=DEFAULT_NUMBER_HEADS, help='Number of heads in multi-head attention')
 
@@ -459,9 +514,6 @@ def get_wav_to_vec_args(parser):
 
     parser.add_argument('--wav_to_vec_last_layer_activation', type=str,
                         default=DEFAULT_LAST_LAYER_ACTIVATION, help='Activation function for the last layer')
-
-    parser.add_argument('--wav_to_vec_optimizer_function', type=str,
-                        default=DEFAULT_OPTIMIZER_FUNCTION, help='Optimizer function to use')
 
     parser.add_argument('--wav_to_vec_quantization_bits', type=int,
                         default=DEFAULT_QUANTIZATION_BITS, help='Number of quantization bits for the model')

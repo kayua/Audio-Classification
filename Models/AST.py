@@ -698,20 +698,11 @@ def get_audio_ast_args(parser):
     parser.add_argument('--ast_intermediary_activation', type=str,
                         default=DEFAULT_INTERMEDIARY_ACTIVATION, help='Activation function for intermediary layers')
 
-    parser.add_argument('--ast_loss_function', type=str,
-                        default=DEFAULT_LOSS_FUNCTION, help='Loss function to use during training')
-
     parser.add_argument('--ast_last_activation_layer', type=str,
                         default=DEFAULT_LAST_LAYER_ACTIVATION, help='Activation function for the last layer')
 
-    parser.add_argument('--ast_optimizer_function', type=str,
-                        default=DEFAULT_OPTIMIZER_FUNCTION, help='Optimizer function to use')
-
     parser.add_argument('--ast_normalization_epsilon', type=float,
                         default=DEFAULT_NORMALIZATION_EPSILON, help='Epsilon value for normalization layers')
-
-    parser.add_argument('--ast_audio_duration', type=int,
-                        default=DEFAULT_AUDIO_DURATION, help='Duration of each audio clip')
 
     parser.add_argument('--ast_decibel_scale_factor', type=float,
                         default=DEFAULT_DECIBEL_SCALE_FACTOR, help='Scale factor for converting to decibels')

@@ -475,9 +475,6 @@ class Conformer(MetricsCalculator):
 
 def get_conformer_models_args(parser):
 
-    parser.add_argument('--conformer_input_dimension', type=tuple,
-                        default=(80, 40), help='Input dimension of the model')
-
     parser.add_argument('--conformer_number_conformer_blocks', type=int,
                         default=DEFAULT_NUMBER_CONFORMER_BLOCKS, help='Number of conformer blocks')
 
@@ -486,15 +483,6 @@ def get_conformer_models_args(parser):
 
     parser.add_argument('--conformer_number_heads', type=int,
                         default=DEFAULT_NUMBER_HEADS, help='Number of heads in multi-head attention')
-
-    parser.add_argument('--conformer_max_length', type=int,
-                        default=DEFAULT_MAX_LENGTH, help='Maximum length for positional encoding')
-
-    parser.add_argument('--conformer_kernel_size', type=int,
-                        default=DEFAULT_KERNEL_SIZE, help='Kernel size for convolution layers')
-
-    parser.add_argument('--conformer_dropout_decay', type=float,
-                        default=DEFAULT_DROPOUT_DECAY, help='Dropout decay rate')
 
     parser.add_argument('--conformer_size_kernel', type=int,
                         default=DEFAULT_SIZE_KERNEL, help='Size of convolution kernel')
@@ -519,14 +507,5 @@ def get_conformer_models_args(parser):
 
     parser.add_argument('--conformer_number_filters_spectrogram', type=int,
                         default=DEFAULT_NUMBER_FILTERS_SPECTROGRAM, help='Number of filters in the spectrogram')
-
-    parser.add_argument('--conformer_last_layer_activation', type=str,
-                        default=DEFAULT_LAST_LAYER_ACTIVATION, help='Activation function for the last layer')
-
-    parser.add_argument('--conformer_optimizer_function', type=str,
-                        default=DEFAULT_OPTIMIZER_FUNCTION, help='Optimizer function to use')
-
-    parser.add_argument('--conformer_loss_function', type=str,
-                        default=DEFAULT_LOSS_FUNCTION, help='Loss function to use during training')
 
     return parser

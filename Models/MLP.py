@@ -8,23 +8,24 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-import argparse
-
 try:
+
     import os
     import sys
     import glob
     import numpy
     import librosa
     import tensorflow
+
     from tqdm import tqdm
 
     from tensorflow.keras import Model
     from sklearn.utils import resample
+
     from tensorflow.keras.layers import Dense
     from tensorflow.keras.layers import Input
-    from tensorflow.keras.layers import Flatten
     from tensorflow.keras.layers import LSTM
+    from tensorflow.keras.layers import Flatten
     from tensorflow.keras.layers import Dropout
     from tensorflow.keras.layers import Bidirectional
     from sklearn.model_selection import StratifiedKFold
@@ -404,9 +405,6 @@ class AudioDense(MetricsCalculator):
 
 def get_MLP_model_args(parser):
 
-    parser.add_argument('--mlp_input_dimension', type=tuple,
-                        default=DEFAULT_INPUT_DIMENSION, help='Input dimension of the model')
-
     parser.add_argument('--mlp_list_dense_neurons',
                         default=DEFAULT_LIST_DENSE_NEURONS, help='List of LSTM cell sizes for each layer')
 
@@ -431,16 +429,7 @@ def get_MLP_model_args(parser):
     parser.add_argument('--mlp_last_layer_activation', type=str,
                         default=DEFAULT_LAST_LAYER_ACTIVATION, help='Activation function for the last layer')
 
-    parser.add_argument('--mlp_file_extension', type=str,
-                        default=DEFAULT_FILE_EXTENSION, help='File extension for audio files')
-
-    parser.add_argument('--mlp_optimizer_function', type=str,
-                        default=DEFAULT_OPTIMIZER_FUNCTION, help='Optimizer function to use')
-
     parser.add_argument('--mlp_intermediary_layer_activation', type=str,
                         default=DEFAULT_INTERMEDIARY_LAYER_ACTIVATION, help='Activation function for intermediary layers')
-
-    parser.add_argument('--mlp_loss_function', type=str,
-                        default=DEFAULT_LOSS_FUNCTION, help='Loss function to use during training')
 
     return parser

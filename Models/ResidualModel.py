@@ -8,7 +8,6 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-import argparse
 
 try:
     import os
@@ -491,32 +490,20 @@ def get_residual_model_args(parser):
     parser.add_argument('--residual_filters_per_block',
                         default=DEFAULT_FILTERS_PER_BLOCK, help='Number of filters in each convolutional block')
 
-    parser.add_argument('--residual_file_extension', type=str,
-                        default=DEFAULT_FILE_EXTENSION, help='File extension for audio files')
-
     parser.add_argument('--residual_dropout_rate', type=float,
                         default=DEFAULT_DROPOUT_RATE, help='Dropout rate in the network')
 
     parser.add_argument('--residual_number_layers', type=int,
                         default=DEFAULT_NUMBER_LAYERS, help='Number of convolutional layers')
 
-    parser.add_argument('--residual_optimizer_function', type=str,
-                        default=DEFAULT_OPTIMIZER_FUNCTION, help='Optimizer function to use')
-
     parser.add_argument('--residual_overlap', type=int,
                         default=DEFAULT_OVERLAP, help='Overlap between patches in the spectrogram')
-
-    parser.add_argument('--residual_loss_function', type=str,
-                        default=DEFAULT_LOSS_FUNCTION, help='Loss function to use during training')
 
     parser.add_argument('--residual_decibel_scale_factor', type=float,
                         default=DEFAULT_DECIBEL_SCALE_FACTOR, help='Scale factor for converting to decibels')
 
     parser.add_argument('--residual_convolutional_padding', type=str,
                         default=DEFAULT_CONVOLUTIONAL_PADDING, help='Padding type for convolutional layers')
-
-    parser.add_argument('--residual_input_dimension', type=tuple,
-                        default=DEFAULT_INPUT_DIMENSION, help='Input dimension of the model')
 
     parser.add_argument('--residual_intermediary_activation', type=str,
                         default=DEFAULT_INTERMEDIARY_ACTIVATION, help='Activation function for intermediary layers')

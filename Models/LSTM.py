@@ -231,7 +231,7 @@ class AudioLSTM(MetricsCalculator):
             list_class_path.append(class_path)
 
         for _, sub_directory in enumerate(list_class_path):
-            print("Class Load: {}".format(_))
+
             for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
 
                 signal, _ = librosa.load(file_name, sr=self.sample_rate)
@@ -413,9 +413,6 @@ class AudioLSTM(MetricsCalculator):
 
 def get_lstm_model_args(parser):
 
-    parser.add_argument('--lstm_input_dimension', type=tuple,
-                        default=DEFAULT_INPUT_DIMENSION, help='Input dimension of the model')
-
     parser.add_argument('--lstm_list_lstm_cells',
                         default=DEFAULT_LIST_LSTM_CELLS, help='List of LSTM cell sizes for each layer')
 
@@ -440,17 +437,11 @@ def get_lstm_model_args(parser):
     parser.add_argument('--lstm_last_layer_activation', type=str,
                         default=DEFAULT_LAST_LAYER_ACTIVATION, help='Activation function for the last layer')
 
-    parser.add_argument('--lstm_optimizer_function', type=str,
-                        default=DEFAULT_OPTIMIZER_FUNCTION, help='Optimizer function to use')
-
     parser.add_argument('--lstm_recurrent_activation', type=str,
                         default=DEFAULT_RECURRENT_ACTIVATION, help='Activation function for LSTM recurrent step')
 
     parser.add_argument('--lstm_intermediary_layer_activation', type=str,
                         default=DEFAULT_INTERMEDIARY_LAYER_ACTIVATION, help='Activation function for intermediary layers')
-
-    parser.add_argument('--lstm_loss_function', type=str,
-                        default=DEFAULT_LOSS_FUNCTION, help='Loss function to use during training')
 
 
     return parser
