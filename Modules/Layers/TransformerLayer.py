@@ -13,8 +13,8 @@ try:
     import tensorflow
     from tensorflow.keras.layers import Layer
     from tensorflow.keras.layers import Dense
-    from tensorflow.keras.layers import MultiHeadAttention
     from tensorflow.keras.layers import Dropout
+    from tensorflow.keras.layers import MultiHeadAttention
     from tensorflow.keras.layers import LayerNormalization
 
 except ImportError as error:

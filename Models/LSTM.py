@@ -8,13 +8,16 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+
 try:
     import os
     import sys
     import glob
     import numpy
     import librosa
+    import argparse
     import tensorflow
+
     from tqdm import tqdm
     from sklearn.utils import resample
     from tensorflow.keras import Model
@@ -260,7 +263,7 @@ class AudioLSTM(MetricsCalculator):
         return array_features, numpy.array(list_labels, dtype=numpy.int32)
 
     def train(self, dataset_directory, number_epochs, batch_size, number_splits,
-              loss, sample_rate, overlap, number_classes) -> tuple:
+              loss, sample_rate, overlap, number_classes, arguments) -> tuple:
         """
         Trains the model using cross-validation.
 
@@ -289,6 +292,20 @@ class AudioLSTM(MetricsCalculator):
         self.sample_rate = sample_rate or self.sample_rate
         self.overlap = overlap or self.overlap
         self.number_classes = number_classes or self.number_classes
+
+        self.list_lstm_cells = arguments.lstm_list_lstm_cells
+        self.window_size_factor = arguments.lstm_window_size_factor
+        self.decibel_scale_factor = arguments.lstm_decibel_scale_factor
+        self.hop_length = arguments.lstm_hop_length
+        self.recurrent_activation = arguments.lstm_recurrent_activation
+        self.intermediary_layer_activation = arguments.lstm_intermediary_layer_activation
+        self.overlap =  arguments.lstm_overlap
+        self.window_size = self.hop_length * self.window_size_factor
+        self.number_classes = number_classes
+        self.dropout_rate = arguments.lstm_dropout_rate
+        self.last_layer_activation = arguments.lstm_last_layer_activation
+        self.model_name = "LSTM"
+
         history_model = None
         features, labels = self.load_data(dataset_directory)
         metrics_list, confusion_matriz_list = [], []
@@ -393,3 +410,47 @@ class AudioLSTM(MetricsCalculator):
         return (mean_metrics, {"Name": self.model_name, "History": history_model.history}, mean_confusion_matrices,
                 probabilities_predicted)
 
+
+def get_lstm_model_args(parser):
+
+    parser.add_argument('--lstm_input_dimension', type=tuple,
+                        default=DEFAULT_INPUT_DIMENSION, help='Input dimension of the model')
+
+    parser.add_argument('--lstm_list_lstm_cells',
+                        default=DEFAULT_LIST_LSTM_CELLS, help='List of LSTM cell sizes for each layer')
+
+    parser.add_argument('--lstm_hop_length', type=int,
+                        default=DEFAULT_HOP_LENGTH, help='Hop length for STFT')
+
+    parser.add_argument('--lstm_overlap', type=int,
+                        default=DEFAULT_OVERLAP, help='Overlap between patches in the spectrogram')
+
+    parser.add_argument('--lstm_dropout_rate', type=float,
+                        default=DEFAULT_DROPOUT_RATE, help='Dropout rate in the network')
+
+    parser.add_argument('--lstm_window_size', type=int,
+                        default=DEFAULT_WINDOW_SIZE, help='Size of the FFT window')
+
+    parser.add_argument('--lstm_decibel_scale_factor', type=float,
+                        default=DEFAULT_DECIBEL_SCALE_FACTOR, help='Scale factor for converting to decibels')
+
+    parser.add_argument('--lstm_window_size_factor', type=int,
+                        default=DEFAULT_WINDOW_SIZE_FACTOR, help='Factor applied to FFT window size')
+
+    parser.add_argument('--lstm_last_layer_activation', type=str,
+                        default=DEFAULT_LAST_LAYER_ACTIVATION, help='Activation function for the last layer')
+
+    parser.add_argument('--lstm_optimizer_function', type=str,
+                        default=DEFAULT_OPTIMIZER_FUNCTION, help='Optimizer function to use')
+
+    parser.add_argument('--lstm_recurrent_activation', type=str,
+                        default=DEFAULT_RECURRENT_ACTIVATION, help='Activation function for LSTM recurrent step')
+
+    parser.add_argument('--lstm_intermediary_layer_activation', type=str,
+                        default=DEFAULT_INTERMEDIARY_LAYER_ACTIVATION, help='Activation function for intermediary layers')
+
+    parser.add_argument('--lstm_loss_function', type=str,
+                        default=DEFAULT_LOSS_FUNCTION, help='Loss function to use during training')
+
+
+    return parser

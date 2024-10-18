@@ -15,20 +15,27 @@ try:
     import numpy
     import librosa
     import tensorflow
+
     from tqdm import tqdm
+
     from sklearn.utils import resample
+
     from tensorflow.keras import Model
+
     from tensorflow.keras.layers import Dense
     from tensorflow.keras.layers import Input
+    from tensorflow.keras.layers import Layer
     from tensorflow.keras.layers import Dropout
     from tensorflow.keras.layers import Flatten
-    from tensorflow.keras.layers import Layer, Reshape
-    from Modules.Layers.ConformerBlock import ConformerBlock
+    from tensorflow.keras.layers import Reshape
+    from tensorflow.keras.layers import Concatenate
+    from tensorflow.keras.layers import GlobalAveragePooling1D
+
     from sklearn.model_selection import StratifiedKFold
     from sklearn.model_selection import train_test_split
+
+    from Modules.Layers.ConformerBlock import ConformerBlock
     from Modules.Evaluation.MetricsCalculator import MetricsCalculator
-    from tensorflow.keras.layers import GlobalAveragePooling1D
-    from tensorflow.keras.layers import Concatenate
     from Modules.Layers.ConvolutionalSubsampling import ConvolutionalSubsampling
 
 except ImportError as error:
@@ -47,7 +54,7 @@ DEFAULT_MAX_LENGTH = 100
 DEFAULT_KERNEL_SIZE = 3
 DEFAULT_DROPOUT_DECAY = 0.2
 DEFAULT_NUMBER_CLASSES = 4
-DEFAULT_SIZE_KERNEL = (3, 3)
+DEFAULT_SIZE_KERNEL = 3
 DEFAULT_SAMPLE_RATE = 8000
 DEFAULT_HOP_LENGTH = 256
 DEFAULT_SIZE_BATCH = 32
@@ -319,7 +326,7 @@ class Conformer(MetricsCalculator):
                                           metrics=['accuracy'])
 
     def train(self, dataset_directory, number_epochs, batch_size, number_splits,
-              loss, sample_rate, overlap, number_classes) -> tuple:
+              loss, sample_rate, overlap, number_classes, arguments) -> tuple:
         """
         Trains the model using cross-validation.
 
@@ -348,6 +355,19 @@ class Conformer(MetricsCalculator):
         self.sample_rate = sample_rate or self.sample_rate
         self.overlap = overlap or self.overlap
         self.number_classes = number_classes or self.number_classes
+
+        self.window_size_factor = arguments.conformer_window_size_factor
+        self.decibel_scale_factor = arguments.conformer_decibel_scale_factor
+        self.hop_length = arguments.conformer_hop_length
+        self.number_filters_spectrogram = arguments.conformer_number_filters_spectrogram
+        self.overlap = arguments.conformer_overlap
+        self.window_size = self.hop_length * (self.window_size_factor - 1)
+        self.number_conformer_blocks = arguments.conformer_number_conformer_blocks
+        self.embedding_dimension = arguments.conformer_embedding_dimension
+        self.number_heads = arguments.conformer_number_heads
+        self.kernel_size = arguments.conformer_size_kernel
+        self.dropout_rate = arguments.conformer_dropout_rate
+
         history_model = None
         features, labels = self.load_data(dataset_directory)
         metrics_list, confusion_matriz_list = [], []
@@ -451,3 +471,62 @@ class Conformer(MetricsCalculator):
 
         return (mean_metrics, {"Name": self.model_name, "History": history_model.history}, mean_confusion_matrices,
                 probabilities_predicted)
+
+
+def get_conformer_models_args(parser):
+
+    parser.add_argument('--conformer_input_dimension', type=tuple,
+                        default=(80, 40), help='Input dimension of the model')
+
+    parser.add_argument('--conformer_number_conformer_blocks', type=int,
+                        default=DEFAULT_NUMBER_CONFORMER_BLOCKS, help='Number of conformer blocks')
+
+    parser.add_argument('--conformer_embedding_dimension', type=int,
+                        default=DEFAULT_EMBEDDING_DIMENSION, help='Dimension of embedding layer')
+
+    parser.add_argument('--conformer_number_heads', type=int,
+                        default=DEFAULT_NUMBER_HEADS, help='Number of heads in multi-head attention')
+
+    parser.add_argument('--conformer_max_length', type=int,
+                        default=DEFAULT_MAX_LENGTH, help='Maximum length for positional encoding')
+
+    parser.add_argument('--conformer_kernel_size', type=int,
+                        default=DEFAULT_KERNEL_SIZE, help='Kernel size for convolution layers')
+
+    parser.add_argument('--conformer_dropout_decay', type=float,
+                        default=DEFAULT_DROPOUT_DECAY, help='Dropout decay rate')
+
+    parser.add_argument('--conformer_size_kernel', type=int,
+                        default=DEFAULT_SIZE_KERNEL, help='Size of convolution kernel')
+
+    parser.add_argument('--conformer_hop_length', type=int,
+                        default=DEFAULT_HOP_LENGTH, help='Hop length for STFT')
+
+    parser.add_argument('--conformer_overlap', type=int,
+                        default=DEFAULT_OVERLAP, help='Overlap between patches in the spectrogram')
+
+    parser.add_argument('--conformer_dropout_rate', type=float,
+                        default=DEFAULT_DROPOUT_RATE, help='Dropout rate in the network')
+
+    parser.add_argument('--conformer_window_size', type=int,
+                        default=DEFAULT_WINDOW_SIZE, help='Size of the FFT window')
+
+    parser.add_argument('--conformer_decibel_scale_factor', type=float,
+                        default=DEFAULT_DECIBEL_SCALE_FACTOR, help='Scale factor for converting to decibels')
+
+    parser.add_argument('--conformer_window_size_factor', type=int,
+                        default=DEFAULT_WINDOW_SIZE_FACTOR, help='Factor applied to FFT window size')
+
+    parser.add_argument('--conformer_number_filters_spectrogram', type=int,
+                        default=DEFAULT_NUMBER_FILTERS_SPECTROGRAM, help='Number of filters in the spectrogram')
+
+    parser.add_argument('--conformer_last_layer_activation', type=str,
+                        default=DEFAULT_LAST_LAYER_ACTIVATION, help='Activation function for the last layer')
+
+    parser.add_argument('--conformer_optimizer_function', type=str,
+                        default=DEFAULT_OPTIMIZER_FUNCTION, help='Optimizer function to use')
+
+    parser.add_argument('--conformer_loss_function', type=str,
+                        default=DEFAULT_LOSS_FUNCTION, help='Loss function to use during training')
+
+    return parser

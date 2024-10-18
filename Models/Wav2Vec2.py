@@ -8,34 +8,44 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+
 try:
     import os
     import sys
     import glob
     import numpy
     import librosa
+    import argparse
     import tensorflow
+
     from tqdm import tqdm
 
     from tensorflow.keras import Model
+
+    from tensorflow.keras.layers import Add
     from tensorflow.keras.layers import Dense
     from tensorflow.keras.layers import Input
-    from tensorflow.keras.layers import Reshape
     from tensorflow.keras.layers import Conv1D
-    from tensorflow.keras.layers import Embedding
-    from tensorflow.keras.layers import Add
+    from tensorflow.keras.layers import Lambda
+    from tensorflow.keras.layers import Reshape
     from tensorflow.keras.layers import Flatten
-    from tensorflow.keras.layers import Lambda, Activation
     from tensorflow.keras.layers import Dropout
+    from tensorflow.keras.layers import Embedding
+    from tensorflow.keras.layers import Activation
+
     from tensorflow.keras.layers import MultiHeadAttention
     from tensorflow.keras.layers import LayerNormalization
     from tensorflow.keras.layers import TimeDistributed
+    from tensorflow.keras.layers import GlobalAveragePooling1D
+
     from Modules.Layers.QuantizerLayerMLP import QuantizationLayer
     from Modules.Loss.ContrastiveLoss import ContrastiveLoss
+
     from sklearn.model_selection import StratifiedKFold
     from sklearn.model_selection import train_test_split
+
     from sklearn.utils import resample
-    from tensorflow.keras.layers import GlobalAveragePooling1D
+
     from Modules.Evaluation.MetricsCalculator import MetricsCalculator
 
 except ImportError as error:
@@ -251,7 +261,7 @@ class AudioWav2Vec2(MetricsCalculator):
         return array_features, numpy.array(list_labels, dtype=numpy.int32)
 
     def train(self, dataset_directory, number_epochs, batch_size, number_splits,
-              loss, sample_rate, overlap, number_classes) -> tuple:
+              loss, sample_rate, overlap, number_classes, arguments) -> tuple:
         """
         Trains the model using cross-validation.
 
@@ -280,6 +290,22 @@ class AudioWav2Vec2(MetricsCalculator):
         self.sample_rate = sample_rate or self.sample_rate
         self.overlap = overlap or self.overlap
         self.number_classes = number_classes or self.number_classes
+
+        self.contex_dimension = arguments.wav_to_vec_context_dimension
+        self.list_filters_encoder = arguments.wav_to_vec_list_filters_encoder
+        self.projection_mlp_dimension = arguments.wav_to_vec_projection_mlp_dimension
+        self.window_size_factor = arguments.wav_to_vec_window_size_factor
+        self.decibel_scale_factor = arguments.wav_to_vec_decibel_scale_factor
+        self.hop_length = arguments.wav_to_vec_hop_length
+        self.kernel_size = arguments.wav_to_vec_kernel_size
+        self.quantization_units = arguments.wav_to_vec_quantization_bits
+        self.key_dimension = arguments.wav_to_vec_key_dimension
+        self.intermediary_layer_activation = arguments.wav_to_vec_intermediary_layer_activation
+        self.overlap = arguments.wav_to_vec_overlap
+        self.number_heads = arguments.wav_to_vec_number_heads
+        self.window_size = self.hop_length * self.window_size_factor
+        self.dropout_rate = arguments.wav_to_vec_dropout_rate
+        self.last_layer_activation = arguments.wav_to_vec_last_layer_activation
 
         features, labels = self.load_data(dataset_directory)
         metrics_list, confusion_matriz_list = [], []
@@ -385,3 +411,66 @@ class AudioWav2Vec2(MetricsCalculator):
 
         return (mean_metrics, {"Name": self.model_name, "History": history_model.history}, mean_confusion_matrices,
                 probabilities_predicted)
+
+
+def get_wav_to_vec_args(parser):
+
+    parser.add_argument('--wav_to_vec_input_dimension', type=tuple,
+                        default=(10240,), help='Input dimension of the model')
+
+    parser.add_argument('--wav_to_vec_number_classes', type=int,
+                        default=DEFAULT_NUMBER_CLASSES, help='Number of output classes')
+
+    parser.add_argument('--wav_to_vec_number_heads', type=int,
+                        default=DEFAULT_NUMBER_HEADS, help='Number of heads in multi-head attention')
+
+    parser.add_argument('--wav_to_vec_key_dimension', type=int,
+                        default=DEFAULT_KEY_DIMENSION, help='Dimensionality of attention key vectors')
+
+    parser.add_argument('--wav_to_vec_hop_length', type=int,
+                        default=DEFAULT_HOP_LENGTH, help='Hop length for STFT')
+
+    parser.add_argument('--wav_to_vec_overlap', type=int,
+                        default=DEFAULT_OVERLAP, help='Overlap between patches in the spectrogram')
+
+    parser.add_argument('--wav_to_vec_dropout_rate', type=float,
+                        default=DEFAULT_DROPOUT_RATE, help='Dropout rate in the network')
+
+    parser.add_argument('--wav_to_vec_window_size', type=int,
+                        default=DEFAULT_WINDOW_SIZE, help='Size of the FFT window')
+
+    parser.add_argument('--wav_to_vec_kernel_size', type=int,
+                        default=DEFAULT_KERNEL_SIZE, help='Size of the convolutional kernel')
+
+    parser.add_argument('--wav_to_vec_decibel_scale_factor', type=float,
+                        default=DEFAULT_DECIBEL_SCALE_FACTOR, help='Scale factor for converting to decibels')
+
+    parser.add_argument('--wav_to_vec_context_dimension', type=int,
+                        default=DEFAULT_CONTEXT_DIMENSION, help='Context dimension for attention mechanisms')
+
+    parser.add_argument('--wav_to_vec_projection_mlp_dimension', type=int,
+                        default=DEFAULT_PROJECTION_MLP_DIMENSION, help='Dimension of the MLP projection layer')
+
+    parser.add_argument('--wav_to_vec_window_size_factor', type=int,
+                        default=DEFAULT_WINDOW_SIZE_FACTOR, help='Factor applied to FFT window size')
+
+    parser.add_argument('--wav_to_vec_list_filters_encoder',
+                        default=DEFAULT_LIST_FILTERS_ENCODER, help='List of filters for each encoder block')
+
+    parser.add_argument('--wav_to_vec_last_layer_activation', type=str,
+                        default=DEFAULT_LAST_LAYER_ACTIVATION, help='Activation function for the last layer')
+
+    parser.add_argument('--wav_to_vec_optimizer_function', type=str,
+                        default=DEFAULT_OPTIMIZER_FUNCTION, help='Optimizer function to use')
+
+    parser.add_argument('--wav_to_vec_quantization_bits', type=int,
+                        default=DEFAULT_QUANTIZATION_BITS, help='Number of quantization bits for the model')
+
+    parser.add_argument('--wav_to_vec_intermediary_layer_activation', type=str,
+                        default=DEFAULT_INTERMEDIARY_LAYER_ACTIVATION, help='Activation function for intermediary layers')
+
+    parser.add_argument('--wav_to_vec_loss_function', type=str,
+                        default=DEFAULT_LOSS_FUNCTION, help='Loss function to use during training')
+
+
+    return parser

@@ -8,35 +8,38 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-import pandas as pd
-
 try:
-    import sys
     import os
-    from tqdm import tqdm
+    import sys
     import glob
-    import librosa
     import numpy
+    import librosa
+    import argparse
     import tensorflow
+
+    from tqdm import tqdm
     from sklearn.utils import resample
     from tensorflow.keras import models
-    from tensorflow.keras.layers import Dropout
+
     from tensorflow.keras.layers import Add
-    from tensorflow.keras.layers import Flatten
     from tensorflow.keras.layers import Layer
-    from tensorflow.keras.layers import Conv1D
     from tensorflow.keras.layers import Dense
     from tensorflow.keras.layers import Input
+    from tensorflow.keras.layers import Conv1D
+    from tensorflow.keras.layers import Flatten
+    from tensorflow.keras.layers import Dropout
     from tensorflow.keras.layers import Embedding
-    from sklearn.model_selection import train_test_split
-    from tensorflow.keras.layers import Concatenate, TimeDistributed
+    from tensorflow.keras.layers import Concatenate
+    from tensorflow.keras.layers import TimeDistributed
     from tensorflow.keras.layers import LayerNormalization
     from tensorflow.keras.layers import MultiHeadAttention
     from tensorflow.keras.layers import GlobalAveragePooling1D
 
+    from sklearn.model_selection import StratifiedKFold
+    from sklearn.model_selection import train_test_split
+
     from Modules.Layers.CLSTokenLayer import CLSTokenLayer
     from Modules.Evaluation.MetricsCalculator import MetricsCalculator
-    from sklearn.model_selection import StratifiedKFold
     from Modules.Layers.PositionalEmbeddingsLayer import PositionalEmbeddingsLayer
 
 except ImportError as error:
@@ -84,7 +87,8 @@ class AudioAST(MetricsCalculator):
     Various attributes with default values for model parameters.
     """
 
-    def __init__(self, projection_dimension: int = DEFAULT_PROJECTION_DIMENSION,
+    def __init__(self,
+                 projection_dimension: int = DEFAULT_PROJECTION_DIMENSION,
                  head_size: int = DEFAULT_HEAD_SIZE,
                  num_heads: int = DEFAULT_NUMBER_HEADS,
                  number_blocks: int = DEFAULT_NUMBER_BLOCKS,
@@ -230,7 +234,9 @@ class AudioAST(MetricsCalculator):
         list_patches = []
 
         for i in range(num_patches_x):
+
             for j in range(num_patches_y):
+
                 patch = padded_spectrogram[
                         i * self.patch_size[0]:(i + 1) * self.patch_size[0],
                         j * self.patch_size[1]:(j + 1) * self.patch_size[1]]
@@ -273,14 +279,17 @@ class AudioAST(MetricsCalculator):
 
         # Iterate over the number of transformer blocks
         for _ in range(self.number_blocks):
+
             # Apply layer normalization to the input tensor
             neural_model_flow = LayerNormalization(epsilon=self.normalization_epsilon)(inputs)
+
             # Apply multi-head self-attention
             neural_model_flow = MultiHeadAttention(key_dim=self.head_size, num_heads=self.number_heads,
                                                    dropout=self.dropout)(neural_model_flow, neural_model_flow)
 
             # Apply dropout for regularization
             neural_model_flow = Dropout(self.dropout)(neural_model_flow)
+
             # Add the input tensor to the output of the self-attention layer (residual connection)
             neural_model_flow = Add()([neural_model_flow, inputs])
 
@@ -402,6 +411,7 @@ class AudioAST(MetricsCalculator):
 
             # Check if the path is a directory
             if os.path.isdir(class_path):
+
                 # Convert the directory name to an integer label
                 class_label = int(class_dir)
 
@@ -499,8 +509,8 @@ class AudioAST(MetricsCalculator):
 
         return numpy.array(array_features, dtype=numpy.float32), array_labels
 
-    def train(self, dataset_directory, number_epochs, batch_size, number_splits,
-              loss, sample_rate, overlap, number_classes) -> tuple:
+    def train(self, dataset_directory, number_epochs, batch_size, number_splits, loss, sample_rate, overlap,
+              number_classes, arguments) -> tuple:
         """
         Trains the model using cross-validation.
 
@@ -521,6 +531,7 @@ class AudioAST(MetricsCalculator):
             A tuple containing the mean metrics, the training history, the mean confusion matrix,
             and the predicted probabilities along with the ground truth labels.
         """
+
         # Use default values if not provided
         self.number_epochs = number_epochs or self.number_epochs
         self.number_splits = number_splits or self.number_splits
@@ -529,6 +540,25 @@ class AudioAST(MetricsCalculator):
         self.sample_rate = sample_rate or self.sample_rate
         self.overlap = overlap or self.overlap
         self.number_classes = number_classes or self.number_classes
+
+        self.head_size = arguments.ast_head_size
+        self.number_heads = arguments.ast_number_heads
+        self.number_blocks = arguments.ast_number_blocks
+        self.hop_length = arguments.ast_hop_length
+        self.size_fft = arguments.ast_size_fft
+        self.patch_size = arguments.ast_patch_size
+        self.overlap = arguments.ast_overlap
+        self.dropout = arguments.ast_dropout
+        self.normalization_epsilon = arguments.ast_normalization_epsilon
+        self.last_activation_layer = arguments.ast_last_activation_layer
+        self.projection_dimension = arguments.ast_projection_dimension
+        self.intermediary_activation = arguments.ast_intermediary_activation
+        self.decibel_scale_factor = arguments.ast_decibel_scale_factor
+        self.window_size_fft = arguments.ast_window_size_fft
+        self.window_size_factor = arguments.ast_window_size_factor
+        self.window_size = arguments.ast_hop_length * (arguments.ast_window_size_factor - 1)
+        self.number_filters_spectrogram = arguments.ast_number_filters_spectrogram
+
         history_model = None
         features, labels = self.load_dataset(dataset_directory)
         number_patches = features.shape[1]
@@ -549,6 +579,7 @@ class AudioAST(MetricsCalculator):
             balanced_labels = []
 
             for c in unique_classes:
+
                 features_class = features[labels == c]
                 labels_class = labels[labels == c]
 
@@ -572,12 +603,13 @@ class AudioAST(MetricsCalculator):
 
         # Stratified k-fold cross-validation on the training/validation set
         instance_k_fold = StratifiedKFold(n_splits=self.number_splits, shuffle=True, random_state=42)
-        list_history_model = []
         probabilities_list = []
         real_labels_list = []
 
         print("STARTING TRAINING MODEL: {}".format(self.model_name))
+
         for train_indexes, val_indexes in instance_k_fold.split(features_train_val, labels_train_val):
+
             features_train, features_val = features_train_val[train_indexes], features_train_val[val_indexes]
             labels_train, labels_val = labels_train_val[train_indexes], labels_train_val[val_indexes]
 
@@ -632,3 +664,65 @@ class AudioAST(MetricsCalculator):
         }
         return (mean_metrics, {"Name": self.model_name, "History": history_model.history}, mean_confusion_matrices,
                 probabilities_predicted)
+
+
+def get_audio_ast_args(parser):
+
+    parser.add_argument('--ast_projection_dimension', type=int,
+                        default=DEFAULT_PROJECTION_DIMENSION, help='Dimension for projection layer')
+
+    parser.add_argument('--ast_head_size', type=int,
+                        default=DEFAULT_HEAD_SIZE, help='Size of each head in multi-head attention')
+
+    parser.add_argument('--ast_number_heads', type=int,
+                        default=DEFAULT_NUMBER_HEADS, help='Number of heads in multi-head attention')
+
+    parser.add_argument('--ast_number_blocks', type=int,
+                        default=DEFAULT_NUMBER_BLOCKS, help='Number of transformer blocks')
+
+    parser.add_argument('--ast_hop_length', type=int,
+                        default=DEFAULT_HOP_LENGTH, help='Hop length for STFT')
+
+    parser.add_argument('--ast_size_fft', type=int,
+                        default=DEFAULT_SIZE_FFT, help='Size of FFT window')
+
+    parser.add_argument('--ast_patch_size', type=tuple,
+                        default=DEFAULT_SIZE_PATCH, help='Size of the patches in the spectrogram')
+
+    parser.add_argument('--ast_overlap', type=int,
+                        default=DEFAULT_OVERLAP, help='Overlap between patches in the spectrogram')
+
+    parser.add_argument('--ast_dropout', type=float,
+                        default=DEFAULT_DROPOUT_RATE, help='Dropout rate in the network')
+
+    parser.add_argument('--ast_intermediary_activation', type=str,
+                        default=DEFAULT_INTERMEDIARY_ACTIVATION, help='Activation function for intermediary layers')
+
+    parser.add_argument('--ast_loss_function', type=str,
+                        default=DEFAULT_LOSS_FUNCTION, help='Loss function to use during training')
+
+    parser.add_argument('--ast_last_activation_layer', type=str,
+                        default=DEFAULT_LAST_LAYER_ACTIVATION, help='Activation function for the last layer')
+
+    parser.add_argument('--ast_optimizer_function', type=str,
+                        default=DEFAULT_OPTIMIZER_FUNCTION, help='Optimizer function to use')
+
+    parser.add_argument('--ast_normalization_epsilon', type=float,
+                        default=DEFAULT_NORMALIZATION_EPSILON, help='Epsilon value for normalization layers')
+
+    parser.add_argument('--ast_audio_duration', type=int,
+                        default=DEFAULT_AUDIO_DURATION, help='Duration of each audio clip')
+
+    parser.add_argument('--ast_decibel_scale_factor', type=float,
+                        default=DEFAULT_DECIBEL_SCALE_FACTOR, help='Scale factor for converting to decibels')
+
+    parser.add_argument('--ast_window_size_fft', type=int,
+                        default=DEFAULT_SIZE_FFT, help='Size of the FFT window for spectral analysis')
+
+    parser.add_argument('--ast_window_size_factor', type=float,
+                        default=DEFAULT_WINDOW_SIZE_FACTOR, help='Factor applied to FFT window size')
+
+    parser.add_argument('--ast_number_filters_spectrogram', type=int,
+                        default=DEFAULT_NUMBER_FILTERS_SPECTROGRAM, help='Number of filters in the spectrogram')
+
+    return parser

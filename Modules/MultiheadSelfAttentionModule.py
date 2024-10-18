@@ -11,9 +11,10 @@ __credits__ = ['unknown']
 try:
     import sys
     import tensorflow
-    from tensorflow.keras.layers import Dropout
     from tensorflow.keras.layers import Layer
-    from tensorflow.keras.layers import LayerNormalization, MultiHeadAttention
+    from tensorflow.keras.layers import Dropout
+    from tensorflow.keras.layers import LayerNormalization
+    from tensorflow.keras.layers import MultiHeadAttention
     from Modules.Layers.RelativePositionalEmbedding import RelativePositionalEmbedding
 
 except ImportError as error:

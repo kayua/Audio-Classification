@@ -13,7 +13,6 @@ try:
     import tensorflow
     from tensorflow.keras.layers import Layer
     from tensorflow.keras.layers import LayerNormalization
-
     from Modules.ConvolutionalModule import ConvolutionalModule
     from Modules.FeedForwardModule import FeedForwardModule
     from Modules.MultiheadSelfAttentionModule import MultiHeadSelfAttentionModule

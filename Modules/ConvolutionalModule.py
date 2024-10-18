@@ -10,16 +10,15 @@ __credits__ = ['unknown']
 
 try:
     import sys
-    import tensorflow as tf
-
+    import tensorflow
     from Modules.Layers.GLU import GLU
     from tensorflow.keras.layers import Layer
     from tensorflow.keras.layers import Conv1D
-    from tensorflow.keras.layers import BatchNormalization
     from tensorflow.keras.layers import Dropout
     from tensorflow.keras.layers import Activation
-    from tensorflow.keras.layers import LayerNormalization
     from tensorflow.keras.layers import DepthwiseConv1D
+    from tensorflow.keras.layers import BatchNormalization
+    from tensorflow.keras.layers import LayerNormalization
 
 except ImportError as error:
     print(error)
@@ -69,11 +68,11 @@ class ConvolutionalModule(Layer):
         self.glu_activation = GLU()
         self.depth_wise_convolutional = DepthwiseConv1D(kernel_size=size_kernel, padding=self.convolutional_padding)
         self.batch_normalization = BatchNormalization()
-        self.swish_activation = Activation(tf.nn.swish)
+        self.swish_activation = Activation(tensorflow.nn.swish)
         self.second_point_wise_convolutional = Conv1D(1, kernel_size=1)
         self.dropout = Dropout(dropout_decay)
 
-    def call(self, neural_network_flow: tf.Tensor) -> tf.Tensor:
+    def call(self, neural_network_flow: tensorflow.Tensor) -> tensorflow.Tensor:
         """
         Applies the convolutional transformations to the input tensor.
 

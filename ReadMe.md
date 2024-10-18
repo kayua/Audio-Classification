@@ -152,17 +152,17 @@ Multiclass confusion matrices for each of the evaluated models. The configuratio
         <tr>
             <td><img src="Results/matrix_5.png" alt="" style="max-width:100%;"></td>
             <td><img src="Results/matrix_2.png" alt="" style="max-width:100%;"></td>
-            <td><img src="Results/matrix_3.png" alt="2" style="max-width:100%;"></td>
+            <td><img src="Results/matrix_4.png" alt="2" style="max-width:100%;"></td>
         </tr>
    <tbody> 
         <tr>
-            <th width="10%">Wav2Vec2</th>
-            <th width="10%">MLP</th>
-            <th width="10%">Residual</th>
+            <th width="10%">Wav2Vec2 Topology</th>
+            <th width="10%">MLP Topology</th>
+            <th width="10%">Residual Topology</th>
         </tr>
         <tr>
             <td><img src="Results/matrix_1.png" alt="" style="max-width:100%;"></td>
-            <td><img src="Results/matrix_4.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/matrix_3.png" alt="" style="max-width:100%;"></td>
             <td><img src="Results/matrix_6.png" alt="" style="max-width:100%;"></td>
         </tr>
 
@@ -186,9 +186,9 @@ Visualization of the ROC curves for each of the six model topologies, showing bo
         </tr>
    <tbody> 
         <tr>
-            <th width="10%">Wav2Vec2</th>
-            <th width="10%">Residual</th>
-            <th width="10%">MLP</th>
+            <th width="10%">Wav2Vec2 Topology</th>
+            <th width="10%">Residual Topology</th>
+            <th width="10%">MLP Topology</th>
         </tr>
         <tr>
             <td><img src="Results/ROC_Wav2Vec2.png" alt="" style="max-width:100%;"></td>
@@ -209,7 +209,7 @@ This comprehensive analysis evaluates the performance of several models by compa
             <th width="10%">Comparison Between Models.</th>
         </tr>
         <tr>
-            <td><img src="Results/metrics.png" alt="" style="max-width:100%;"></td>
+            <td><img src="Results/metrics.png" alt="" style="max-width:85%;"></td>
         </tr>
         
 </table>
@@ -234,24 +234,148 @@ This comprehensive analysis evaluates the performance of several models by compa
 `python3 EvaluationModels.py`
 
 
-### Input parameters:
+## Input parameters:
 
     Arguments:
-      --dataset_directory", Directory containing the dataset.
-      --number_epochs", Number of training epochs.
-      --batch_size", Size of the batches for training.
-      --number_splits", Number of splits for cross-validation.
-      --loss", Loss function to use during training.
-      --sample_rate", Sample rate of the audio files.
-      --overlap", Overlap for the audio segments.
-      --number_classes", Number of classes in the dataset.
-      --output_directory", Directory to save output files.
-      --plot_width", Width of the plots.
-      --plot_height", Height of the plots.
-      --plot_bar_width", Width of the bars in the bar plots.
-      --plot_cap_size", Capsize of the error bars in the bar plots.
+      --dataset_directory                          Directory containing the dataset.
+      --number_epochs                              Number of training epochs.
+      --batch_size                                 Size of the batches for training.
+      --number_splits                              Number of splits for cross-validation.
+      --loss                                       Loss function to use during training.
+      --sample_rate                                Sample rate of the audio files.
+      --overlap                                    Overlap for the audio segments.
+      --number_classes                             Number of classes in the dataset.
+      --output_directory                           Directory to save output files.
+      --plot_width                                 Width of the plots.
+      --plot_height                                Height of the plots.
+      --plot_bar_width                             Width of the bars in the bar plots.
+      --plot_cap_size                              Capsize of the error bars in the bar plots.
 
     --------------------------------------------------------------
+
+### Parameters Audio Spectrogram Transformers:
+
+    Arguments:
+      --ast_projection_dimension                   Dimension for projection layer
+      --ast_head_size                              Size of each head in multi-head attention
+      --ast_number_heads                           Number of heads in multi-head attention
+      --ast_number_blocks                          Number of transformer blocks
+      --ast_hop_length                             Hop length for STFT
+      --ast_size_fft                               Size of FFT window
+      --ast_patch_size                             Size of the patches in the spectrogram
+      --ast_overlap                                Overlap between patches in the spectrogram
+      --ast_dropout                                Dropout rate in the network
+      --ast_intermediary_activation                Activation function for intermediary layers
+      --ast_loss_function                          Loss function to use during training
+      --ast_last_activation_layer                  Activation function for the last layer
+      --ast_optimizer_function                     Optimizer function to use
+      --ast_normalization_epsilon                  Epsilon value for normalization layers
+      --ast_audio_duration                         Duration of each audio clip
+      --ast_decibel_scale_factor                   Scale factor for converting to decibels
+      --ast_window_size_fft                        Size of the FFT window for spectral analysis
+      --ast_window_size_factor                     Factor applied to FFT window size
+      --ast_number_filters_spectrogram             Number of filters in the spectrogram
+
+### Parameters Conformer:
+
+    Arguments:
+      --conformer_input_dimension                  Input dimension of the model
+      --conformer_number_conformer_blocks          Number of conformer blocks
+      --conformer_embedding_dimension              Dimension of embedding layer
+      --conformer_number_heads                     Number of heads in multi-head attention
+      --conformer_max_length                       Maximum length for positional encoding
+      --conformer_kernel_size                      Kernel size for convolution layers
+      --conformer_dropout_decay                    Dropout decay rate
+      --conformer_size_kernel                      Size of convolution kernel
+      --conformer_hop_length                       Hop length for STFT
+      --conformer_overlap                          Overlap between patches in the spectrogram
+      --conformer_dropout_rate                     Dropout rate in the network
+      --conformer_window_size                      Size of the FFT window
+      --conformer_decibel_scale_factor             Scale factor for converting to decibels
+      --conformer_window_size_factor               Factor applied to FFT window size
+      --conformer_number_filters_spectrogram       Number of filters in the spectrogram
+      --conformer_last_layer_activation            Activation function for the last layer
+      --conformer_optimizer_function               Optimizer function to use
+      --conformer_loss_function                    Loss function to use during training
+
+### Parameters LSTM:
+
+    Arguments:
+      --lstm_input_dimension                       Input dimension of the model
+      --lstm_list_lstm_cells                       List of LSTM cell sizes for each layer
+      --lstm_hop_length                            Hop length for STFT
+      --lstm_overlap                               Overlap between patches in the spectrogram
+      --lstm_dropout_rate                          Dropout rate in the network
+      --lstm_window_size                           Size of the FFT window
+      --lstm_decibel_scale_factor                  Scale factor for converting to decibels
+      --lstm_window_size_factor                    Factor applied to FFT window size
+      --lstm_last_layer_activation                 Activation function for the last layer
+      --lstm_optimizer_function                    Optimizer function to use
+      --lstm_recurrent_activation                  Activation function for LSTM recurrent step
+      --lstm_intermediary_layer_activation         Activation function for intermediary layers
+      --lstm_loss_function                         Loss function to use during training
+
+### Parameters Multilayer Perceptron:
+
+    Arguments:
+      --mlp_input_dimension                        Input dimension of the model
+      --mlp_list_lstm_cells                        List of LSTM cell sizes for each layer
+      --mlp_hop_length                             Hop length for STFT
+      --mlp_overlap                                Overlap between patches in the spectrogram
+      --mlp_dropout_rate                           Dropout rate in the network
+      --mlp_window_size                            Size of the FFT window
+      --mlp_decibel_scale_factor                   Scale factor for converting to decibels
+      --mlp_window_size_factor                     Factor applied to FFT window size
+      --mlp_last_layer_activation                  Activation function for the last layer
+      --mlp_file_extension                         File extension for audio files
+      --mlp_optimizer_function                     Optimizer function to use
+      --mlp_intermediary_layer_activation          Activation function for intermediary layers
+      --mlp_loss_function                          Loss function to use during training
+
+### Parameters Residual Model:
+
+    Arguments:
+      --residual_hop_length                        Hop length for STFT
+      --residual_window_size_factor                Factor applied to FFT window size
+      --residual_number_filters_spectrogram        Number of filters for spectrogram generation
+      --residual_filters_per_block                 Number of filters in each convolutional block
+      --residual_file_extension                    File extension for audio files
+      --residual_dropout_rate                      Dropout rate in the network
+      --residual_number_layers                     Number of convolutional layers
+      --residual_optimizer_function                Optimizer function to use
+      --residual_overlap                           Overlap between patches in the spectrogram
+      --residual_loss_function                     Loss function to use during training
+      --residual_decibel_scale_factor              Scale factor for converting to decibels
+      --residual_convolutional_padding             Padding type for convolutional layers
+      --residual_input_dimension                   Input dimension of the model
+      --residual_intermediary_activation           Activation function for intermediary layers
+      --residual_last_layer_activation             Activation function for the last layer
+      --residual_size_pooling                      Size of the pooling layers
+      --residual_window_size                       Size of the FFT window
+      --residual_size_convolutional_filters        Size of the convolutional filters
+
+### Parameters Wav2Vec 2:
+
+    Arguments:
+      --wav_to_vec_input_dimension                 Input dimension of the model
+      --wav_to_vec_number_classes                  Number of output classes
+      --wav_to_vec_number_heads                    Number of heads in multi-head attention
+      --wav_to_vec_key_dimension                   Dimensionality of attention key vectors
+      --wav_to_vec_hop_length                      Hop length for STFT
+      --wav_to_vec_overlap                         Overlap between patches in the spectrogram
+      --wav_to_vec_dropout_rate                    Dropout rate in the network
+      --wav_to_vec_window_size                     Size of the FFT window
+      --wav_to_vec_kernel_size                     Size of the convolutional kernel
+      --wav_to_vec_decibel_scale_factor            Scale factor for converting to decibels
+      --wav_to_vec_context_dimension               Context dimension for attention mechanisms
+      --wav_to_vec_projection_mlp_dimension        Dimension of the MLP projection layer
+      --wav_to_vec_window_size_factor              Factor applied to FFT window size
+      --wav_to_vec_list_filters_encoder            List of filters for each encoder block
+      --wav_to_vec_last_layer_activation           Activation function for the last layer
+      --wav_to_vec_optimizer_function              Optimizer function to use
+      --wav_to_vec_quantization_bits               Number of quantization bits for the model
+      --wav_to_vec_intermediary_layer_activation   Activation function for intermediary layers
+      --wav_to_vec_loss_function                   Loss function to use during training
 
 
 ## Requirements:

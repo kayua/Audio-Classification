@@ -8,6 +8,8 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+import argparse
+
 try:
     import os
     import sys
@@ -319,7 +321,7 @@ class ResidualModel(MetricsCalculator):
         return training_history
 
     def train(self, dataset_directory, number_epochs, batch_size, number_splits,
-              loss, sample_rate, overlap, number_classes) -> tuple:
+              loss, sample_rate, overlap, number_classes, arguments) -> tuple:
         """
         Trains the model using cross-validation.
 
@@ -348,6 +350,26 @@ class ResidualModel(MetricsCalculator):
         self.sample_rate = sample_rate or self.sample_rate
         self.overlap = overlap or self.overlap
         self.number_classes = number_classes or self.number_classes
+
+        self.size_pooling = arguments.residual_size_pooling
+        self.filters_per_block = arguments.residual_filters_per_block
+        self.hop_length = arguments.residual_hop_length
+        self.decibel_scale_factor = arguments.residual_decibel_scale_factor
+        self.window_size_factor = arguments.residual_window_size_factor
+        self.window_size = self.hop_length * (self.window_size_factor - 1)
+        self.number_filters_spectrogram = arguments.residual_number_filters_spectrogram
+        self.number_layers = arguments.residual_number_layers
+        self.overlap = arguments.residual_overlap
+        self.dropout_rate = arguments.residual_dropout_rate
+        self.size_convolutional_filters = arguments.residual_size_convolutional_filters
+        self.last_layer_activation = arguments.residual_last_layer_activation
+        self.convolutional_padding = arguments.residual_convolutional_padding
+        self.intermediary_activation = arguments.residual_intermediary_activation
+
+
+
+
+
         history_model = None
         features, labels = self.load_data(dataset_directory)
         metrics_list, confusion_matriz_list = [], []
@@ -395,7 +417,9 @@ class ResidualModel(MetricsCalculator):
         real_labels_list = []
 
         print("STARTING TRAINING MODEL: {}".format(self.model_name))
+
         for train_indexes, val_indexes in instance_k_fold.split(features_train_val, labels_train_val):
+
             features_train, features_val = features_train_val[train_indexes], features_train_val[val_indexes]
             labels_train, labels_val = labels_train_val[train_indexes], labels_train_val[val_indexes]
 
@@ -451,3 +475,62 @@ class ResidualModel(MetricsCalculator):
 
         return (mean_metrics, {"Name": self.model_name, "History": history_model.history}, mean_confusion_matrices,
                 probabilities_predicted)
+
+
+def get_residual_model_args(parser):
+
+    parser.add_argument('--residual_hop_length', type=int,
+                        default=DEFAULT_HOP_LENGTH, help='Hop length for STFT')
+
+    parser.add_argument('--residual_window_size_factor', type=int,
+                        default=DEFAULT_WINDOW_SIZE_FACTOR, help='Factor applied to FFT window size')
+
+    parser.add_argument('--residual_number_filters_spectrogram', type=int,
+                        default=DEFAULT_NUMBER_FILTERS_SPECTROGRAM, help='Number of filters for spectrogram generation')
+
+    parser.add_argument('--residual_filters_per_block',
+                        default=DEFAULT_FILTERS_PER_BLOCK, help='Number of filters in each convolutional block')
+
+    parser.add_argument('--residual_file_extension', type=str,
+                        default=DEFAULT_FILE_EXTENSION, help='File extension for audio files')
+
+    parser.add_argument('--residual_dropout_rate', type=float,
+                        default=DEFAULT_DROPOUT_RATE, help='Dropout rate in the network')
+
+    parser.add_argument('--residual_number_layers', type=int,
+                        default=DEFAULT_NUMBER_LAYERS, help='Number of convolutional layers')
+
+    parser.add_argument('--residual_optimizer_function', type=str,
+                        default=DEFAULT_OPTIMIZER_FUNCTION, help='Optimizer function to use')
+
+    parser.add_argument('--residual_overlap', type=int,
+                        default=DEFAULT_OVERLAP, help='Overlap between patches in the spectrogram')
+
+    parser.add_argument('--residual_loss_function', type=str,
+                        default=DEFAULT_LOSS_FUNCTION, help='Loss function to use during training')
+
+    parser.add_argument('--residual_decibel_scale_factor', type=float,
+                        default=DEFAULT_DECIBEL_SCALE_FACTOR, help='Scale factor for converting to decibels')
+
+    parser.add_argument('--residual_convolutional_padding', type=str,
+                        default=DEFAULT_CONVOLUTIONAL_PADDING, help='Padding type for convolutional layers')
+
+    parser.add_argument('--residual_input_dimension', type=tuple,
+                        default=DEFAULT_INPUT_DIMENSION, help='Input dimension of the model')
+
+    parser.add_argument('--residual_intermediary_activation', type=str,
+                        default=DEFAULT_INTERMEDIARY_ACTIVATION, help='Activation function for intermediary layers')
+
+    parser.add_argument('--residual_last_layer_activation', type=str,
+                        default=DEFAULT_LAST_LAYER_ACTIVATION, help='Activation function for the last layer')
+
+    parser.add_argument('--residual_size_pooling', type=tuple,
+                        default=DEFAULT_SIZE_POOLING, help='Size of the pooling layers')
+
+    parser.add_argument('--residual_window_size', type=int,
+                        default=DEFAULT_WINDOW_SIZE, help='Size of the FFT window')
+
+    parser.add_argument('--residual_size_convolutional_filters', type=tuple,
+                        default=DEFAULT_SIZE_CONVOLUTIONAL_FILTERS, help='Size of the convolutional filters')
+
+    return parser

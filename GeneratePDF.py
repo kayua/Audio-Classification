@@ -1,16 +1,51 @@
-import argparse
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
 
-import markdown
-import pdfkit
-import os
+__author__ = 'unknown'
+__email__ = 'unknown@unknown.com.br'
+__version__ = '{1}.{0}.{0}'
+__initial_data__ = '2024/07/17'
+__last_update__ = '2024/07/26'
+__credits__ = ['unknown']
 
 
-def convert_md_to_html(md_file_path, html_file_path):
-    # Read the markdown file
-    with open(md_file_path, 'r', encoding='utf-8') as md_file:
+try:
+    import os
+    import sys
+    import pdfkit
+    import logging
+    import argparse
+    import markdown
+
+except ImportError as error:
+    print(error)
+    print("1. Install requirements:")
+    print("  pip3 install --upgrade pip")
+    print("  pip3 install -r requirements.txt")
+    sys.exit(-1)
+
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def convert_markdown_to_html(markdown_file_path, html_file_path):
+    """
+    Converts a Markdown file to HTML format and saves it to a specified file.
+
+    Args:
+        markdown_file_path (str): The path to the input Markdown file.
+        html_file_path (str): The path to the output HTML file.
+    """
+    logging.info("Starting conversion from Markdown to HTML.")
+    logging.debug("Reading Markdown file from path: %s", markdown_file_path)
+
+    # Read the Markdown file
+    with open(markdown_file_path, 'r', encoding='utf-8') as md_file:
         md_content = md_file.read()
 
-    # Convert markdown to HTML
+    logging.debug("Markdown content read successfully. Converting to HTML.")
+
+    # Convert Markdown to HTML
     html_content = markdown.markdown(md_content, extensions=['tables', 'fenced_code'])
 
     # Add CSS for image centering
@@ -32,13 +67,23 @@ def convert_md_to_html(md_file_path, html_file_path):
     </html>
     """
 
+    logging.debug("HTML content generated successfully. Writing to file: %s", html_file_path)
+
     # Write HTML content to a file
     with open(html_file_path, 'w', encoding='utf-8') as html_file:
         html_file.write(html_content)
 
+    logging.info("Conversion from Markdown to HTML completed successfully.")
 
 def convert_html_to_pdf(html_file_path, pdf_file_path):
-    # Path to wkhtmltopdf
+    """
+    Converts an HTML file to PDF format and saves it to a specified file.
+
+    Args:
+        html_file_path (str): The path to the input HTML file.
+        pdf_file_path (str): The path to the output PDF file.
+    """
+    logging.info("Starting conversion from HTML to PDF.")
     path_wkhtmltopdf = '/usr/bin/wkhtmltopdf'
     config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
 
@@ -46,40 +91,47 @@ def convert_html_to_pdf(html_file_path, pdf_file_path):
     options = {
         'no-outline': None,
         'enable-local-file-access': None,
-        'margin-top': '22mm',  # Margin superior
-        'margin-bottom': '22mm',  # Margin inferior
+        'margin-top': '22mm',
+        'margin-bottom': '22mm',
         'margin-left': '19mm',
         'margin-right': '19mm'
     }
 
+    logging.debug("Converting HTML file: %s to PDF file: %s", html_file_path, pdf_file_path)
+
     try:
         # Convert HTML to PDF
         pdfkit.from_file(html_file_path, pdf_file_path, configuration=config, options=options)
-    except Exception as e:
-        print(f'Error converting HTML to PDF: {e}')
+        logging.info("Conversion from HTML to PDF completed successfully.")
 
+    except Exception as e:
+        logging.error("Error converting HTML to PDF: %s", e)
 
 if __name__ == '__main__':
-    # Criação do parser de argumentos
+    # Create the argument parser
     parser = argparse.ArgumentParser(description='Convert Markdown to PDF.')
     parser.add_argument('--input', type=str, default='ReadMe.md', help='Path to the input Markdown file.')
     parser.add_argument('--output', type=str, default='output.pdf', help='Path to the output PDF file.')
 
-    # Parse dos argumentos
+    # Parse the arguments
     args = parser.parse_args()
 
-    # Paths para arquivos de entrada e saída
+    # Paths for input and output files
     md_file_path = args.input
     pdf_file_path = args.output
     html_file_path = 'temp.html'
 
+    logging.info("Input Markdown file path: %s", md_file_path)
+    logging.info("Output PDF file path: %s", pdf_file_path)
+
     # Convert Markdown to HTML
-    convert_md_to_html(md_file_path, html_file_path)
+    convert_markdown_to_html(md_file_path, html_file_path)
 
     # Convert HTML to PDF
     convert_html_to_pdf(html_file_path, pdf_file_path)
 
-    # Remove arquivo temporário HTML
+    # Remove temporary HTML file
     os.remove(html_file_path)
+    logging.info("Temporary HTML file removed.")
 
-    print(f'Success: The PDF has been generated at {pdf_file_path}.')
+    logging.info("Success: The PDF has been generated at %s.", pdf_file_path)

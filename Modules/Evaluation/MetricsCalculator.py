@@ -10,18 +10,19 @@ __credits__ = ['unknown']
 
 try:
     import sys
-    from sklearn.metrics import accuracy_score
-    from sklearn.metrics import precision_score
-    from sklearn.metrics import recall_score
-    from sklearn.metrics import f1_score
-    from sklearn.metrics import roc_auc_score
-    from sklearn.metrics import confusion_matrix
 
     from typing import List
     from typing import Dict
     from typing import Tuple
     from typing import Optional
     from typing import Union
+
+    from sklearn.metrics import accuracy_score
+    from sklearn.metrics import precision_score
+    from sklearn.metrics import recall_score
+    from sklearn.metrics import f1_score
+    from sklearn.metrics import roc_auc_score
+    from sklearn.metrics import confusion_matrix
 
 except ImportError as error:
     print(error)
