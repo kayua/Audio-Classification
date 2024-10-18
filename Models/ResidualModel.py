@@ -8,6 +8,7 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+import logging
 
 try:
     import os
@@ -244,59 +245,72 @@ class ResidualModel(MetricsCalculator):
 
         Parameters
         ----------
-        sub_directories : list of str, optional
-            List of subdirectories containing audio files.
+        sub_directories : str
+            Path to the parent directory containing subdirectories with audio files.
         file_extension : str, optional
-            The file extension for audio files.
+            The file extension for audio files. If not provided, the default from the initialization is used.
 
         Returns
         -------
         tuple
-            A tuple containing the feature array and label array.
+            A tuple containing:
+            - numpy.ndarray: Feature array (spectrograms).
+            - numpy.ndarray: Label array (class labels).
         """
+        logging.info("Starting data loading process.")
+
         list_spectrogram, list_labels, list_class_path = [], [], []
         file_extension = file_extension or self.file_extension
 
+        # Collect class paths
+        logging.info(f"Listing subdirectories in {sub_directories}")
         for class_dir in os.listdir(sub_directories):
             class_path = os.path.join(sub_directories, class_dir)
             list_class_path.append(class_path)
 
+        # Process each subdirectory
         for _, sub_directory in enumerate(list_class_path):
+            logging.info(f"Processing directory: {sub_directory}")
 
             for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
 
+                # Load the audio signal
                 signal, _ = librosa.load(file_name, sr=self.sample_rate)
-                label = file_name.split('/')[-2].split('_')[0]
+                label = file_name.split('/')[-2].split('_')[0]  # Extract label from the file path
 
+                # Segment the audio into windows
                 for (start, end) in self.windows(signal, self.window_size, self.overlap):
 
                     if len(signal[start:end]) == self.window_size:
-                        signal = signal[start:end]
+                        signal_segment = signal[start:end]
 
-                        spectrogram = librosa.feature.melspectrogram(y=signal,
+                        # Generate a mel spectrogram
+                        spectrogram = librosa.feature.melspectrogram(y=signal_segment,
                                                                      n_mels=self.number_filters_spectrogram,
                                                                      sr=self.sample_rate,
                                                                      n_fft=self.window_size_fft,
                                                                      hop_length=self.hop_length)
 
-                        # Convert spectrogram to decibels
+                        # Convert the spectrogram to decibel scale
                         spectrogram_decibel_scale = librosa.power_to_db(spectrogram, ref=numpy.max)
                         spectrogram_decibel_scale = (spectrogram_decibel_scale / self.decibel_scale_factor) + 1
                         list_spectrogram.append(spectrogram_decibel_scale)
                         list_labels.append(label)
 
+        # Convert lists to arrays
         array_features = numpy.array(list_spectrogram).reshape(len(list_spectrogram),
-                                                               self.number_filters_spectrogram,
-                                                               self.window_size_factor, 1)
-
+                                                            self.number_filters_spectrogram,
+                                                            self.window_size_factor, 1)
         array_labels = numpy.array(list_labels, dtype=numpy.int32)
 
-        # Adjust shape to include an additional dimension
+        # Adjust array shape for additional dimensions
+        logging.info("Reshaping feature array.")
         new_shape = list(array_features.shape)
-        new_shape[1] += 1
+        new_shape[1] += 1  # Adding an additional filter dimension
         new_array = numpy.zeros(new_shape)
         new_array[:, :self.number_filters_spectrogram, :, :] = array_features
 
+        logging.info("Data loading complete.")
         return numpy.array(new_array, dtype=numpy.float32), array_labels
 
     def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,
@@ -411,11 +425,8 @@ class ResidualModel(MetricsCalculator):
 
         # Stratified k-fold cross-validation on the training/validation set
         instance_k_fold = StratifiedKFold(n_splits=self.number_splits, shuffle=True, random_state=42)
-        list_history_model = []
         probabilities_list = []
         real_labels_list = []
-
-        print("STARTING TRAINING MODEL: {}".format(self.model_name))
 
         for train_indexes, val_indexes in instance_k_fold.split(features_train_val, labels_train_val):
 

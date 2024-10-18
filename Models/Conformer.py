@@ -8,6 +8,8 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+import logging
+
 try:
     import os
     import sys
@@ -261,60 +263,89 @@ class Conformer(MetricsCalculator):
 
     def load_data(self, sub_directories: str = None, file_extension: str = None) -> tuple:
         """
-        Loads audio data, extracts features, and prepares labels.
+        Loads audio data, extracts spectrogram features, and prepares labels.
 
-        This method reads audio files from the specified directories, extracts spectrogram features,
+        This method reads audio files from the specified directories, extracts mel spectrogram features,
         and prepares the corresponding labels.
 
         Parameters
         ----------
-        sub_directories : list of str, optional
-            List of subdirectories containing audio files.
+        sub_directories : str, optional
+            Path to the directory containing subdirectories of audio files.
         file_extension : str, optional
-            The file extension for audio files.
+            The file extension for audio files (e.g., '*.wav').
 
         Returns
         -------
         tuple
             A tuple containing the feature array and label array.
         """
+        logging.info("Starting to load data...")
         list_spectrogram, list_labels, list_class_path = [], [], []
         file_extension = file_extension or self.file_extension
 
+        # Check if directory exists
+        if not os.path.exists(sub_directories):
+            logging.error(f"Directory '{sub_directories}' does not exist.")
+            return None, None
+
+        # Collect all class directories
+        logging.info(f"Reading subdirectories in '{sub_directories}'...")
         for class_dir in os.listdir(sub_directories):
             class_path = os.path.join(sub_directories, class_dir)
-            list_class_path.append(class_path)
+            if os.path.isdir(class_path):
+                list_class_path.append(class_path)
 
-        for _, sub_directory in enumerate(list_class_path):
+        logging.info(f"Found {len(list_class_path)} class directories.")
+
+        # Process each audio file in subdirectories
+        for sub_directory in list_class_path:
+            logging.info(f"Processing class directory: {sub_directory}...")
+
             for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
+                try:
+                    signal, _ = librosa.load(file_name, sr=self.sample_rate)
+                    label = file_name.split('/')[-2].split('_')[0]
 
-                signal, _ = librosa.load(file_name, sr=self.sample_rate)
-                label = file_name.split('/')[-2].split('_')[0]
+                    for (start, end) in self.windows(signal, self.window_size, self.overlap):
+                        if len(signal[start:end]) == self.window_size:
+                            signal_window = signal[start:end]
 
-                for (start, end) in self.windows(signal, self.window_size, self.overlap):
+                            # Generate mel spectrogram
+                            spectrogram = librosa.feature.melspectrogram(
+                                y=signal_window,
+                                n_mels=self.number_filters_spectrogram,
+                                sr=self.sample_rate,
+                                n_fft=self.window_size_fft,
+                                hop_length=self.hop_length
+                            )
 
-                    if len(signal[start:end]) == self.window_size:
-                        signal = signal[start:end]
+                            # Convert spectrogram to decibels
+                            spectrogram_decibel_scale = librosa.power_to_db(spectrogram, ref=numpy.max)
+                            spectrogram_decibel_scale = (spectrogram_decibel_scale / self.decibel_scale_factor) + 1
 
-                        spectrogram = librosa.feature.melspectrogram(y=signal,
-                                                                     n_mels=self.number_filters_spectrogram,
-                                                                     sr=self.sample_rate,
-                                                                     n_fft=self.window_size_fft,
-                                                                     hop_length=self.hop_length)
+                            # Append spectrogram and label
+                            list_spectrogram.append(spectrogram_decibel_scale)
+                            list_labels.append(label)
 
-                        # Convert spectrogram to decibels
-                        spectrogram_decibel_scale = librosa.power_to_db(spectrogram, ref=numpy.max)
-                        spectrogram_decibel_scale = (spectrogram_decibel_scale / self.decibel_scale_factor) + 1
-                        list_spectrogram.append(spectrogram_decibel_scale)
-                        list_labels.append(label)
+                except Exception as e:
+                    logging.error(f"Error processing file '{file_name}': {e}")
 
-        array_features = numpy.array(list_spectrogram).reshape(len(list_spectrogram),
-                                                               self.number_filters_spectrogram,
-                                                               self.window_size_factor, 1)
+        # Reshape the feature array to the expected dimensions
+        array_features = numpy.array(list_spectrogram).reshape(
+            len(list_spectrogram),
+            self.number_filters_spectrogram,
+            self.window_size // self.hop_length,  # Time frames depend on hop length
+            1
+        )
 
         array_labels = numpy.array(list_labels, dtype=numpy.int32)
 
+        logging.info(f"Loaded {len(array_features)} spectrogram features.")
+        logging.info("Data loading complete.")
+
         return numpy.array(array_features, dtype=numpy.float32), array_labels
+
 
     def compile_model(self) -> None:
         """
@@ -410,11 +441,9 @@ class Conformer(MetricsCalculator):
 
         # Stratified k-fold cross-validation on the training/validation set
         instance_k_fold = StratifiedKFold(n_splits=self.number_splits, shuffle=True, random_state=42)
-        list_history_model = []
         probabilities_list = []
         real_labels_list = []
 
-        print("STARTING TRAINING MODEL: {}".format(self.model_name))
         for train_indexes, val_indexes in instance_k_fold.split(features_train_val, labels_train_val):
             features_train, features_val = features_train_val[train_indexes], features_train_val[val_indexes]
             labels_train, labels_val = labels_train_val[train_indexes], labels_train_val[val_indexes]

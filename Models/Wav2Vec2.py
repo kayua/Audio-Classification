@@ -246,7 +246,23 @@ class AudioWav2Vec2(MetricsCalculator):
 
     @staticmethod
     def windows(data, window_size, overlap):
+        """
+        Generates windowed segments of the input data.
 
+        Parameters
+        ----------
+        data : numpy.ndarray
+            The input data array.
+        window_size : int
+            The size of each window.
+        overlap : int
+            The overlap between consecutive windows.
+
+        Yields
+        ------
+        tuple
+            Start and end indices of each window.
+        """
         start = 0
         while start < len(data):
             yield start, start + window_size

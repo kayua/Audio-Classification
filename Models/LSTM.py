@@ -8,6 +8,7 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+import logging
 
 try:
     import os
@@ -213,54 +214,83 @@ class AudioLSTM(MetricsCalculator):
 
         Parameters
         ----------
-        sub_directories : list of str, optional
-            List of subdirectories containing audio files.
+        sub_directories : str
+            Path to the directory containing subdirectories of audio files.
         file_extension : str, optional
-            The file extension for audio files.
+            The file extension for audio files (e.g., '*.wav').
 
         Returns
         -------
         tuple
             A tuple containing the feature array and label array.
         """
+        logging.info("Starting to load data...")
         list_spectrogram, list_labels, list_class_path = [], [], []
         file_extension = file_extension or self.file_extension
 
+        if not os.path.exists(sub_directories):
+            logging.error(f"Directory '{sub_directories}' does not exist.")
+            return None, None
+
+        logging.info(f"Reading subdirectories in '{sub_directories}'...")
+
+        # Collect class paths
         for class_dir in os.listdir(sub_directories):
             class_path = os.path.join(sub_directories, class_dir)
-            list_class_path.append(class_path)
+            if os.path.isdir(class_path):
+                list_class_path.append(class_path)
 
+        logging.info(f"Found {len(list_class_path)} classes.")
+
+        # Process each subdirectory
         for _, sub_directory in enumerate(list_class_path):
+
+            logging.info(f"Processing class directory: {sub_directory}...")
 
             for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
 
-                signal, _ = librosa.load(file_name, sr=self.sample_rate)
+                try:
 
-                label = file_name.split('/')[-2].split('_')[0]
+                    # Load the audio signal
+                    signal, _ = librosa.load(file_name, sr=self.sample_rate)
+                    # Extract label from the file path (assumes label is part of directory structure)
+                    label = file_name.split('/')[-2].split('_')[0]
 
-                for (start, end) in self.windows(signal, self.window_size, self.overlap):
+                    # Segment the audio into windows
+                    for (start, end) in self.windows(signal, self.window_size, self.overlap):
 
-                    if len(signal[start:end]) == self.window_size:
-                        local_window = len(signal[start:end]) // self.window_size_factor
-                        signal = [signal[i:i + local_window] for i in range(0, len(signal[start:end]), local_window)]
-                        signal = numpy.abs(numpy.array(signal))
+                        if len(signal[start:end]) == self.window_size:
 
-                        signal_min = numpy.min(signal)
-                        signal_max = numpy.max(signal)
+                            local_window = len(signal[start:end]) // self.window_size_factor
+                            # Divide the window into smaller segments
+                            signal_segments = [signal[i:i + local_window] for i in
+                                               range(0, len(signal[start:end]), local_window)]
+                            signal_segments = numpy.abs(numpy.array(signal_segments))
 
-                        if signal_max != signal_min:
-                            normalized_signal = (signal - signal_min) / (
-                                    signal_max - signal_min)
-                        else:
-                            normalized_signal = numpy.zeros_like(signal)
+                            # Normalize each segment
+                            signal_min = numpy.min(signal_segments)
+                            signal_max = numpy.max(signal_segments)
 
-                        list_spectrogram.append(normalized_signal)
-                        list_labels.append(label)
+                            if signal_max != signal_min:
+                                normalized_signal = (signal_segments - signal_min) / (signal_max - signal_min)
+
+                            else:
+                                normalized_signal = numpy.zeros_like(signal_segments)
+
+                            list_spectrogram.append(normalized_signal)
+                            list_labels.append(label)
+
+                except Exception as e:
+                    logging.error(f"Error processing file '{file_name}': {e}")
 
         array_features = numpy.array(list_spectrogram, dtype=numpy.float32)
         array_features = numpy.expand_dims(array_features, axis=-1)
 
+        logging.info(f"Loaded {len(array_features)} feature arrays.")
+        logging.info("Data loading complete.")
+
         return array_features, numpy.array(list_labels, dtype=numpy.int32)
+
 
     def train(self, dataset_directory, number_epochs, batch_size, number_splits,
               loss, sample_rate, overlap, number_classes, arguments) -> tuple:

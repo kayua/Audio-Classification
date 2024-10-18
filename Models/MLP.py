@@ -8,6 +8,8 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+import logging
+
 try:
 
     import os
@@ -204,59 +206,77 @@ class AudioDense(MetricsCalculator):
         """
         Loads audio data, extracts features, and prepares labels.
 
-        This method reads audio files from the specified directories, extracts spectrogram features,
-        and prepares the corresponding labels.
+        This method reads audio files from the specified directories, segments them into windows,
+        normalizes the windows, and returns the extracted features along with their corresponding labels.
 
         Parameters
         ----------
-        sub_directories : list of str, optional
-            List of subdirectories containing audio files.
+        sub_directories : str
+            Path to the parent directory containing subdirectories with audio files.
         file_extension : str, optional
-            The file extension for audio files.
+            The file extension for audio files. If not provided, the default file extension is used.
 
         Returns
         -------
         tuple
-            A tuple containing the feature array and label array.
+            A tuple containing:
+            - numpy.ndarray: Feature array (normalized spectrograms).
+            - numpy.ndarray: Label array (class labels).
         """
+        logging.info("Starting data loading process.")
+
         list_spectrogram, list_labels, list_class_path = [], [], []
         file_extension = file_extension or self.file_extension
 
+        # Collect class paths
+        logging.info(f"Listing subdirectories in {sub_directories}")
         for class_dir in os.listdir(sub_directories):
             class_path = os.path.join(sub_directories, class_dir)
             list_class_path.append(class_path)
 
-        for _, sub_directory in enumerate(list_class_path):
-            print("Class Load: {}".format(_))
+        # Process each subdirectory
+        for idx, sub_directory in enumerate(list_class_path):
+            logging.info(f"Loading class {idx + 1}/{len(list_class_path)} from directory: {sub_directory}")
+
             for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
 
+                # Load the audio signal
                 signal, _ = librosa.load(file_name, sr=self.sample_rate)
 
+                # Extract label from the file path (assumes label is part of directory structure)
                 label = file_name.split('/')[-2].split('_')[0]
 
+                # Segment the audio into windows
                 for (start, end) in self.windows(signal, self.window_size, self.overlap):
-
                     if len(signal[start:end]) == self.window_size:
                         local_window = len(signal[start:end]) // self.window_size_factor
-                        signal = [signal[i:i + local_window] for i in range(0, len(signal[start:end]), local_window)]
-                        signal = numpy.abs(numpy.array(signal))
 
-                        signal_min = numpy.min(signal)
-                        signal_max = numpy.max(signal)
+                        # Divide the window into smaller segments
+                        signal_segments = [signal[i:i + local_window] for i in range(0, len(signal[start:end]), local_window)]
+                        signal_segments = numpy.abs(numpy.array(signal_segments))
+
+                        # Normalize each segment
+                        signal_min = numpy.min(signal_segments)
+                        signal_max = numpy.max(signal_segments)
 
                         if signal_max != signal_min:
-                            normalized_signal = (signal - signal_min) / (
-                                    signal_max - signal_min)
+                            normalized_signal = (signal_segments - signal_min) / (signal_max - signal_min)
                         else:
-                            normalized_signal = numpy.zeros_like(signal)
+                            normalized_signal = numpy.zeros_like(signal_segments)
 
                         list_spectrogram.append(normalized_signal)
                         list_labels.append(label)
 
+        # Convert lists to numpy arrays
         array_features = numpy.array(list_spectrogram, dtype=numpy.float32)
+
+        # Adding channel dimension for model compatibility
         array_features = numpy.expand_dims(array_features, axis=-1)
 
-        return array_features, numpy.array(list_labels, dtype=numpy.int32)
+        array_labels = numpy.array(list_labels, dtype=numpy.int32)
+
+        logging.info("Data loading complete.")
+        return array_features, array_labels
 
     def train(self, dataset_directory, number_epochs, batch_size, number_splits,
               loss, sample_rate, overlap, number_classes, arguments) -> tuple:
@@ -341,11 +361,9 @@ class AudioDense(MetricsCalculator):
 
         # Stratified k-fold cross-validation on the training/validation set
         instance_k_fold = StratifiedKFold(n_splits=self.number_splits, shuffle=True, random_state=42)
-        list_history_model = []
         probabilities_list = []
         real_labels_list = []
 
-        print("STARTING TRAINING MODEL: {}".format(self.model_name))
         for train_indexes, val_indexes in instance_k_fold.split(features_train_val, labels_train_val):
             features_train, features_val = features_train_val[train_indexes], features_train_val[val_indexes]
             labels_train, labels_val = labels_train_val[train_indexes], labels_train_val[val_indexes]
