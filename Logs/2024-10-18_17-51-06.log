@@ -1,0 +1,329 @@
+2024-10-18 17:51:06,182	***	Command:
+	main.py
+
+2024-10-18 17:51:06,182	***	Settings:
+2024-10-18 17:51:06,183	***		ast_decibel_scale_factor                 : 80
+2024-10-18 17:51:06,183	***		ast_dropout                              : 0.2
+2024-10-18 17:51:06,183	***		ast_head_size                            : 256
+2024-10-18 17:51:06,183	***		ast_hop_length                           : 512
+2024-10-18 17:51:06,183	***		ast_intermediary_activation              : relu
+2024-10-18 17:51:06,183	***		ast_last_activation_layer                : softmax
+2024-10-18 17:51:06,183	***		ast_normalization_epsilon                : 1e-06
+2024-10-18 17:51:06,183	***		ast_number_blocks                        : 2
+2024-10-18 17:51:06,183	***		ast_number_filters_spectrogram           : 512
+2024-10-18 17:51:06,183	***		ast_number_heads                         : 2
+2024-10-18 17:51:06,183	***		ast_overlap                              : 2
+2024-10-18 17:51:06,183	***		ast_patch_size                           : (16, 16)
+2024-10-18 17:51:06,183	***		ast_projection_dimension                 : 64
+2024-10-18 17:51:06,183	***		ast_size_fft                             : 1024
+2024-10-18 17:51:06,183	***		ast_window_size_factor                   : 40
+2024-10-18 17:51:06,183	***		ast_window_size_fft                      : 1024
+2024-10-18 17:51:06,183	***		batch_size                               : 32
+2024-10-18 17:51:06,183	***		conformer_decibel_scale_factor           : 80
+2024-10-18 17:51:06,183	***		conformer_dropout_rate                   : 0.2
+2024-10-18 17:51:06,183	***		conformer_embedding_dimension            : 64
+2024-10-18 17:51:06,183	***		conformer_hop_length                     : 256
+2024-10-18 17:51:06,183	***		conformer_number_conformer_blocks        : 4
+2024-10-18 17:51:06,183	***		conformer_number_filters_spectrogram     : 80
+2024-10-18 17:51:06,183	***		conformer_number_heads                   : 4
+2024-10-18 17:51:06,183	***		conformer_overlap                        : 2
+2024-10-18 17:51:06,183	***		conformer_size_kernel                    : 3
+2024-10-18 17:51:06,183	***		conformer_window_size                    : 1024
+2024-10-18 17:51:06,183	***		conformer_window_size_factor             : 40
+2024-10-18 17:51:06,183	***		dataset_directory                        : Dataset/
+2024-10-18 17:51:06,183	***		loss                                     : sparse_categorical_crossentropy
+2024-10-18 17:51:06,183	***		lstm_decibel_scale_factor                : 80
+2024-10-18 17:51:06,183	***		lstm_dropout_rate                        : 0.1
+2024-10-18 17:51:06,184	***		lstm_hop_length                          : 256
+2024-10-18 17:51:06,184	***		lstm_intermediary_layer_activation       : tanh
+2024-10-18 17:51:06,184	***		lstm_last_layer_activation               : softmax
+2024-10-18 17:51:06,184	***		lstm_list_lstm_cells                     : [128, 129]
+2024-10-18 17:51:06,184	***		lstm_overlap                             : 2
+2024-10-18 17:51:06,184	***		lstm_recurrent_activation                : sigmoid
+2024-10-18 17:51:06,184	***		lstm_window_size                         : 1024
+2024-10-18 17:51:06,184	***		lstm_window_size_factor                  : 40
+2024-10-18 17:51:06,184	***		mlp_decibel_scale_factor                 : 80
+2024-10-18 17:51:06,184	***		mlp_dropout_rate                         : 0.1
+2024-10-18 17:51:06,184	***		mlp_hop_length                           : 256
+2024-10-18 17:51:06,184	***		mlp_intermediary_layer_activation        : relu
+2024-10-18 17:51:06,184	***		mlp_last_layer_activation                : softmax
+2024-10-18 17:51:06,184	***		mlp_list_dense_neurons                   : [128, 129]
+2024-10-18 17:51:06,184	***		mlp_overlap                              : 2
+2024-10-18 17:51:06,184	***		mlp_window_size                          : 1024
+2024-10-18 17:51:06,184	***		mlp_window_size_factor                   : 40
+2024-10-18 17:51:06,184	***		number_classes                           : 4
+2024-10-18 17:51:06,184	***		number_epochs                            : 2
+2024-10-18 17:51:06,184	***		number_splits                            : 2
+2024-10-18 17:51:06,184	***		output_directory                         : Results/
+2024-10-18 17:51:06,184	***		overlap                                  : 2
+2024-10-18 17:51:06,184	***		plot_bar_width                           : 0.15
+2024-10-18 17:51:06,184	***		plot_cap_size                            : 10
+2024-10-18 17:51:06,185	***		plot_height                              : 8
+2024-10-18 17:51:06,185	***		plot_width                               : 14
+2024-10-18 17:51:06,185	***		residual_convolutional_padding           : same
+2024-10-18 17:51:06,185	***		residual_decibel_scale_factor            : 80
+2024-10-18 17:51:06,185	***		residual_dropout_rate                    : 0.1
+2024-10-18 17:51:06,185	***		residual_filters_per_block               : [16, 32, 64, 96]
+2024-10-18 17:51:06,185	***		residual_hop_length                      : 256
+2024-10-18 17:51:06,185	***		residual_intermediary_activation         : relu
+2024-10-18 17:51:06,185	***		residual_last_layer_activation           : softmax
+2024-10-18 17:51:06,185	***		residual_number_filters_spectrogram      : 512
+2024-10-18 17:51:06,185	***		residual_number_layers                   : 4
+2024-10-18 17:51:06,185	***		residual_overlap                         : 2
+2024-10-18 17:51:06,185	***		residual_size_convolutional_filters      : (3, 3)
+2024-10-18 17:51:06,185	***		residual_size_pooling                    : (2, 2)
+2024-10-18 17:51:06,185	***		residual_window_size                     : 1024
+2024-10-18 17:51:06,185	***		residual_window_size_factor              : 40
+2024-10-18 17:51:06,185	***		sample_rate                              : 8000
+2024-10-18 17:51:06,185	***		verbosity                                : 20
+2024-10-18 17:51:06,185	***		wav_to_vec_context_dimension             : 16
+2024-10-18 17:51:06,185	***		wav_to_vec_decibel_scale_factor          : 80
+2024-10-18 17:51:06,185	***		wav_to_vec_dropout_rate                  : 0.1
+2024-10-18 17:51:06,185	***		wav_to_vec_hop_length                    : 256
+2024-10-18 17:51:06,185	***		wav_to_vec_intermediary_layer_activation : relu
+2024-10-18 17:51:06,185	***		wav_to_vec_kernel_size                   : 3
+2024-10-18 17:51:06,185	***		wav_to_vec_key_dimension                 : 16
+2024-10-18 17:51:06,185	***		wav_to_vec_last_layer_activation         : softmax
+2024-10-18 17:51:06,185	***		wav_to_vec_list_filters_encoder          : [8, 16, 32]
+2024-10-18 17:51:06,185	***		wav_to_vec_loss_function                 : sparse_categorical_crossentropy
+2024-10-18 17:51:06,185	***		wav_to_vec_number_heads                  : 2
+2024-10-18 17:51:06,185	***		wav_to_vec_overlap                       : 1
+2024-10-18 17:51:06,185	***		wav_to_vec_projection_mlp_dimension      : 128
+2024-10-18 17:51:06,186	***		wav_to_vec_quantization_bits             : 8
+2024-10-18 17:51:06,186	***		wav_to_vec_window_size                   : 1024
+2024-10-18 17:51:06,186	***		wav_to_vec_window_size_factor            : 40
+2024-10-18 17:51:06,186	***	
+2024-10-18 17:51:06,186	***	Starting the training and evaluation process.
+2024-10-18 17:51:06,186	***	Starting training for model AudioAST.
+2024-10-18 17:51:06,186	***	Instantiated model class 'AudioAST'.
+2024-10-18 17:51:25,309	***	Training completed for model 'AudioAST'. Collected metrics, history, matrices, and ROC data.
+2024-10-18 17:51:25,737	***	Garbage collection complete after training model 'AudioAST'.
+2024-10-18 17:51:25,739	***	Model AudioAST training completed. Metrics collected.
+2024-10-18 17:51:25,740	***	Starting to plot ROC curve.
+2024-10-18 17:51:25,740	***	Model: AST, Number of classes: 4
+2024-10-18 17:51:25,741	***	Class 0: AUC = 0.68
+2024-10-18 17:51:25,742	***	Class 1: AUC = 0.77
+2024-10-18 17:51:25,742	***	Class 2: AUC = 0.68
+2024-10-18 17:51:25,742	***	Class 3: AUC = 0.73
+2024-10-18 17:51:25,920	***	ROC curve saved to Results/ROC_AST.png
+2024-10-18 17:51:25,920	***	ROC curve plotted for AudioAST.
+2024-10-18 17:51:25,920	***	Starting training for model AudioLSTM.
+2024-10-18 17:51:25,921	***	Instantiated model class 'AudioLSTM'.
+2024-10-18 17:51:25,921	***	Starting to load data...
+2024-10-18 17:51:25,921	***	Reading subdirectories in 'Dataset/'...
+2024-10-18 17:51:25,921	***	Found 4 classes.
+2024-10-18 17:51:25,921	***	Processing class directory: Dataset/2...
+2024-10-18 17:51:26,006	***	Processing class directory: Dataset/1...
+2024-10-18 17:51:26,104	***	Processing class directory: Dataset/3...
+2024-10-18 17:51:26,198	***	Processing class directory: Dataset/0...
+2024-10-18 17:51:26,357	***	Loaded 5821 feature arrays.
+2024-10-18 17:51:26,357	***	Data loading complete.
+2024-10-18 17:51:45,366	***	Training completed for model 'AudioLSTM'. Collected metrics, history, matrices, and ROC data.
+2024-10-18 17:51:45,724	***	Garbage collection complete after training model 'AudioLSTM'.
+2024-10-18 17:51:45,724	***	Model AudioLSTM training completed. Metrics collected.
+2024-10-18 17:51:45,725	***	Starting to plot ROC curve.
+2024-10-18 17:51:45,726	***	Model: LSTM, Number of classes: 4
+2024-10-18 17:51:45,728	***	Class 0: AUC = 0.88
+2024-10-18 17:51:45,729	***	Class 1: AUC = 0.88
+2024-10-18 17:51:45,730	***	Class 2: AUC = 0.92
+2024-10-18 17:51:45,731	***	Class 3: AUC = 0.89
+2024-10-18 17:51:45,788	***	ROC curve saved to Results/ROC_LSTM.png
+2024-10-18 17:51:45,788	***	ROC curve plotted for AudioLSTM.
+2024-10-18 17:51:45,788	***	Starting training for model AudioDense.
+2024-10-18 17:51:45,788	***	Instantiated model class 'AudioDense'.
+2024-10-18 17:51:45,788	***	Starting data loading process.
+2024-10-18 17:51:45,788	***	Listing subdirectories in Dataset/
+2024-10-18 17:51:45,788	***	Loading class 1/4 from directory: Dataset/2
+2024-10-18 17:51:45,881	***	Loading class 2/4 from directory: Dataset/1
+2024-10-18 17:51:46,018	***	Loading class 3/4 from directory: Dataset/3
+2024-10-18 17:51:46,148	***	Loading class 4/4 from directory: Dataset/0
+2024-10-18 17:51:46,299	***	Data loading complete.
+2024-10-18 17:51:53,237	***	Training completed for model 'AudioDense'. Collected metrics, history, matrices, and ROC data.
+2024-10-18 17:51:53,406	***	Garbage collection complete after training model 'AudioDense'.
+2024-10-18 17:51:53,407	***	Model AudioDense training completed. Metrics collected.
+2024-10-18 17:51:53,407	***	Starting to plot ROC curve.
+2024-10-18 17:51:53,407	***	Model: MLP, Number of classes: 4
+2024-10-18 17:51:53,409	***	Class 0: AUC = 1.00
+2024-10-18 17:51:53,410	***	Class 1: AUC = 1.00
+2024-10-18 17:51:53,411	***	Class 2: AUC = 1.00
+2024-10-18 17:51:53,412	***	Class 3: AUC = 1.00
+2024-10-18 17:51:53,488	***	ROC curve saved to Results/ROC_MLP.png
+2024-10-18 17:51:53,488	***	ROC curve plotted for AudioDense.
+2024-10-18 17:51:53,488	***	Starting training for model Conformer.
+2024-10-18 17:51:53,488	***	Instantiated model class 'Conformer'.
+2024-10-18 17:52:22,853	***	Training completed for model 'Conformer'. Collected metrics, history, matrices, and ROC data.
+2024-10-18 17:52:23,442	***	Garbage collection complete after training model 'Conformer'.
+2024-10-18 17:52:23,444	***	Model Conformer training completed. Metrics collected.
+2024-10-18 17:52:23,446	***	Starting to plot ROC curve.
+2024-10-18 17:52:23,447	***	Model: Conformer, Number of classes: 4
+2024-10-18 17:52:23,449	***	Class 0: AUC = 0.76
+2024-10-18 17:52:23,450	***	Class 1: AUC = 0.84
+2024-10-18 17:52:23,450	***	Class 2: AUC = 0.53
+2024-10-18 17:52:23,451	***	Class 3: AUC = 0.45
+2024-10-18 17:52:23,520	***	ROC curve saved to Results/ROC_Conformer.png
+2024-10-18 17:52:23,520	***	ROC curve plotted for Conformer.
+2024-10-18 17:52:23,520	***	Starting training for model AudioWav2Vec2.
+2024-10-18 17:52:23,520	***	Instantiated model class 'AudioWav2Vec2'.
+2024-10-18 17:52:23,520	***	Starting data loading process.
+2024-10-18 17:52:23,520	***	Added class path: Dataset/2
+2024-10-18 17:52:23,520	***	Added class path: Dataset/1
+2024-10-18 17:52:23,521	***	Added class path: Dataset/3
+2024-10-18 17:52:23,521	***	Added class path: Dataset/0
+2024-10-18 17:52:23,521	***	Processing directory: Dataset/2
+2024-10-18 17:52:23,579	***	Processing directory: Dataset/1
+2024-10-18 17:52:23,638	***	Processing directory: Dataset/3
+2024-10-18 17:52:23,749	***	Processing directory: Dataset/0
+2024-10-18 17:52:23,855	***	Data loading completed successfully.
+2024-10-18 17:52:23,855	***	Total samples loaded: 2934
+2024-10-18 17:52:24,226	***	Starting the initial compilation and training phase.
+2024-10-18 17:52:24,228	***	Model compiled with ContrastiveLoss.
+2024-10-18 17:52:24,229	***	Training model for 2 epochs with batch size 32.
+2024-10-18 17:53:59,424	***	Initial training completed. Setting the model as non-trainable.
+2024-10-18 17:53:59,436	***	Added Dense layer with 4 classes and 'softmax' activation.
+2024-10-18 17:53:59,443	***	Recompiled the model with the final configuration (optimizer, loss, metrics).
+2024-10-18 17:53:59,443	***	Final training for 2 epochs with batch size 32.
+2024-10-18 17:54:25,415	***	Training completed successfully.
+2024-10-18 17:54:36,042	***	Starting the initial compilation and training phase.
+2024-10-18 17:54:36,044	***	Model compiled with ContrastiveLoss.
+2024-10-18 17:54:36,044	***	Training model for 2 epochs with batch size 32.
+2024-10-18 17:56:11,834	***	Initial training completed. Setting the model as non-trainable.
+2024-10-18 17:56:11,839	***	Added Dense layer with 4 classes and 'softmax' activation.
+2024-10-18 17:56:11,843	***	Recompiled the model with the final configuration (optimizer, loss, metrics).
+2024-10-18 17:56:11,843	***	Final training for 2 epochs with batch size 32.
+2024-10-18 17:56:32,679	***	Training completed successfully.
+2024-10-18 17:56:43,046	***	Training completed for model 'AudioWav2Vec2'. Collected metrics, history, matrices, and ROC data.
+2024-10-18 17:56:44,168	***	Garbage collection complete after training model 'AudioWav2Vec2'.
+2024-10-18 17:56:44,169	***	Model AudioWav2Vec2 training completed. Metrics collected.
+2024-10-18 17:56:44,169	***	Starting to plot ROC curve.
+2024-10-18 17:56:44,169	***	Model: Wav2Vec2, Number of classes: 4
+2024-10-18 17:56:44,170	***	Class 0: AUC = 0.54
+2024-10-18 17:56:44,171	***	Class 1: AUC = 0.52
+2024-10-18 17:56:44,172	***	Class 2: AUC = 0.51
+2024-10-18 17:56:44,173	***	Class 3: AUC = 0.60
+2024-10-18 17:56:44,232	***	ROC curve saved to Results/ROC_Wav2Vec2.png
+2024-10-18 17:56:44,232	***	ROC curve plotted for AudioWav2Vec2.
+2024-10-18 17:56:44,232	***	Starting training for model ResidualModel.
+2024-10-18 17:56:44,232	***	Instantiated model class 'ResidualModel'.
+2024-10-18 17:56:44,232	***	Starting data loading process.
+2024-10-18 17:56:44,232	***	Listing subdirectories in Dataset/
+2024-10-18 17:56:44,233	***	Processing directory: Dataset/2
+2024-10-18 17:57:02,127	***	Processing directory: Dataset/1
+2024-10-18 17:57:22,018	***	Processing directory: Dataset/3
+2024-10-18 17:57:25,393	***	Processing directory: Dataset/0
+2024-10-18 17:57:44,882	***	Reshaping feature array.
+2024-10-18 17:57:45,331	***	Data loading complete.
+2024-10-18 17:59:52,694	***	Training completed for model 'ResidualModel'. Collected metrics, history, matrices, and ROC data.
+2024-10-18 17:59:54,152	***	Garbage collection complete after training model 'ResidualModel'.
+2024-10-18 17:59:54,155	***	Model ResidualModel training completed. Metrics collected.
+2024-10-18 17:59:54,158	***	Starting to plot ROC curve.
+2024-10-18 17:59:54,158	***	Model: ResidualModel, Number of classes: 4
+2024-10-18 17:59:54,168	***	Class 0: AUC = 0.89
+2024-10-18 17:59:54,169	***	Class 1: AUC = 0.90
+2024-10-18 17:59:54,170	***	Class 2: AUC = 1.00
+2024-10-18 17:59:54,171	***	Class 3: AUC = 0.99
+2024-10-18 17:59:54,243	***	ROC curve saved to Results/ROC_ResidualModel.png
+2024-10-18 17:59:54,243	***	ROC curve plotted for ResidualModel.
+2024-10-18 17:59:54,243	***	Plotting comparative metrics.
+2024-10-18 17:59:54,243	***	Starting to plot comparative metrics.
+2024-10-18 17:59:54,243	***	Number of models: 6, Number of metrics: 4
+2024-10-18 17:59:54,251	***	Figure created with dimensions (14, 8).
+2024-10-18 17:59:54,251	***	Processing metric: Acc.
+2024-10-18 17:59:54,251	***	Processing model: AST for metric Acc.
+2024-10-18 17:59:54,252	***	Values: 0.39375, Std deviation: 0.10625000000000001, Color: Blues
+2024-10-18 17:59:54,253	***	Processing model: LSTM for metric Acc.
+2024-10-18 17:59:54,254	***	Values: 0.5821109693877551, Std deviation: 0.013233418367346927, Color: Blues
+2024-10-18 17:59:54,255	***	Processing model: MLP for metric Acc.
+2024-10-18 17:59:54,255	***	Values: 1.0, Std deviation: 0.0, Color: Blues
+2024-10-18 17:59:54,257	***	Processing model: Conformer for metric Acc.
+2024-10-18 17:59:54,257	***	Values: 0.3125, Std deviation: 0.07500000000000001, Color: Blues
+2024-10-18 17:59:54,258	***	Processing model: Wav2Vec2 for metric Acc.
+2024-10-18 17:59:54,258	***	Values: 0.2731012658227848, Std deviation: 0.011708860759493678, Color: Blues
+2024-10-18 17:59:54,260	***	Processing model: ResidualModel for metric Acc.
+2024-10-18 17:59:54,260	***	Values: 0.788975155279503, Std deviation: 0.029658385093167705, Color: Blues
+2024-10-18 17:59:54,261	***	Processing metric: Prec.
+2024-10-18 17:59:54,261	***	Processing model: AST for metric Prec.
+2024-10-18 17:59:54,262	***	Values: 0.9840625000000001, Std deviation: 0.015937499999999993, Color: Greens
+2024-10-18 17:59:54,263	***	Processing model: LSTM for metric Prec.
+2024-10-18 17:59:54,263	***	Values: 0.7797223162224074, Std deviation: 0.050429833923365364, Color: Greens
+2024-10-18 17:59:54,264	***	Processing model: MLP for metric Prec.
+2024-10-18 17:59:54,264	***	Values: 1.0, Std deviation: 0.0, Color: Greens
+2024-10-18 17:59:54,266	***	Processing model: Conformer for metric Prec.
+2024-10-18 17:59:54,266	***	Values: 0.869375, Std deviation: 0.023749999999999993, Color: Greens
+2024-10-18 17:59:54,267	***	Processing model: Wav2Vec2 for metric Prec.
+2024-10-18 17:59:54,267	***	Values: 0.3670517545265182, Std deviation: 0.04826630347700689, Color: Greens
+2024-10-18 17:59:54,269	***	Processing model: ResidualModel for metric Prec.
+2024-10-18 17:59:54,269	***	Values: 0.830538752362949, Std deviation: 0.008656880521584809, Color: Greens
+2024-10-18 17:59:54,270	***	Processing metric: Rec.
+2024-10-18 17:59:54,270	***	Processing model: AST for metric Rec.
+2024-10-18 17:59:54,271	***	Values: 0.39375, Std deviation: 0.10625000000000001, Color: Reds
+2024-10-18 17:59:54,272	***	Processing model: LSTM for metric Rec.
+2024-10-18 17:59:54,272	***	Values: 0.5821109693877551, Std deviation: 0.013233418367346927, Color: Reds
+2024-10-18 17:59:54,274	***	Processing model: MLP for metric Rec.
+2024-10-18 17:59:54,274	***	Values: 1.0, Std deviation: 0.0, Color: Reds
+2024-10-18 17:59:54,275	***	Processing model: Conformer for metric Rec.
+2024-10-18 17:59:54,275	***	Values: 0.3125, Std deviation: 0.07500000000000001, Color: Reds
+2024-10-18 17:59:54,277	***	Processing model: Wav2Vec2 for metric Rec.
+2024-10-18 17:59:54,277	***	Values: 0.2731012658227848, Std deviation: 0.011708860759493678, Color: Reds
+2024-10-18 17:59:54,278	***	Processing model: ResidualModel for metric Rec.
+2024-10-18 17:59:54,278	***	Values: 0.788975155279503, Std deviation: 0.029658385093167705, Color: Reds
+2024-10-18 17:59:54,280	***	Processing metric: F1.
+2024-10-18 17:59:54,280	***	Processing model: AST for metric F1.
+2024-10-18 17:59:54,280	***	Values: 0.536678245928582, Std deviation: 0.12998842073808456, Color: Purples
+2024-10-18 17:59:54,281	***	Processing model: LSTM for metric F1.
+2024-10-18 17:59:54,282	***	Values: 0.625100584408351, Std deviation: 0.023888245633837124, Color: Purples
+2024-10-18 17:59:54,283	***	Processing model: MLP for metric F1.
+2024-10-18 17:59:54,283	***	Values: 1.0, Std deviation: 0.0, Color: Purples
+2024-10-18 17:59:54,285	***	Processing model: Conformer for metric F1.
+2024-10-18 17:59:54,285	***	Values: 0.4345207981554282, Std deviation: 0.07599677069547395, Color: Purples
+2024-10-18 17:59:54,287	***	Processing model: Wav2Vec2 for metric F1.
+2024-10-18 17:59:54,287	***	Values: 0.30300582460690534, Std deviation: 0.026590412222848747, Color: Purples
+2024-10-18 17:59:54,288	***	Processing model: ResidualModel for metric F1.
+2024-10-18 17:59:54,289	***	Values: 0.79618871099128, Std deviation: 0.02350318005191454, Color: Purples
+2024-10-18 17:59:54,295	***	Finalizing layout and saving plot.
+2024-10-18 17:59:54,472	***	Plotting confusion matrices.
+2024-10-18 17:59:54,472	***	Starting confusion matrix plotting process.
+2024-10-18 17:59:54,473	***	Plotting confusion matrix 1: AST
+2024-10-18 17:59:54,552	***	Plotting confusion matrix 2: LSTM
+2024-10-18 17:59:54,628	***	Plotting confusion matrix 3: MLP
+2024-10-18 17:59:54,702	***	Plotting confusion matrix 4: Conformer
+2024-10-18 17:59:54,774	***	Plotting confusion matrix 5: Wav2Vec2
+2024-10-18 17:59:54,850	***	Plotting confusion matrix 6: ResidualModel
+2024-10-18 17:59:54,926	***	Confusion matrix plotting process completed.
+2024-10-18 17:59:54,926	***	Plotting and saving loss.
+2024-10-18 17:59:54,926	***	Starting to plot and save loss curves for models.
+2024-10-18 17:59:54,927	***	Processing model 'AST'.
+2024-10-18 17:59:54,983	***	Loss plot saved for model 'AST' at Results/AST_loss.png.
+2024-10-18 17:59:54,983	***	Processing model 'LSTM'.
+2024-10-18 17:59:55,038	***	Loss plot saved for model 'LSTM' at Results/LSTM_loss.png.
+2024-10-18 17:59:55,038	***	Processing model 'MLP'.
+2024-10-18 17:59:55,096	***	Loss plot saved for model 'MLP' at Results/MLP_loss.png.
+2024-10-18 17:59:55,096	***	Processing model 'Conformer'.
+2024-10-18 17:59:55,154	***	Loss plot saved for model 'Conformer' at Results/Conformer_loss.png.
+2024-10-18 17:59:55,154	***	Processing model 'Wav2Vec2'.
+2024-10-18 17:59:55,210	***	Loss plot saved for model 'Wav2Vec2' at Results/Wav2Vec2_loss.png.
+2024-10-18 17:59:55,210	***	Processing model 'ResidualModel'.
+2024-10-18 17:59:55,269	***	Loss plot saved for model 'ResidualModel' at Results/ResidualModel_loss.png.
+2024-10-18 17:59:55,269	***	Completed plotting and saving loss curves for all models.
+2024-10-18 17:59:55,269	***	Running final script to generate PDF.
+2024-10-18 17:59:55,269	***	Starting the execution of 'GeneratePDF.py' with arguments: ('--output', 'Results.pdf')
+2024-10-18 17:59:55,269	***	Command to be executed: ['python3', 'GeneratePDF.py', '--output', 'Results.pdf']
+2024-10-18 17:59:56,308	***	Standard Output:
+
+2024-10-18 17:59:56,309	***	Standard Error:
+2024-10-18 17:59:55,315 - INFO - Input Markdown file path: ReadMe.md
+2024-10-18 17:59:55,315 - INFO - Output PDF file path: Results.pdf
+2024-10-18 17:59:55,315 - INFO - Starting conversion from Markdown to HTML.
+2024-10-18 17:59:55,315 - DEBUG - Reading Markdown file from path: ReadMe.md
+2024-10-18 17:59:55,316 - DEBUG - Markdown content read successfully. Converting to HTML.
+2024-10-18 17:59:55,354 - DEBUG - Successfully loaded extension "markdown.extensions.tables.TableExtension".
+2024-10-18 17:59:55,361 - DEBUG - Successfully loaded extension "markdown.extensions.fenced_code.FencedCodeExtension".
+2024-10-18 17:59:55,366 - DEBUG - HTML content generated successfully. Writing to file: temp.html
+2024-10-18 17:59:55,366 - INFO - Conversion from Markdown to HTML completed successfully.
+2024-10-18 17:59:55,366 - INFO - Starting conversion from HTML to PDF.
+2024-10-18 17:59:55,366 - DEBUG - Converting HTML file: temp.html to PDF file: Results.pdf
+2024-10-18 17:59:56,298 - INFO - Conversion from HTML to PDF completed successfully.
+2024-10-18 17:59:56,298 - INFO - Temporary HTML file removed.
+2024-10-18 17:59:56,298 - INFO - Success: The PDF has been generated at Results.pdf.
+
+2024-10-18 17:59:56,309	***	Execution of 'GeneratePDF.py' completed.
+2024-10-18 17:59:56,309	***	PDF generation completed.

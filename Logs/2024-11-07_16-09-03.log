@@ -1,0 +1,172 @@
+2024-11-07 16:09:03,866	***	Command:
+	main.py
+
+2024-11-07 16:09:03,866	***	Settings:
+2024-11-07 16:09:03,866	***		ast_decibel_scale_factor                 : 80
+2024-11-07 16:09:03,866	***		ast_dropout                              : 0.2
+2024-11-07 16:09:03,867	***		ast_head_size                            : 256
+2024-11-07 16:09:03,867	***		ast_hop_length                           : 512
+2024-11-07 16:09:03,867	***		ast_intermediary_activation              : relu
+2024-11-07 16:09:03,867	***		ast_last_activation_layer                : softmax
+2024-11-07 16:09:03,867	***		ast_normalization_epsilon                : 1e-06
+2024-11-07 16:09:03,867	***		ast_number_blocks                        : 2
+2024-11-07 16:09:03,867	***		ast_number_filters_spectrogram           : 512
+2024-11-07 16:09:03,867	***		ast_number_heads                         : 2
+2024-11-07 16:09:03,867	***		ast_overlap                              : 2
+2024-11-07 16:09:03,867	***		ast_patch_size                           : (16, 16)
+2024-11-07 16:09:03,867	***		ast_projection_dimension                 : 64
+2024-11-07 16:09:03,867	***		ast_size_fft                             : 1024
+2024-11-07 16:09:03,867	***		ast_window_size_factor                   : 40
+2024-11-07 16:09:03,867	***		ast_window_size_fft                      : 1024
+2024-11-07 16:09:03,867	***		batch_size                               : 32
+2024-11-07 16:09:03,867	***		conformer_decibel_scale_factor           : 80
+2024-11-07 16:09:03,867	***		conformer_dropout_rate                   : 0.2
+2024-11-07 16:09:03,867	***		conformer_embedding_dimension            : 64
+2024-11-07 16:09:03,867	***		conformer_hop_length                     : 256
+2024-11-07 16:09:03,867	***		conformer_number_conformer_blocks        : 4
+2024-11-07 16:09:03,867	***		conformer_number_filters_spectrogram     : 80
+2024-11-07 16:09:03,867	***		conformer_number_heads                   : 4
+2024-11-07 16:09:03,867	***		conformer_overlap                        : 2
+2024-11-07 16:09:03,867	***		conformer_size_kernel                    : 3
+2024-11-07 16:09:03,867	***		conformer_window_size                    : 1024
+2024-11-07 16:09:03,867	***		conformer_window_size_factor             : 40
+2024-11-07 16:09:03,868	***		dataset_directory                        : Dataset/
+2024-11-07 16:09:03,868	***		loss                                     : sparse_categorical_crossentropy
+2024-11-07 16:09:03,868	***		lstm_decibel_scale_factor                : 80
+2024-11-07 16:09:03,868	***		lstm_dropout_rate                        : 0.1
+2024-11-07 16:09:03,868	***		lstm_hop_length                          : 256
+2024-11-07 16:09:03,868	***		lstm_intermediary_layer_activation       : tanh
+2024-11-07 16:09:03,868	***		lstm_last_layer_activation               : softmax
+2024-11-07 16:09:03,868	***		lstm_list_lstm_cells                     : [128, 129]
+2024-11-07 16:09:03,868	***		lstm_overlap                             : 2
+2024-11-07 16:09:03,868	***		lstm_recurrent_activation                : sigmoid
+2024-11-07 16:09:03,868	***		lstm_window_size                         : 1024
+2024-11-07 16:09:03,868	***		lstm_window_size_factor                  : 40
+2024-11-07 16:09:03,868	***		mlp_decibel_scale_factor                 : 80
+2024-11-07 16:09:03,868	***		mlp_dropout_rate                         : 0.1
+2024-11-07 16:09:03,868	***		mlp_hop_length                           : 256
+2024-11-07 16:09:03,868	***		mlp_intermediary_layer_activation        : relu
+2024-11-07 16:09:03,868	***		mlp_last_layer_activation                : softmax
+2024-11-07 16:09:03,868	***		mlp_list_dense_neurons                   : [128, 129]
+2024-11-07 16:09:03,868	***		mlp_overlap                              : 2
+2024-11-07 16:09:03,868	***		mlp_window_size                          : 1024
+2024-11-07 16:09:03,868	***		mlp_window_size_factor                   : 40
+2024-11-07 16:09:03,868	***		number_classes                           : 4
+2024-11-07 16:09:03,868	***		number_epochs                            : 2
+2024-11-07 16:09:03,868	***		number_splits                            : 2
+2024-11-07 16:09:03,868	***		output_directory                         : Results/
+2024-11-07 16:09:03,868	***		overlap                                  : 2
+2024-11-07 16:09:03,868	***		plot_bar_width                           : 0.15
+2024-11-07 16:09:03,869	***		plot_cap_size                            : 10
+2024-11-07 16:09:03,869	***		plot_height                              : 8
+2024-11-07 16:09:03,869	***		plot_width                               : 14
+2024-11-07 16:09:03,869	***		residual_convolutional_padding           : same
+2024-11-07 16:09:03,869	***		residual_decibel_scale_factor            : 80
+2024-11-07 16:09:03,869	***		residual_dropout_rate                    : 0.1
+2024-11-07 16:09:03,869	***		residual_filters_per_block               : [16, 32, 64, 96]
+2024-11-07 16:09:03,869	***		residual_hop_length                      : 256
+2024-11-07 16:09:03,869	***		residual_intermediary_activation         : relu
+2024-11-07 16:09:03,869	***		residual_last_layer_activation           : softmax
+2024-11-07 16:09:03,869	***		residual_number_filters_spectrogram      : 512
+2024-11-07 16:09:03,869	***		residual_number_layers                   : 4
+2024-11-07 16:09:03,869	***		residual_overlap                         : 2
+2024-11-07 16:09:03,869	***		residual_size_convolutional_filters      : (3, 3)
+2024-11-07 16:09:03,870	***		residual_size_pooling                    : (2, 2)
+2024-11-07 16:09:03,870	***		residual_window_size                     : 1024
+2024-11-07 16:09:03,870	***		residual_window_size_factor              : 40
+2024-11-07 16:09:03,870	***		sample_rate                              : 8000
+2024-11-07 16:09:03,870	***		verbosity                                : 20
+2024-11-07 16:09:03,870	***		wav_to_vec_context_dimension             : 16
+2024-11-07 16:09:03,870	***		wav_to_vec_decibel_scale_factor          : 80
+2024-11-07 16:09:03,870	***		wav_to_vec_dropout_rate                  : 0.1
+2024-11-07 16:09:03,870	***		wav_to_vec_hop_length                    : 256
+2024-11-07 16:09:03,870	***		wav_to_vec_intermediary_layer_activation : relu
+2024-11-07 16:09:03,870	***		wav_to_vec_kernel_size                   : 3
+2024-11-07 16:09:03,870	***		wav_to_vec_key_dimension                 : 16
+2024-11-07 16:09:03,870	***		wav_to_vec_last_layer_activation         : softmax
+2024-11-07 16:09:03,870	***		wav_to_vec_list_filters_encoder          : [8, 16, 32]
+2024-11-07 16:09:03,870	***		wav_to_vec_loss_function                 : sparse_categorical_crossentropy
+2024-11-07 16:09:03,870	***		wav_to_vec_number_heads                  : 2
+2024-11-07 16:09:03,870	***		wav_to_vec_overlap                       : 1
+2024-11-07 16:09:03,870	***		wav_to_vec_projection_mlp_dimension      : 128
+2024-11-07 16:09:03,870	***		wav_to_vec_quantization_bits             : 8
+2024-11-07 16:09:03,870	***		wav_to_vec_window_size                   : 1024
+2024-11-07 16:09:03,870	***		wav_to_vec_window_size_factor            : 40
+2024-11-07 16:09:03,870	***	
+2024-11-07 16:09:03,870	***	Starting the training and evaluation process.
+2024-11-07 16:09:03,871	***	Starting training for model AudioAST.
+2024-11-07 16:09:03,871	***	Instantiated model class 'AudioAST'.
+2024-11-07 16:09:03,871	***	Starting to load the dataset...
+2024-11-07 16:09:03,871	***	Reading subdirectories in 'Dataset/'...
+2024-11-07 16:09:03,871	***	Found 4 class directories.
+2024-11-07 16:09:03,871	***	Processing class directory: Dataset/2...
+2024-11-07 16:09:17,042	***	Processing class directory: Dataset/1...
+2024-11-07 16:09:33,472	***	Processing class directory: Dataset/3...
+2024-11-07 16:09:36,994	***	Processing class directory: Dataset/0...
+2024-11-07 16:10:00,701	***	Loaded 2894 spectrogram features.
+2024-11-07 16:10:00,702	***	Dataset loading complete.
+2024-11-07 16:11:08,032	***	Training completed for model 'AudioAST'. Collected metrics, history, matrices, and ROC data.
+2024-11-07 16:11:08,489	***	Garbage collection complete after training model 'AudioAST'.
+2024-11-07 16:11:08,490	***	Model AudioAST training completed. Metrics collected.
+2024-11-07 16:11:08,491	***	Starting to plot ROC curve.
+2024-11-07 16:11:08,493	***	Model: AST, Number of classes: 4
+2024-11-07 16:11:08,496	***	Class 0: AUC = 0.66
+2024-11-07 16:11:08,498	***	Class 1: AUC = 0.68
+2024-11-07 16:11:08,499	***	Class 2: AUC = 0.65
+2024-11-07 16:11:08,500	***	Class 3: AUC = 0.97
+2024-11-07 16:11:08,823	***	ROC curve saved to Results/ROC_AST.png
+2024-11-07 16:11:08,823	***	ROC curve plotted for AudioAST.
+2024-11-07 16:11:08,823	***	Starting training for model AudioLSTM.
+2024-11-07 16:11:08,823	***	Instantiated model class 'AudioLSTM'.
+2024-11-07 16:11:08,823	***	Starting to load data...
+2024-11-07 16:11:08,823	***	Reading subdirectories in 'Dataset/'...
+2024-11-07 16:11:08,824	***	Found 4 classes.
+2024-11-07 16:11:08,824	***	Processing class directory: Dataset/2...
+2024-11-07 16:11:08,943	***	Processing class directory: Dataset/1...
+2024-11-07 16:11:09,082	***	Processing class directory: Dataset/3...
+2024-11-07 16:11:09,330	***	Processing class directory: Dataset/0...
+2024-11-07 16:11:09,616	***	Loaded 5821 feature arrays.
+2024-11-07 16:11:09,616	***	Data loading complete.
+2024-11-07 16:11:39,447	***	Training completed for model 'AudioLSTM'. Collected metrics, history, matrices, and ROC data.
+2024-11-07 16:11:39,874	***	Garbage collection complete after training model 'AudioLSTM'.
+2024-11-07 16:11:39,878	***	Model AudioLSTM training completed. Metrics collected.
+2024-11-07 16:11:39,878	***	Starting to plot ROC curve.
+2024-11-07 16:11:39,878	***	Model: LSTM, Number of classes: 4
+2024-11-07 16:11:39,881	***	Class 0: AUC = 0.79
+2024-11-07 16:11:39,883	***	Class 1: AUC = 0.87
+2024-11-07 16:11:39,884	***	Class 2: AUC = 0.92
+2024-11-07 16:11:39,886	***	Class 3: AUC = 0.94
+2024-11-07 16:11:39,985	***	ROC curve saved to Results/ROC_LSTM.png
+2024-11-07 16:11:39,985	***	ROC curve plotted for AudioLSTM.
+2024-11-07 16:11:39,985	***	Starting training for model AudioDense.
+2024-11-07 16:11:39,985	***	Instantiated model class 'AudioDense'.
+2024-11-07 16:11:39,985	***	Starting data loading process.
+2024-11-07 16:11:39,985	***	Listing subdirectories in Dataset/
+2024-11-07 16:11:39,986	***	Loading class 1/4 from directory: Dataset/2
+2024-11-07 16:11:40,144	***	Loading class 2/4 from directory: Dataset/1
+2024-11-07 16:11:40,311	***	Loading class 3/4 from directory: Dataset/3
+2024-11-07 16:11:40,499	***	Loading class 4/4 from directory: Dataset/0
+2024-11-07 16:11:40,717	***	Data loading complete.
+2024-11-07 16:11:49,057	***	Training completed for model 'AudioDense'. Collected metrics, history, matrices, and ROC data.
+2024-11-07 16:11:49,274	***	Garbage collection complete after training model 'AudioDense'.
+2024-11-07 16:11:49,275	***	Model AudioDense training completed. Metrics collected.
+2024-11-07 16:11:49,275	***	Starting to plot ROC curve.
+2024-11-07 16:11:49,276	***	Model: MLP, Number of classes: 4
+2024-11-07 16:11:49,279	***	Class 0: AUC = 1.00
+2024-11-07 16:11:49,281	***	Class 1: AUC = 1.00
+2024-11-07 16:11:49,283	***	Class 2: AUC = 1.00
+2024-11-07 16:11:49,284	***	Class 3: AUC = 1.00
+2024-11-07 16:11:49,404	***	ROC curve saved to Results/ROC_MLP.png
+2024-11-07 16:11:49,404	***	ROC curve plotted for AudioDense.
+2024-11-07 16:11:49,404	***	Starting training for model Conformer.
+2024-11-07 16:11:49,404	***	Instantiated model class 'Conformer'.
+2024-11-07 16:11:49,404	***	Starting to load data...
+2024-11-07 16:11:49,405	***	Reading subdirectories in 'Dataset/'...
+2024-11-07 16:11:49,405	***	Found 4 class directories.
+2024-11-07 16:11:49,406	***	Processing class directory: Dataset/2...
+2024-11-07 16:11:53,511	***	Processing class directory: Dataset/1...
+2024-11-07 16:11:58,271	***	Processing class directory: Dataset/3...
+2024-11-07 16:11:59,328	***	Processing class directory: Dataset/0...
+2024-11-07 16:12:04,115	***	Error during training of model 'Conformer': cannot reshape array of size 19260800 into shape (6019,80,39,1)
+2024-11-07 16:12:04,302	***	Garbage collection complete after training model 'Conformer'.
+2024-11-07 16:12:04,303	***	Error during training of model Conformer: cannot reshape array of size 19260800 into shape (6019,80,39,1)
