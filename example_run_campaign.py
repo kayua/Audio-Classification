@@ -12,6 +12,8 @@ Funções:
     
 """
 # Importação de bibliotecas necessárias
+# Update
+
 try:
     import sys
     import os
