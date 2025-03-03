@@ -35,23 +35,47 @@ DEFAULT_DROPOUT_DECAY = 0.1
 
 class ConformerBlock(Layer):
     """
-    Conformer Block for combining self-attention, feed-forward, and convolutional layers with normalization.
+    Conformer Block: A hybrid architecture combining self-attention, convolution, and feed-forward layers.
 
-    This block consists of multiple layers including normalization, multi-head self-attention, feed-forward modules,
-    and convolutional operations, designed to enhance feature extraction and contextual understanding.
+    This implementation is based on the Conformer model proposed by Gulati et al. (2020) in the paper:
+    "Conformer: Convolution-Augmented Transformer for Speech Recognition".
+
+    Reference:
+    Anmol Gulati, James Qin, et al. "Conformer: Convolution-Augmented Transformer for Speech Recognition." Interspeech 2020.
+    [https://arxiv.org/abs/2005.08100]
+
+    The Conformer Block consists of:
+
+    - **Layer Normalization**: Normalizes input to stabilize training.
+    - **Feed-Forward Network (FFN)**: Enhances feature extraction through dense layers.
+    - **Multi-Head Self-Attention (MHSA)**: Captures long-range dependencies in sequences.
+    - **Convolutional Module**: Extracts local contextual features.
+    - **Final Feed-Forward Network (FFN)**: Enhances representation learning.
 
     Attributes:
         embedding_dimension (int): Dimensionality of the input embeddings.
-        number_heads (int): Number of attention heads in the multi-head self-attention layer.
-        max_length (int): Maximum sequence length for positional embeddings in self-attention.
-        size_kernel (int): Size of the kernel for convolutional operations.
-        dropout_decay (float): Dropout rate applied in feed-forward and convolutional modules.
-        first_layer_normalization (LayerNormalization): First normalization layer applied to input.
-        first_feedforward_module (FeedForwardModule): First feed-forward module applied to the normalized input.
-        multi_head_self_attention (MultiHeadSelfAttentionModule): Multi-head self-attention module.
-        convolutional (ConvolutionalModule): Convolutional module applied after self-attention.
-        second_layer_normalization (LayerNormalization): Second normalization layer applied before the final feed-forward module.
-        second_feedforward_module (FeedForwardModule): Second feed-forward module applied after convolutional operations.
+        number_heads (int): Number of attention heads in the MHSA layer.
+        max_length (int): Maximum sequence length for self-attention.
+        size_kernel (int): Kernel size for the convolutional module.
+        dropout_decay (float): Dropout rate used in FFN and convolutional layers.
+        first_layer_normalization (LayerNormalization): First normalization layer.
+        first_feedforward_module (FeedForwardModule): First FFN applied after normalization.
+        multi_head_self_attention (MultiHeadSelfAttentionModule): MHSA module.
+        convolutional (ConvolutionalModule): Convolutional module after MHSA.
+        second_layer_normalization (LayerNormalization): Second normalization layer.
+        second_feedforward_module (FeedForwardModule): Final FFN after convolutional operations.
+
+    Example:
+        >>> python
+        ...    import tensorflow as tf
+        ...    #Define input tensor
+        ...    input_tensor = tf.random.normal([32, 100, 128])  # Batch size = 32, Sequence length = 100, Embedding size = 128
+        ...    # Initialize Conformer Block
+        ...    conformer_block = ConformerBlock(embedding_dimension=128, number_heads=8, max_length=100, size_kernel=3, dropout_decay=0.1)
+        ...    # Forward pass
+        ...    output_tensor = conformer_block(input_tensor)
+        ...    print(output_tensor.shape)  # Expected output: (32, 100, 128)
+        >>>
     """
 
     def __init__(self,
@@ -62,15 +86,15 @@ class ConformerBlock(Layer):
                  dropout_decay: float = DEFAULT_DROPOUT_DECAY,
                  **kwargs):
         """
-        Initializes the Conformer Block with specified parameters.
+        Initializes the Conformer Block with specified hyperparameters.
 
         Args:
-            embedding_dimension (int, optional): Dimensionality of the input embeddings. Default is 128.
-            number_heads (int, optional): Number of attention heads in the multi-head self-attention layer. Default is 8.
-            max_length (int, optional): Maximum sequence length for positional embeddings. Default is 100.
-            size_kernel (int, optional): Size of the kernel for convolutional operations. Default is 3.
-            dropout_decay (float, optional): Dropout rate applied in feed-forward and convolutional modules. Default is 0.1.
-            **kwargs: Additional arguments passed to the base `Layer` class.
+            embedding_dimension (int, optional): Size of the input embeddings. Default is `DEFAULT_EMBEDDING_DIMENSION`.
+            number_heads (int, optional): Number of attention heads in MHSA. Default is `DEFAULT_NUMBER_HEADS`.
+            max_length (int, optional): Maximum sequence length for positional embeddings. Default is `DEFAULT_MAX_LENGTH`.
+            size_kernel (int, optional): Kernel size for the convolutional layer. Default is `DEFAULT_KERNEL_SIZE`.
+            dropout_decay (float, optional): Dropout rate for FFN and convolution. Default is `DEFAULT_DROPOUT_DECAY`.
+            **kwargs: Additional keyword arguments for the base `Layer` class.
         """
         super(ConformerBlock, self).__init__(**kwargs)
         self.first_layer_normalization = LayerNormalization()
@@ -83,15 +107,20 @@ class ConformerBlock(Layer):
 
     def call(self, neural_network_flow: tensorflow.Tensor, mask: tensorflow.Tensor = None) -> tensorflow.Tensor:
         """
-        Applies the Conformer Block operations: normalization, feed-forward, multi-head self-attention,
-        convolutional, and final feed-forward modules.
+        Applies the Conformer Block transformation pipeline.
+
+        This includes:
+            1. Layer Normalization → Feed-Forward Network
+            2. Layer Normalization → Multi-Head Self-Attention
+            3. Layer Normalization → Convolutional Module
+            4. Layer Normalization → Final Feed-Forward Network
 
         Args:
-            neural_network_flow (tensorflow.Tensor): Input tensor to be processed through the Conformer Block.
-            mask (tensorflow.Tensor, optional): Mask tensor to be used in attention calculations. Default is None.
+            neural_network_flow (tensorflow.Tensor): Input tensor with shape `(batch_size, seq_length, embedding_dim)`.
+            mask (tensorflow.Tensor, optional): Attention mask for self-attention. Default is `None`.
 
         Returns:
-            tensorflow.Tensor: Output tensor after applying all the layers and operations of the Conformer Block.
+            tensorflow.Tensor: Processed tensor after applying Conformer Block transformations.
         """
         neural_flow_normalized = self.first_layer_normalization(neural_network_flow)
 
@@ -113,12 +142,12 @@ class ConformerBlock(Layer):
     @staticmethod
     def compute_output_shape(input_shape: tuple[int, int, int]) -> tuple[int, int, int]:
         """
-        Computes the output shape of the Conformer Block given the input shape.
+        Computes the output shape of the Conformer Block given an input shape.
 
         Args:
-            input_shape (tuple[int, int, int]): Shape of the input tensor.
+            input_shape (tuple[int, int, int]): Shape of the input tensor `(batch_size, seq_length, embedding_dim)`.
 
         Returns:
-            tuple[int, int, int]: Shape of the output tensor.
+            tuple[int, int, int]: Output shape `(batch_size, seq_length, embedding_dim)`, identical to the input shape.
         """
         return input_shape

@@ -36,6 +36,20 @@ except ImportError as error:
 class MetricsCalculator:
     """
     A class to calculate various classification metrics.
+
+    This class provides methods to compute accuracy, precision, recall, F1-score,
+    and confusion matrix for a given set of true and predicted labels.
+
+    Example usage:
+    >>> python3
+    ...    from metrics_calculator import MetricsCalculator
+    ...    true_labels = [0, 1, 1, 2, 2, 2]
+    ...    predicted_labels = [0, 1, 0, 2, 2, 1]
+    ...    calculator = MetricsCalculator()
+    ...    metrics, conf_matrix = calculator.calculate_metrics(true_labels, predicted_labels)
+    ...    print("Metrics:", metrics)
+    ...    print("Confusion Matrix:", conf_matrix)
+    ```
     """
 
     @staticmethod
@@ -43,12 +57,20 @@ class MetricsCalculator:
         """
         Calculate the accuracy of predictions.
 
+        Accuracy is computed as the ratio of correctly predicted instances to the total instances.
+
         Parameters:
         label_true (List[int]): True labels.
         label_predicted (List[int]): Predicted labels.
 
         Returns:
-        float: Accuracy score.
+        float: Accuracy score (range: 0.0 to 1.0).
+
+        Example:
+        >>> python
+        ...    accuracy = MetricsCalculator.calculate_accuracy([1, 0, 1], [1, 0, 0])
+        ...    print(accuracy)  # Output: 0.666...
+        >>>
         """
         try:
             return accuracy_score(label_true, label_predicted)
@@ -60,12 +82,14 @@ class MetricsCalculator:
         """
         Calculate the precision of predictions.
 
+        Precision is the ratio of correctly predicted positive observations to the total predicted positives.
+
         Parameters:
         label_true (List[int]): True labels.
         label_predicted (List[int]): Predicted labels.
 
         Returns:
-        float: Precision score.
+        float: Precision score (weighted average for multi-class classification).
         """
         try:
             return precision_score(label_true, label_predicted, average='weighted')
@@ -77,12 +101,14 @@ class MetricsCalculator:
         """
         Calculate the recall of predictions.
 
+        Recall is the ratio of correctly predicted positive observations to all actual positives.
+
         Parameters:
         label_true (List[int]): True labels.
         label_predicted (List[int]): Predicted labels.
 
         Returns:
-        float: Recall score.
+        float: Recall score (weighted average for multi-class classification).
         """
         try:
             return recall_score(label_true, label_predicted, average='weighted')
@@ -94,12 +120,14 @@ class MetricsCalculator:
         """
         Calculate the F1 score of predictions.
 
+        F1-score is the weighted average of precision and recall.
+
         Parameters:
         label_true (List[int]): True labels.
         label_predicted (List[int]): Predicted labels.
 
         Returns:
-        float: F1 score.
+        float: F1 score (weighted average for multi-class classification).
         """
         try:
             return f1_score(label_true, label_predicted, average='weighted')
@@ -111,41 +139,50 @@ class MetricsCalculator:
         """
         Calculate the confusion matrix.
 
+        A confusion matrix summarizes the performance of a classification algorithm.
+
         Parameters:
         label_true (List[int]): True labels.
         label_predicted (List[int]): Predicted labels.
 
         Returns:
-        List[List[int]]: Confusion matrix.
-        """
+        List[List[int]]: Confusion matrix as a nested list.
 
+        Example:
+        >>> python
+        ...    cm = MetricsCalculator.calculate_confusion_matrix([0, 1, 2, 2], [0, 0, 2, 2])
+        ...    print(cm)
+        >>>
+        """
         return confusion_matrix(label_true, label_predicted).tolist()
 
-
-    def calculate_metrics(self, label_true: List[int], label_predicted: List[int],
-                          label_predicted_probability: Optional[List[float]] = None
-                          ) -> Tuple[Dict[str, float], Union[List[List[int]], None]]:
-
+    def calculate_metrics(self, label_true: List[int], label_predicted: List[int]) -> Tuple[Dict[str, float], List[List[int]]]:
         """
         Calculate a set of metrics for classification.
 
+        This method computes accuracy, precision, recall, and F1-score, along with the confusion matrix.
+
         Parameters:
         label_true (List[int]): True labels.
         label_predicted (List[int]): Predicted labels.
-        label_predicted_probability (Optional[List[float]]): Predicted probabilities.
 
         Returns:
-        Tuple[Dict[str, float], Union[List[List[int]], None]]:
-            Dictionary of metrics and the confusion matrix.
+        Tuple[Dict[str, float], List[List[int]]]:
+            - A dictionary containing the computed metrics.
+            - A confusion matrix as a nested list.
+
+        Example:
+        >>> python
+        ...    calculator = MetricsCalculator()
+        ...    metrics, conf_matrix = calculator.calculate_metrics([1, 0, 1], [1, 0, 0])
+        ...    print(metrics)
+        ...    print(conf_matrix)
+        >>>
         """
-
-        metrics = {}
-
-        metrics['Accuracy'] = self.calculate_accuracy(label_true, label_predicted)
-        metrics['Precision'] = self.calculate_precision(label_true, label_predicted)
-        metrics['Recall'] = self.calculate_recall(label_true, label_predicted)
-        metrics['F1-Score'] = self.calculate_f1_score(label_true, label_predicted)
-
-        confusion_matrix_result = self.calculate_confusion_matrix(label_true, label_predicted)
-
-        return metrics, confusion_matrix_result
+        metrics = {
+            'Accuracy': self.calculate_accuracy(label_true, label_predicted),
+            'Precision': self.calculate_precision(label_true, label_predicted),
+            'Recall': self.calculate_recall(label_true, label_predicted),
+            'F1-Score': self.calculate_f1_score(label_true, label_predicted)
+        }
+        return metrics, self.calculate_confusion_matrix(label_true, label_predicted)
