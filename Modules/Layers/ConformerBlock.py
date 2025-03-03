@@ -11,10 +11,12 @@ __credits__ = ['unknown']
 try:
     import sys
     import tensorflow
+
     from tensorflow.keras.layers import Layer
     from tensorflow.keras.layers import LayerNormalization
-    from Modules.ConvolutionalModule import ConvolutionalModule
     from Modules.FeedForwardModule import FeedForwardModule
+
+    from Modules.ConvolutionalModule import ConvolutionalModule
     from Modules.MultiheadSelfAttentionModule import MultiHeadSelfAttentionModule
 
 except ImportError as error:
@@ -41,29 +43,29 @@ class ConformerBlock(Layer):
     "Conformer: Convolution-Augmented Transformer for Speech Recognition".
 
     Reference:
-    Anmol Gulati, James Qin, et al. "Conformer: Convolution-Augmented Transformer for Speech Recognition." Interspeech 2020.
-    [https://arxiv.org/abs/2005.08100]
+        Anmol Gulati, James Qin, et al. "Conformer: Convolution-Augmented Transformer for Speech Recognition."
+        Interspeech 2020. [https://arxiv.org/abs/2005.08100]
 
     The Conformer Block consists of:
 
-    - **Layer Normalization**: Normalizes input to stabilize training.
-    - **Feed-Forward Network (FFN)**: Enhances feature extraction through dense layers.
-    - **Multi-Head Self-Attention (MHSA)**: Captures long-range dependencies in sequences.
-    - **Convolutional Module**: Extracts local contextual features.
-    - **Final Feed-Forward Network (FFN)**: Enhances representation learning.
+        - **Layer Normalization**: Normalizes input to stabilize training.
+        - **Feed-Forward Network (FFN)**: Enhances feature extraction through dense layers.
+        - **Multi-Head Self-Attention (MHSA)**: Captures long-range dependencies in sequences.
+        - **Convolutional Module**: Extracts local contextual features.
+        - **Final Feed-Forward Network (FFN)**: Enhances representation learning.
 
     Attributes:
-        embedding_dimension (int): Dimensionality of the input embeddings.
-        number_heads (int): Number of attention heads in the MHSA layer.
-        max_length (int): Maximum sequence length for self-attention.
-        size_kernel (int): Kernel size for the convolutional module.
-        dropout_decay (float): Dropout rate used in FFN and convolutional layers.
-        first_layer_normalization (LayerNormalization): First normalization layer.
-        first_feedforward_module (FeedForwardModule): First FFN applied after normalization.
-        multi_head_self_attention (MultiHeadSelfAttentionModule): MHSA module.
-        convolutional (ConvolutionalModule): Convolutional module after MHSA.
-        second_layer_normalization (LayerNormalization): Second normalization layer.
-        second_feedforward_module (FeedForwardModule): Final FFN after convolutional operations.
+        @embedding_dimension (int): Dimensionality of the input embeddings.
+        @number_heads (int): Number of attention heads in the MHSA layer.
+        @max_length (int): Maximum sequence length for self-attention.
+        @size_kernel (int): Kernel size for the convolutional module.
+        @dropout_decay (float): Dropout rate used in FFN and convolutional layers.
+        @first_layer_normalization (LayerNormalization): First normalization layer.
+        @first_feedforward_module (FeedForwardModule): First FFN applied after normalization.
+        @multi_head_self_attention (MultiHeadSelfAttentionModule): MHSA module.
+        @convolutional (ConvolutionalModule): Convolutional module after MHSA.
+        @second_layer_normalization (LayerNormalization): Second normalization layer.
+        @second_feedforward_module (FeedForwardModule): Final FFN after convolutional operations.
 
     Example:
         >>> python

@@ -8,10 +8,13 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+
 try:
     import sys
     import tensorflow
+
     from tensorflow.keras.layers import Layer
+    from Modules.Layers.KNNLayer import KNNLayer
 
 except ImportError as error:
     print(error)
@@ -21,109 +24,59 @@ except ImportError as error:
     print()
     sys.exit(-1)
 
-
-class KNNLayer(Layer):
-    """
-    Custom TensorFlow layer that performs K-Nearest Neighbors (KNN) clustering on input data.
-
-    Args:
-        number_clusters (int): The number of nearest clusters to find for each input. Default is 4.
-        **kwargs: Additional keyword arguments passed to the parent Layer class.
-
-    Attributes:
-        reference_points (tf.Variable): A variable representing reference points (or centroids)
-            used for distance calculation in the KNN algorithm.
-        clusters (int): The number of clusters to return for each input.
-    """
-
-    def __init__(self, number_clusters=5, **kwargs):
-        """
-        Initializes the KNNLayer with the specified number of clusters.
-
-        Args:
-            number_clusters (int): Number of nearest clusters to compute.
-            **kwargs: Additional keyword arguments for the Layer base class.
-        """
-        super(KNNLayer, self).__init__(**kwargs)
-        self.reference_points = None
-        self.clusters = number_clusters
-
-    def call(self, inputs):
-        """
-        Performs the forward computation of the layer. Computes the distances between the input
-        data and the reference points, and returns the indices of the closest clusters.
-
-        Args:
-            inputs (tf.Tensor): The input tensor of shape (batch_size, input_dim).
-
-        Returns:
-            tf.Tensor: A tensor of shape (batch_size, number_clusters) containing the indices
-            of the nearest clusters for each input.
-        """
-        # Expand dimensions of inputs and reference points for broadcasting during subtraction
-        inputs_expanded = tensorflow.expand_dims(inputs, axis=1)
-        ref_expanded = tensorflow.expand_dims(self.reference_points, axis=0)
-
-        # Calculate L2 distances between inputs and reference points
-        distances = tensorflow.norm(inputs_expanded - ref_expanded, axis=-1)
-
-        # Get the indices of the top-k nearest clusters
-        _, indices = tensorflow.math.top_k(-distances, k=self.clusters, sorted=False)
-
-        return indices
-
-    def build(self, input_shape):
-        """
-        Creates and initializes the reference points (or centroids) that the input data will be
-        compared against during the forward pass.
-
-        Args:
-            input_shape (tuple): The shape of the input data.
-        """
-        self.reference_points = self.add_weight(
-            shape=(100, input_shape[-1]),  # 100 reference points, each with the same dimension as the input
-            initializer='random_normal',  # Initialize reference points with a normal distribution
-            trainable=False,  # Reference points are not trainable, meaning they won't be updated during backpropagation
-            name='reference_points'
-        )
-
-    def compute_output_shape(self, input_shape):
-        """
-        Computes the output shape of the layer.
-
-        Args:
-            input_shape (tuple): The shape of the input data.
-
-        Returns:
-            tuple: The shape of the output tensor, which is (batch_size, number_clusters).
-        """
-        return (input_shape[0], self.clusters)
-
-
 class QuantizationLayer(Layer):
     """
     Custom TensorFlow layer that performs vector quantization on the input data.
-    The layer finds the nearest clusters to each input vector and replaces the
-    input with the average of the closest reference points (centroids).
+    The layer finds the nearest clusters (centroids) to each input vector and replaces
+    the input with the average of the closest reference points (centroids). This process
+    is commonly used in tasks like data compression, image segmentation, and feature learning.
+
+    Vector Quantization (VQ) involves mapping input vectors to a finite set of representative
+    centroids (also known as codebook vectors or cluster centroids). The input is then replaced
+    by the centroid closest to it, based on a distance metric (typically Euclidean).
+
+    Reference:
+        The concept of vector quantization is widely used in signal processing and data compression.
+        "Vector Quantization and Signal Compression" by R. M. Gray and D. L. Neuhoff, 1998.
+        This technique is also closely related to K-Means clustering, where the centroids serve
+        as the quantized representations of the data.
 
     Args:
-        number_clusters (int): The number of nearest clusters to consider during quantization. Default is 5.
+        number_clusters (int): The number of nearest clusters (centroids) to consider during quantization.
+                               This is the number of centroids to be considered for each input.
+                               Default is 5.
         **kwargs: Additional keyword arguments passed to the parent Layer class.
 
     Attributes:
         built (bool): Indicates whether the layer has been built.
         reference_points (tf.Variable): A variable representing the reference points (centroids) used
-            in the KNN algorithm for quantization.
-        knn_layer (KNNLayer): An instance of the KNNLayer that is used to find the nearest clusters.
-        k (int): The number of clusters to use for quantization.
+            in the quantization process. These centroids are fixed (non-trainable) and are shared
+            between the KNNLayer and the QuantizationLayer.
+        knn_layer (KNNLayer): An instance of the KNNLayer that is used to find the nearest clusters (centroids).
+        k (int): The number of clusters to use for quantization. It determines how many centroids
+                 to consider for each input vector.
+
+    Example:
+        >>> # Create a QuantizationLayer with 5 clusters
+        ...     quant_layer = QuantizationLayer(number_clusters=5)
+        ...     # Sample input tensor (batch_size=3, input_dim=4)
+        ...     inputs = tf.random.normal((3, 4))
+        ...     # Build the QuantizationLayer (must be done before calling it)
+        ...     quant_layer.build(inputs.shape)
+        ...     # Get the quantized output
+        ...     quantized_output = quant_layer(inputs)
+        ...     print(quantized_output)
+        >>>
     """
+
 
     def __init__(self, number_clusters=5, **kwargs):
         """
         Initializes the QuantizationLayer with the specified number of clusters.
 
         Args:
-            number_clusters (int): The number of nearest clusters to compute during quantization.
+            number_clusters (int): The number of nearest clusters (centroids) to compute during quantization.
+                                    Default is 5.
             **kwargs: Additional keyword arguments for the Layer base class.
         """
         super(QuantizationLayer, self).__init__(**kwargs)
@@ -134,16 +87,17 @@ class QuantizationLayer(Layer):
 
     def call(self, inputs):
         """
-        Performs the forward computation of the layer. Finds the nearest clusters for each input vector,
-        retrieves the corresponding reference points, and computes the quantized output by averaging
-        these points.
+        Performs the forward computation of the layer. For each input vector, the layer finds the
+        nearest clusters (centroids), retrieves the corresponding reference points (centroids), and
+        computes the quantized output by averaging these points.
 
         Args:
-            inputs (tf.Tensor): The input tensor of shape (batch_size, input_dim).
+            inputs (tf.Tensor): The input tensor of shape (batch_size, input_dim). Each row represents
+                                 a data point or feature vector that will be quantized.
 
         Returns:
             tf.Tensor: A quantized tensor of shape (batch_size, input_dim), where each input vector
-            is replaced by the average of its nearest reference points.
+                       is replaced by the average of its nearest reference points (centroids).
         """
         # Use the KNNLayer to find the indices of the nearest clusters
         indices = self.knn_layer(inputs)
