@@ -1,3 +1,31 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+__author__ = 'unknown'
+__email__ = 'unknown@unknown.com.br'
+__version__ = '{1}.{0}.{0}'
+__initial_data__ = '2024/07/17'
+__last_update__ = '2024/07/17'
+__credits__ = ['unknown']
+
+try:
+    import sys
+    import tensorflow
+    from tensorflow.keras.layers import Layer
+    from tensorflow.keras.layers import Dense
+    from tensorflow.keras.layers import Dropout
+    from tensorflow.keras.layers import MultiHeadAttention
+    from tensorflow.keras.layers import LayerNormalization
+
+except ImportError as error:
+    print(error)
+    print("1. Install requirements:")
+    print("  pip3 install --upgrade pip")
+    print("  pip3 install -r requirements.txt ")
+    print()
+    sys.exit(-1)
+
+
 class TransformerEncoder(Layer):
     """
     Custom TensorFlow layer implementing a Transformer encoder block.
