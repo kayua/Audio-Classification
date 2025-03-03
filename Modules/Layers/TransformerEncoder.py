@@ -11,9 +11,11 @@ __credits__ = ['unknown']
 try:
     import sys
     import tensorflow
+
     from tensorflow.keras.layers import Layer
     from tensorflow.keras.layers import Dense
     from tensorflow.keras.layers import Dropout
+
     from tensorflow.keras.layers import MultiHeadAttention
     from tensorflow.keras.layers import LayerNormalization
 
@@ -29,39 +31,63 @@ except ImportError as error:
 class TransformerEncoder(Layer):
     """
     Custom TensorFlow layer implementing a Transformer encoder block.
-    The Transformer encoder is composed of multi-head self-attention,
-    followed by a feedforward neural network, with layer normalization
-    and dropout applied after each step.
+
+    The Transformer encoder block is a fundamental component of the Transformer architecture.
+    It consists of a multi-head self-attention mechanism followed by a feedforward neural network.
+    The encoder layer normalizes and applies dropout to the results of both the attention mechanism
+    and the feedforward network. This block is typically used as part of the encoder in sequence-to-sequence models.
+
+    The encoder takes an input sequence and learns contextual relationships between tokens in the sequence.
+    It computes a representation of the input, which is later used by the decoder in sequence-to-sequence tasks.
+
+    Reference:
+        Vaswani et al., "Attention is All You Need" (2017). This work introduced the Transformer architecture
+        and the multi-head self-attention mechanism.
 
     Args:
-        embedding_dimension (int): The dimensionality of the input embeddings.
-        number_heads (int): The number of attention heads in the multi-head attention mechanism.
-        feedforward_dimension (int): The dimensionality of the feedforward network hidden layer.
-        dropout_rate (float): The dropout rate applied after attention and feedforward layers. Default is 0.1.
+        @embedding_dimension (int): The dimensionality of the input embeddings.
+        @number_heads (int): The number of attention heads in the multi-head attention mechanism.
+        @feedforward_dimension (int): The dimensionality of the feedforward network's hidden layer.
+        @dropout_rate (float): The dropout rate applied after attention and feedforward layers. Default is 0.1.
 
     Attributes:
-        embedding_dimension (int): The dimensionality of the input embeddings.
-        number_heads (int): The number of attention heads in the multi-head attention mechanism.
-        feedforward_dimension (int): The dimensionality of the feedforward network hidden layer.
-        dropout_rate (float): The dropout rate applied after attention and feedforward layers.
-        mult_head_attention (MultiHeadAttention): The multi-head self-attention layer.
-        feedforward_layer (Sequential): A sequential model consisting of two Dense layers.
-        first_layer_normalization (LayerNormalization): The first layer normalization applied after attention.
-        second_layer_normalization (LayerNormalization): The second layer normalization applied after the feedforward layer.
-        first_dropout (Dropout): The dropout layer applied after the attention output.
-        second_dropout (Dropout): The dropout layer applied after the feedforward output.
+        @embedding_dimension (int): The dimensionality of the input embeddings.
+        @number_heads (int): The number of attention heads in the multi-head attention mechanism.
+        @feedforward_dimension (int): The dimensionality of the feedforward network's hidden layer.
+        @dropout_rate (float): The dropout rate applied after attention and feedforward layers.
+        @mult_head_attention (MultiHeadAttention): The multi-head self-attention layer.
+        @feedforward_layer (Sequential): A sequential model consisting of two Dense layers.
+        @first_layer_normalization (LayerNormalization): The layer normalization applied after attention.
+        @second_layer_normalization (LayerNormalization): The layer normalization applied after the feedforward network.
+        @first_dropout (Dropout): The dropout layer applied after the attention output.
+        @second_dropout (Dropout): The dropout layer applied after the feedforward output.
+
+    Example:
+        >>> # Create a TransformerEncoder layer with embedding dimension of 128, 8 attention heads,
+        ...     # feedforward layer dimension of 512, and a dropout rate of 0.1
+        ...     encoder_layer = TransformerEncoder(embedding_dimension=128, number_heads=8, feedforward_dimension=512)
+        ...     # Sample input tensor (batch_size=2, sequence_length=10, embedding_dim=128)
+        ...     encoder_input = tf.random.normal((2, 10, 128))  # Encoder input
+        ...     # Apply the Transformer encoder layer
+        ...     output = encoder_layer(encoder_input, training=True)
+        >>>     print(output.shape)  # Output tensor with shape (batch_size, sequence_length, embedding_dim)
     """
 
     def __init__(self, embedding_dimension, number_heads, feedforward_dimension, dropout_rate=0.1):
         """
-        Initializes the TransformerEncoder with specified dimensions for embeddings, attention heads,
-        and feedforward network, along with the dropout rate.
+        Initializes the TransformerEncoder with specified parameters for embeddings, attention heads,
+        and feedforward network dimensions, along with the dropout rate.
 
-        Args:
-            embedding_dimension (int): The dimensionality of the input embeddings.
-            number_heads (int): The number of attention heads in the multi-head attention mechanism.
-            feedforward_dimension (int): The dimensionality of the feedforward network hidden layer.
-            dropout_rate (float): The dropout rate applied after attention and feedforward layers. Default is 0.1.
+        Parameters
+        ----------
+        embedding_dimension : int
+            The dimensionality of the input embeddings. This is the size of the vector that represents each token.
+        number_heads : int
+            The number of attention heads in the multi-head attention mechanism.
+        feedforward_dimension : int
+            The dimensionality of the feedforward network's hidden layer.
+        dropout_rate : float
+            The dropout rate applied after attention and feedforward layers. Default is 0.1.
         """
         super(TransformerEncoder, self).__init__()
         self.embedding_dimension = embedding_dimension
@@ -90,15 +116,21 @@ class TransformerEncoder(Layer):
 
     def call(self, x, training):
         """
-        Performs the forward pass of the Transformer encoder. Applies multi-head self-attention
-        followed by layer normalization, then a feedforward network followed by another layer normalization.
+        Performs the forward pass of the Transformer encoder. Applies multi-head self-attention,
+        followed by layer normalization. Then, a feedforward network is applied followed by another
+        layer normalization.
 
-        Args:
-            x (tf.Tensor): The input tensor of shape (batch_size, sequence_length, embedding_dimension).
-            training (bool): Whether the layer is in training mode (applies dropout) or inference mode.
+        Parameters
+        ----------
+        x : tf.Tensor
+            The input tensor of shape (batch_size, sequence_length, embedding_dimension).
+        training : bool
+            Whether the layer is in training mode (applies dropout) or inference mode.
 
-        Returns:
-            tf.Tensor: The output tensor of the same shape as the input, after processing by the Transformer encoder block.
+        Returns
+        -------
+        tf.Tensor
+            The output tensor of the same shape as the input, after processing by the Transformer encoder block.
         """
         # Apply multi-head self-attention to the input
         attention_output = self.mult_head_attention(x, x)

@@ -11,9 +11,11 @@ __credits__ = ['unknown']
 try:
     import sys
     import tensorflow
+
     from tensorflow.keras.layers import Layer
     from tensorflow.keras.layers import Dense
     from tensorflow.keras.layers import Dropout
+
     from tensorflow.keras.layers import MultiHeadAttention
     from tensorflow.keras.layers import LayerNormalization
 
@@ -29,17 +31,35 @@ except ImportError as error:
 class PositionalEncoding(Layer):
     """
     Custom TensorFlow layer that adds positional encoding to input embeddings.
-    This layer is typically used in Transformer models to inject information
-    about the position of each token in a sequence.
+    Positional encoding is crucial for transformer models as it injects information
+    about the position of each token in a sequence. This layer adds this information
+    to the input embeddings, allowing the model to differentiate between tokens
+    in different positions within the sequence.
+
+    The positional encoding is based on sine and cosine functions with different frequencies,
+    a method first introduced by Vaswani et al. (2017) in the "Attention is All You Need" paper.
+
+    Reference:
+        Vaswani et al., "Attention is All You Need" (2017). This paper introduced the Transformer model
+        and positional encoding, which allows the model to handle sequences of arbitrary length.
 
     Args:
-        max_sequence_length (int): The maximum length of the input sequences.
-        embedding_dimension (int): The dimensionality of the input embeddings.
+        @max_sequence_length (int): The maximum length of the input sequences.
+        @embedding_dimension (int): The dimensionality of the input embeddings.
 
     Attributes:
-        positional_encodings (tf.Tensor): A tensor containing the precomputed positional encodings.
-        max_sequence_length (int): The maximum sequence length for which positional encodings are computed.
-        embedding_dimension (int): The dimensionality of the embeddings.
+        @positional_encodings (tf.Tensor): A tensor containing the precomputed positional encodings.
+        @max_sequence_length (int): The maximum sequence length for which positional encodings are computed.
+        @embedding_dimension (int): The dimensionality of the embeddings.
+
+    Example:
+        >>> #Initialize layer with a maximum sequence length of 100 and an embedding dimension of 512.
+        ...     positional_encoding_layer = PositionalEncoding(max_sequence_length=100, embedding_dimension=512)
+        ...     # Sample input tensor (batch_size=2, sequence_length=10, embedding_dimension=512)
+        ...     input_tensor = tf.random.normal((2, 10, 512))
+        ...     # Apply positional encoding to the input tensor
+        ...     output_tensor = positional_encoding_layer(input_tensor)
+        >>>     print(output_tensor.shape)  # Output shape will be (2, 10, 512)
     """
 
     def __init__(self, max_sequence_length, embedding_dimension):
@@ -47,9 +67,14 @@ class PositionalEncoding(Layer):
         Initializes the PositionalEncoding layer with the specified maximum sequence length
         and embedding dimension.
 
-        Args:
-            max_sequence_length (int): The maximum length of input sequences.
-            embedding_dimension (int): The dimensionality of input embeddings.
+        Parameters
+        ----------
+        max_sequence_length : int
+            The maximum length of input sequences. The positional encodings will be precomputed for
+            sequences up to this length.
+        embedding_dimension : int
+            The dimensionality of input embeddings. This will determine the size of the positional encoding
+            for each token.
         """
         super(PositionalEncoding, self).__init__()
         self.positional_encodings = None
@@ -71,15 +96,20 @@ class PositionalEncoding(Layer):
     def _get_positional_encodings(max_seq_length, embedding_dimension):
         """
         Computes the positional encodings for the given sequence length and embedding dimension.
-        The encodings are based on sine and cosine functions of different frequencies.
+        The encodings are based on sine and cosine functions of different frequencies, as described in
+        the "Attention is All You Need" paper by Vaswani et al. (2017).
 
-        Args:
-            max_seq_length (int): The maximum length of input sequences.
-            embedding_dimension (int): The dimensionality of input embeddings.
+        Parameters
+        ----------
+        max_seq_length : int
+            The maximum length of input sequences. This determines the number of position encodings.
+        embedding_dimension : int
+            The dimensionality of the embeddings. This defines the length of the positional encoding vector.
 
-        Returns:
-            tf.Tensor: A tensor of shape (1, max_seq_length, embedding_dimension) containing
-            the positional encodings.
+        Returns
+        -------
+        tf.Tensor
+            A tensor of shape (1, max_seq_length, embedding_dimension) containing the positional encodings.
         """
         # Create a range of positions for the sequence
         positional_array = tensorflow.range(max_seq_length, dtype=tensorflow.float32)[:, tensorflow.newaxis]
@@ -107,11 +137,15 @@ class PositionalEncoding(Layer):
         """
         Adds the precomputed positional encodings to the input embeddings.
 
-        Args:
-            x (tf.Tensor): The input tensor of shape (batch_size, sequence_length, embedding_dimension).
+        Parameters
+        ----------
+        x : tf.Tensor
+            The input tensor of shape (batch_size, sequence_length, embedding_dimension).
 
-        Returns:
-            tf.Tensor: A tensor of the same shape as the input, with positional encodings added
+        Returns
+        -------
+        tf.Tensor
+            A tensor of the same shape as the input, with positional encodings added
             to the embeddings.
         """
         # Get the sequence length of the input tensor

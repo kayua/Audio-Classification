@@ -48,39 +48,36 @@ class TransformerDecoder(Layer):
         multi-head attention mechanisms and positional encodings to better capture sequential dependencies.
 
     Args:
-        embedding_dimension (int): The dimensionality of the input embeddings.
-        number_heads (int): The number of attention heads in the multi-head attention mechanism.
-        feedforward_dimension (int): The dimensionality of the feedforward network's hidden layer.
-        dropout_rate (float): The dropout rate applied after attention and feedforward layers. Default is 0.1.
+        @embedding_dimension (int): The dimensionality of the input embeddings.
+        @number_heads (int): The number of attention heads in the multi-head attention mechanism.
+        @feedforward_dimension (int): The dimensionality of the feedforward network's hidden layer.
+        @dropout_rate (float): The dropout rate applied after attention and feedforward layers. Default is 0.1.
 
     Attributes:
-        embedding_dimension (int): The dimensionality of the input embeddings.
-        number_heads (int): The number of attention heads in the multi-head attention mechanism.
-        feedforward_dimension (int): The dimensionality of the feedforward network's hidden layer.
-        dropout_rate (float): The dropout rate applied after attention and feedforward layers.
-        first_mult_head_attention (MultiHeadAttention): The first multi-head self-attention layer.
-        second_mult_head_attention (MultiHeadAttention): The second multi-head attention layer for attending to encoder output.
-        feedforward (Sequential): A sequential model consisting of two Dense layers.
-        first_layer_normalization (LayerNormalization): The first layer normalization applied after the first attention layer.
-        second_layer_normalization (LayerNormalization): The second layer normalization applied after the second attention layer.
-        third_layer_normalization (LayerNormalization): The third layer normalization applied after the feedforward layer.
-        first_dropout (Dropout): The dropout layer applied after the first attention output.
-        second_dropout (Dropout): The dropout layer applied after the second attention output.
-        third_dropout (Dropout): The dropout layer applied after the feedforward output.
+        @embedding_dimension (int): The dimensionality of the input embeddings.
+        @number_heads (int): The number of attention heads in the multi-head attention mechanism.
+        @feedforward_dimension (int): The dimensionality of the feedforward network's hidden layer.
+        @dropout_rate (float): The dropout rate applied after attention and feedforward layers.
+        @first_mult_head_attention (MultiHeadAttention): The first multi-head self-attention layer.
+        @second_mult_head_attention (MultiHeadAttention): The second multi-head attention layer for attending to encoder output.
+        @feedforward (Sequential): A sequential model consisting of two Dense layers.
+        @first_layer_normalization (LayerNormalization): The first layer normalization applied after the first attention layer.
+        @second_layer_normalization (LayerNormalization): The second layer normalization applied after the second attention layer.
+        @third_layer_normalization (LayerNormalization): The third layer normalization applied after the feedforward layer.
+        @first_dropout (Dropout): The dropout layer applied after the first attention output.
+        @second_dropout (Dropout): The dropout layer applied after the second attention output.
+        @third_dropout (Dropout): The dropout layer applied after the feedforward output.
 
-    Example Usage:
-    --------------
-        # Create a TransformerDecoder layer with embedding dimension of 128, 8 attention heads,
-        # feedforward layer dimension of 512, and a dropout rate of 0.1
-        decoder_layer = TransformerDecoder(embedding_dimension=128, number_heads=8, feedforward_dimension=512)
-
-        # Sample input tensors (batch_size=2, sequence_length=10, embedding_dim=128)
-        decoder_input = tf.random.normal((2, 10, 128))  # Decoder input
-        encoder_output = tf.random.normal((2, 10, 128))  # Encoder output
-
-        # Apply the Transformer decoder layer
-        output = decoder_layer(decoder_input, encoder_output, training=True)
-        print(output.shape)  # Output tensor with shape (batch_size, sequence_length, embedding_dim)
+    Example:
+        >>> # Create a TransformerDecoder layer with embedding dimension of 128, 8 attention heads,
+        ...     # feedforward layer dimension of 512, and a dropout rate of 0.1
+        ...     decoder_layer = TransformerDecoder(embedding_dimension=128, number_heads=8, feedforward_dimension=512)
+        ...     # Sample input tensors (batch_size=2, sequence_length=10, embedding_dim=128)
+        ...     decoder_input = tf.random.normal((2, 10, 128))  # Decoder input
+        ...     encoder_output = tf.random.normal((2, 10, 128))  # Encoder output
+        ...     # Apply the Transformer decoder layer
+        ...     output = decoder_layer(decoder_input, encoder_output, training=True)
+        >>>     print(output.shape)  # Output tensor with shape (batch_size, sequence_length, embedding_dim)
     """
 
     def __init__(self, embedding_dimension, number_heads, feedforward_dimension, dropout_rate=0.1):
