@@ -32,26 +32,58 @@ except ImportError as error:
 
 class Transformer(Layer):
     """
-    Custom TensorFlow layer implementing a complete Transformer architecture,
-    including positional encoding, multiple encoder and decoder layers, and
-    a final linear transformation.
+    Custom TensorFlow layer implementing a Transformer decoder block.
+
+    The Transformer decoder block is a key component of the Transformer architecture,
+    commonly used in sequence-to-sequence tasks such as machine translation, text generation,
+    and summarization. It consists of two multi-head attention layers followed by a feedforward
+    neural network. Layer normalization and dropout are applied after each step to stabilize
+    training and regularize the model.
+
+    The decoder takes both the current input sequence (decoder input) and the output from the encoder
+    as inputs. It performs two types of attention:
+    1. **Self-attention**: Attention over the decoder's own input sequence.
+    2. **Encoder-decoder attention**: Attention over the encoder's output, allowing the decoder
+       to focus on relevant parts of the encoder's context.
+
+    Reference:
+        Vaswani et al., "Attention is All You Need" (2017). The Transformer architecture introduced
+        multi-head attention mechanisms and positional encodings to better capture sequential dependencies.
 
     Args:
         embedding_dimension (int): The dimensionality of the input embeddings.
         number_heads (int): The number of attention heads in the multi-head attention mechanism.
-        feedforward_dimension (int): The dimensionality of the feedforward network hidden layer.
-        number_layers (int): The number of encoder and decoder layers in the Transformer.
-        max_sequence_length (int): The maximum length of the input and target sequences.
-        dropout_rate (float): The dropout rate applied in the encoder and decoder layers. Default is 0.1.
+        feedforward_dimension (int): The dimensionality of the feedforward network's hidden layer.
+        dropout_rate (float): The dropout rate applied after attention and feedforward layers. Default is 0.1.
 
     Attributes:
-        embedding_dimension (int): The dimensionality of the input embeddings.
-        number_layers (int): The number of encoder and decoder layers in the Transformer.
-        max_sequence_length (int): The maximum length of the input and target sequences.
-        positional_encoding (PositionalEncoding): The positional encoding layer that adds positional information to the embeddings.
-        encoder_layers (list of TransformerEncoder): The list of encoder layers in the Transformer.
-        decoder_layers (list of TransformerDecoder): The list of decoder layers in the Transformer.
-        final_layer (Dense): The final dense layer that projects the decoder output to the desired embedding dimension.
+        @embedding_dimension (int): The dimensionality of the input embeddings.
+        @number_heads (int): The number of attention heads in the multi-head attention mechanism.
+        @feedforward_dimension (int): The dimensionality of the feedforward network's hidden layer.
+        @dropout_rate (float): The dropout rate applied after attention and feedforward layers.
+        @first_mult_head_attention (MultiHeadAttention): The first multi-head self-attention layer.
+        @second_mult_head_attention (MultiHeadAttention): The second multi-head attention layer for attending to encoder output.
+        @feedforward (Sequential): A sequential model consisting of two Dense layers.
+        @first_layer_normalization (LayerNormalization): The first layer normalization applied after the first attention layer.
+        @second_layer_normalization (LayerNormalization): The second layer normalization applied after the second attention layer.
+        @third_layer_normalization (LayerNormalization): The third layer normalization applied after the feedforward layer.
+        @first_dropout (Dropout): The dropout layer applied after the first attention output.
+        @second_dropout (Dropout): The dropout layer applied after the second attention output.
+        @third_dropout (Dropout): The dropout layer applied after the feedforward output.
+
+    Example Usage:
+    --------------
+        # Create a TransformerDecoder layer with embedding dimension of 128, 8 attention heads,
+        # feedforward layer dimension of 512, and a dropout rate of 0.1
+        decoder_layer = TransformerDecoder(embedding_dimension=128, number_heads=8, feedforward_dimension=512)
+
+        # Sample input tensors (batch_size=2, sequence_length=10, embedding_dim=128)
+        decoder_input = tf.random.normal((2, 10, 128))  # Decoder input
+        encoder_output = tf.random.normal((2, 10, 128))  # Encoder output
+
+        # Apply the Transformer decoder layer
+        output = decoder_layer(decoder_input, encoder_output, training=True)
+        print(output.shape)  # Output tensor with shape (batch_size, sequence_length, embedding_dim)
     """
 
     def __init__(self, embedding_dimension, number_heads, feedforward_dimension, number_layers, max_sequence_length,

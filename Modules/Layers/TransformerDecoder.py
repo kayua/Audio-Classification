@@ -30,20 +30,33 @@ except ImportError as error:
 class TransformerDecoder(Layer):
     """
     Custom TensorFlow layer implementing a Transformer decoder block.
-    The Transformer decoder is composed of two multi-head attention layers,
-    followed by a feedforward neural network, with layer normalization
-    and dropout applied after each step.
+
+    The Transformer decoder block is a key component of the Transformer architecture,
+    commonly used in sequence-to-sequence tasks such as machine translation, text generation,
+    and summarization. It consists of two multi-head attention layers followed by a feedforward
+    neural network. Layer normalization and dropout are applied after each step to stabilize
+    training and regularize the model.
+
+    The decoder takes both the current input sequence (decoder input) and the output from the encoder
+    as inputs. It performs two types of attention:
+    1. **Self-attention**: Attention over the decoder's own input sequence.
+    2. **Encoder-decoder attention**: Attention over the encoder's output, allowing the decoder
+       to focus on relevant parts of the encoder's context.
+
+    Reference:
+        Vaswani et al., "Attention is All You Need" (2017). The Transformer architecture introduced
+        multi-head attention mechanisms and positional encodings to better capture sequential dependencies.
 
     Args:
         embedding_dimension (int): The dimensionality of the input embeddings.
         number_heads (int): The number of attention heads in the multi-head attention mechanism.
-        feedforward_dimension (int): The dimensionality of the feedforward network hidden layer.
+        feedforward_dimension (int): The dimensionality of the feedforward network's hidden layer.
         dropout_rate (float): The dropout rate applied after attention and feedforward layers. Default is 0.1.
 
     Attributes:
         embedding_dimension (int): The dimensionality of the input embeddings.
         number_heads (int): The number of attention heads in the multi-head attention mechanism.
-        feedforward_dimension (int): The dimensionality of the feedforward network hidden layer.
+        feedforward_dimension (int): The dimensionality of the feedforward network's hidden layer.
         dropout_rate (float): The dropout rate applied after attention and feedforward layers.
         first_mult_head_attention (MultiHeadAttention): The first multi-head self-attention layer.
         second_mult_head_attention (MultiHeadAttention): The second multi-head attention layer for attending to encoder output.
@@ -54,18 +67,37 @@ class TransformerDecoder(Layer):
         first_dropout (Dropout): The dropout layer applied after the first attention output.
         second_dropout (Dropout): The dropout layer applied after the second attention output.
         third_dropout (Dropout): The dropout layer applied after the feedforward output.
+
+    Example Usage:
+    --------------
+        # Create a TransformerDecoder layer with embedding dimension of 128, 8 attention heads,
+        # feedforward layer dimension of 512, and a dropout rate of 0.1
+        decoder_layer = TransformerDecoder(embedding_dimension=128, number_heads=8, feedforward_dimension=512)
+
+        # Sample input tensors (batch_size=2, sequence_length=10, embedding_dim=128)
+        decoder_input = tf.random.normal((2, 10, 128))  # Decoder input
+        encoder_output = tf.random.normal((2, 10, 128))  # Encoder output
+
+        # Apply the Transformer decoder layer
+        output = decoder_layer(decoder_input, encoder_output, training=True)
+        print(output.shape)  # Output tensor with shape (batch_size, sequence_length, embedding_dim)
     """
 
     def __init__(self, embedding_dimension, number_heads, feedforward_dimension, dropout_rate=0.1):
         """
-        Initializes the TransformerDecoder with specified dimensions for embeddings, attention heads,
-        and feedforward network, along with the dropout rate.
+        Initializes the TransformerDecoder with the specified parameters for embeddings, attention heads,
+        and feedforward network dimensions, along with the dropout rate.
 
-        Args:
-            embedding_dimension (int): The dimensionality of the input embeddings.
-            number_heads (int): The number of attention heads in the multi-head attention mechanism.
-            feedforward_dimension (int): The dimensionality of the feedforward network hidden layer.
-            dropout_rate (float): The dropout rate applied after attention and feedforward layers. Default is 0.1.
+        Parameters
+        ----------
+        embedding_dimension : int
+            The dimensionality of the input embeddings. This is the size of the vector that represents each token.
+        number_heads : int
+            The number of attention heads in the multi-head attention mechanism.
+        feedforward_dimension : int
+            The dimensionality of the feedforward network hidden layer.
+        dropout_rate : float
+            The dropout rate applied after attention and feedforward layers. Default is 0.1.
         """
         super(TransformerDecoder, self).__init__()
         self.embedding_dimension = embedding_dimension
@@ -97,17 +129,23 @@ class TransformerDecoder(Layer):
 
     def call(self, x, encoder_output, training):
         """
-        Performs the forward pass of the Transformer decoder. It applies the first multi-head
-        self-attention on the decoder input, then the second multi-head attention on the
-        encoder output, followed by a feedforward network.
+        Performs the forward pass of the Transformer decoder. It applies the first multi-head self-attention
+        on the decoder input, then the second multi-head attention on the encoder output, followed by a feedforward network.
 
-        Args:
-            x (tf.Tensor): The input tensor of shape (batch_size, sequence_length, embedding_dimension) to the decoder.
-            encoder_output (tf.Tensor): The output tensor from the encoder, used as context in the decoder's attention mechanism.
-            training (bool): Whether the layer is in training mode (applies dropout) or inference mode.
+        Parameters
+        ----------
+        x : tf.Tensor
+            The input tensor of shape (batch_size, sequence_length, embedding_dimension) to the decoder.
+        encoder_output : tf.Tensor
+            The output tensor from the encoder, used as context in the decoder's attention mechanism.
+        training : bool
+            A flag indicating whether the layer is in training mode (applies dropout) or inference mode.
 
-        Returns:
-            tf.Tensor: The output tensor of the same shape as the input, after processing by the Transformer decoder block.
+        Returns
+        -------
+        tf.Tensor
+            The output tensor of shape (batch_size, sequence_length, embedding_dimension),
+            processed by the Transformer decoder block.
         """
         # Apply the first multi-head self-attention to the input
         first_attention_output = self.first_mult_head_attention(x, x)

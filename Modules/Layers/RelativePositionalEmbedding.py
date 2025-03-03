@@ -27,18 +27,42 @@ DEFAULT_EMBEDDING_DIMENSION = 64
 
 class RelativePositionalEmbedding(Layer):
     """
-    A layer that adds relative positional embeddings to the input tensor.
+    A custom TensorFlow layer that adds relative positional embeddings to the input tensor.
 
-    This layer creates and applies positional embeddings to the input tensor to encode positional information.
+    This layer generates positional embeddings for input sequences to encode information about
+    the relative position of each element in the sequence. The embeddings are added to the input tensor
+    to allow the model to take into account the order of tokens in sequence-based tasks, such as NLP.
+
+    **Positional Embeddings** are critical in models like Transformers, where they allow the model
+    to encode the position of each token in the input sequence. This implementation generates
+    relative positional embeddings, which can improve performance for tasks where relative position matters
+    (e.g., machine translation, text generation).
+
+    Reference:
+        Vaswani et al., "Attention is All You Need" (2017), where positional embeddings were introduced
+        in Transformer-based models. This work laid the foundation for using positional embeddings in self-attention.
 
     Attributes
     ----------
-    max_length : int
-        The maximum length of the sequence for which positional embeddings are created.
-    embedding_dimension : int
-        The dimension of the positional embeddings.
-    positional_embeddings : tf.Variable
-        The positional embeddings matrix, initialized with a uniform distribution.
+        @max_length : int
+            The maximum length of the sequence for which positional embeddings are created.
+            This defines the upper limit on the length of input sequences that the model can process.
+        @embedding_dimension : int
+            The dimension of the positional embeddings. This is the size of the vector that represents each position.
+            positional_embeddings : tf.Variable
+            A matrix containing the positional embeddings for each position (from 0 to max_length-1),
+            initialized with a uniform distribution.
+
+    Example:
+        >>> # Create a RelativePositionalEmbedding layer with maximum sequence length of 50 and embedding dimension of 128
+        ...     pos_embed_layer = RelativePositionalEmbedding(max_length=50, embedding_dimension=128)
+        ...     # Sample input tensor (batch_size=2, sequence_length=10, embedding_dim=128)
+        ...     inputs = tf.random.normal((2, 10, 128))
+        ...     # Build the layer (this must be done before using it)
+        ...     pos_embed_layer.build(inputs.shape)
+        ...     # Apply positional embedding to input tensor
+        ...     output = pos_embed_layer(inputs)
+        >>>     print(output.shape)  # Output tensor with positional embeddings added
     """
 
     def __init__(self,
@@ -46,14 +70,16 @@ class RelativePositionalEmbedding(Layer):
                  embedding_dimension=DEFAULT_EMBEDDING_DIMENSION,
                  **kwargs):
         """
-        Initializes the RelativePositionalEmbedding layer with the given parameters.
+        Initializes the RelativePositionalEmbedding layer with the specified parameters.
 
         Parameters
         ----------
         max_length : int
             The maximum length of the sequence for which positional embeddings are created.
+            Default is `DEFAULT_MAX_LENGTH`.
         embedding_dimension : int
             The dimension of the positional embeddings.
+            Default is `DEFAULT_EMBEDDING_DIMENSION`.
         **kwargs : Additional keyword arguments.
         """
         super(RelativePositionalEmbedding, self).__init__(**kwargs)
@@ -63,12 +89,19 @@ class RelativePositionalEmbedding(Layer):
 
     def build(self, input_shape):
         """
-        Builds the layer by creating the positional embeddings matrix.
+        Builds the layer by creating the positional embeddings matrix. The matrix is initialized
+        using a uniform distribution.
 
         Parameters
         ----------
         input_shape : tuple
-            Shape of the input tensor, used to initialize the positional embeddings matrix.
+            The shape of the input tensor (batch_size, sequence_length, embedding_dim).
+            The sequence_length is used to determine how much of the positional embeddings are needed.
+
+        Notes
+        -----
+        This method initializes the positional embeddings with a shape of (max_length, embedding_dimension).
+        The embeddings are not trainable and are added directly to the input during the call.
         """
         self.positional_embeddings = self.add_weight(
             name="pos_embed",
@@ -78,18 +111,28 @@ class RelativePositionalEmbedding(Layer):
 
     def call(self, inputs):
         """
-        Adds the relative positional embeddings to the input tensor.
+        Adds the relative positional embeddings to the input tensor. For each input sequence,
+        the corresponding positional embeddings are added to the input features.
+
+        The positional embeddings are sliced to match the sequence length of the input.
 
         Parameters
         ----------
         inputs : tf.Tensor
-            The input tensor to which positional embeddings will be added.
+            The input tensor of shape (batch_size, sequence_length, embedding_dim).
+            Each element represents a token embedding in the sequence.
 
         Returns
         -------
         tf.Tensor
-            The input tensor with the positional embeddings added.
+            The input tensor with the positional embeddings added, resulting in a tensor
+            of the same shape (batch_size, sequence_length, embedding_dim).
         """
+        # Create a range of indices representing the positions (from 0 to max_length - 1)
         positional_index = tensorflow.range(start=0, limit=self.max_length, delta=1)
+
+        # Look up the positional embeddings corresponding to each position
         positional_embedding = tensorflow.nn.embedding_lookup(self.positional_embeddings, positional_index)
-        return inputs + positional_embedding[:tensorflow.shape(inputs)[1], :]
+
+        # Add positional embeddings to the input tensor. Slice positional_embeddings to match the input sequence length.
+        return inputs + positional_embedding[:tensorflow.shape(inputs)[1], :]  # Add positional embeddings for the current sequence length
