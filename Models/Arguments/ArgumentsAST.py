@@ -48,7 +48,7 @@ DEFAULT_DECIBEL_SCALE_FACTOR = 80
 DEFAULT_NUMBER_FILTERS_SPECTROGRAM = 512
 
 
-def get_audio_ast_arguments(parser):
+def add_ast_arguments(parser):
 
     parser.add_argument('--ast_projection_dimension', type=int,
                         default=DEFAULT_PROJECTION_DIMENSION, help='Dimension for projection layer')

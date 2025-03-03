@@ -44,7 +44,7 @@ DEFAULT_INTERMEDIARY_LAYER_ACTIVATION = 'relu'
 DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
 
 
-def get_MLP_model_args(parser):
+def add_mlp_arguments(parser):
 
     parser.add_argument('--mlp_list_dense_neurons',
                         default=DEFAULT_LIST_DENSE_NEURONS, help='List of LSTM cell sizes for each layer')

@@ -8,11 +8,11 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-import logging
 
 try:
     import os
     import sys
+    import logging
 
 except ImportError as error:
     print(error)
@@ -49,7 +49,7 @@ DEFAULT_INTERMEDIARY_LAYER_ACTIVATION = 'relu'
 DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
 
 
-def get_wav_to_vec_arguments(parser):
+def add_wav_to_vec_arguments(parser):
 
     parser.add_argument('--wav_to_vec_number_heads', type=int,
                         default=DEFAULT_NUMBER_HEADS, help='Number of heads in multi-head attention')

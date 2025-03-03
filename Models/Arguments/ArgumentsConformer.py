@@ -47,7 +47,7 @@ DEFAULT_OPTIMIZER_FUNCTION = 'adam'
 DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
 
 
-def get_conformer_models_arguments(parser):
+def add_conformer_arguments(parser):
 
     parser.add_argument('--conformer_number_conformer_blocks', type=int,
                         default=DEFAULT_NUMBER_CONFORMER_BLOCKS, help='Number of conformer blocks')

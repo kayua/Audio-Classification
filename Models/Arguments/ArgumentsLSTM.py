@@ -42,7 +42,7 @@ DEFAULT_INTERMEDIARY_LAYER_ACTIVATION = 'tanh'
 DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
 
 
-def get_lstm_model_arguments(parser):
+def add_lstm_arguments(parser):
 
     parser.add_argument('--lstm_list_lstm_cells',
                         default=DEFAULT_LIST_LSTM_CELLS, help='List of LSTM cell sizes for each layer')

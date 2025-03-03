@@ -1,50 +1,37 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
 
-import os
-import sys
-import logging
-from logging.handlers import RotatingFileHandler
+__author__ = 'unknown'
+__email__ = 'unknown@unknown.com.br'
+__version__ = '{1}.{0}.{0}'
+__initial_data__ = '2024/07/17'
+__last_update__ = '2024/07/17'
+__credits__ = ['unknown']
+
+from Models.Arguments.ArgumentsAST import add_ast_arguments
+from Models.Arguments.ArgumentsConformer import add_conformer_arguments
+from Models.Arguments.ArgumentsLSTM import add_lstm_arguments
+from Models.Arguments.ArgumentsMLP import add_MLP_arguments, add_mlp_arguments
+from Models.Arguments.ArgumentsResidual import add_residual_arguments
+from Models.Arguments.ArgumentsWav2Vec2 import add_wav_to_vec_arguments
+
+try:
+    import sys
+    import logging
+
+except ImportError as error:
+    print(error)
+    print("1. Install requirements:")
+    print("  pip3 install --upgrade pip")
+    print("  pip3 install -r requirements.txt ")
+    print()
+    sys.exit(-1)
 
 DEFAULT_VERBOSITY = logging.INFO
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 DEFAULT_DATA_TYPE = "float32"
 DEFAULT_VERBOSE_LIST = {logging.INFO: 2, logging.DEBUG: 1, logging.WARNING: 2,
                         logging.FATAL: 0, logging.ERROR: 0}
-
-LOGGING_FILE_NAME = "logging.log"
-
-
-class LoggerSetup:
-    def __init__(self, arguments):
-        self.arguments = arguments
-        self.setup_logger()
-
-    def get_logs_path(self):
-        return "./logs"
-
-    def setup_logger(self):
-        logger = logging.getLogger()
-        logger.setLevel(self.arguments.verbosity)
-
-        logging_format = '%(asctime)s\t***\t%(message)s'
-        if self.arguments.verbosity == logging.DEBUG:
-            logging_format = '%(asctime)s\t***\t%(levelname)s {%(module)s} [%(funcName)s] %(message)s'
-
-        formatter = logging.Formatter(logging_format)
-
-        logging_filename = os.path.join(self.get_logs_path(), LOGGING_FILE_NAME)
-        rotatingFileHandler = RotatingFileHandler(filename=logging_filename, maxBytes=100000, backupCount=5)
-        rotatingFileHandler.setLevel(self.arguments.verbosity)
-        rotatingFileHandler.setFormatter(formatter)
-
-        streamHandler = logging.StreamHandler()
-        streamHandler.setLevel(self.arguments.verbosity)
-        streamHandler.setFormatter(formatter)
-
-        if logger.hasHandlers():
-            logger.handlers.clear()
-
-        logger.addHandler(rotatingFileHandler)
-        logger.addHandler(streamHandler)
 
 
 def arguments(function):
@@ -88,31 +75,15 @@ class Arguments:
         """
         # Initialize arguments from the framework
         super().__init__()
-        self.arguments = add_argument_framework()
-        # Add various model-specific argument parsers
-        self.arguments = add_argument_adversarial(self.arguments)
-        self.arguments = add_argument_data_load(self.arguments)
-        self.arguments = add_argument_autoencoder(self.arguments)
-        self.arguments = add_argument_diffusion(self.arguments)
-        self.arguments = add_argument_variation_autoencoder(self.arguments)
-        self.arguments = add_argument_wasserstein_gan(self.arguments)
-        self.arguments = add_argument_decision_tree(self.arguments)
-        self.arguments = add_argument_gaussian_process(self.arguments)
-        self.arguments = add_argument_gradient_boosting(self.arguments)
-        self.arguments = add_argument_k_means(self.arguments)
-        self.arguments = add_argument_knn(self.arguments)
-        self.arguments = add_argument_naive_bayes(self.arguments)
-        self.arguments = add_argument_linear_regression(self.arguments)
-        self.arguments = add_argument_spectral_clustering(self.arguments)
-        self.arguments = add_argument_perceptron(self.arguments)
-        self.arguments = add_argument_quadratic_discriminant_analysis(self.arguments)
-        self.arguments = add_argument_random_forest(self.arguments)
-        self.arguments = add_argument_stochastic_gradient_descent(self.arguments)
-        self.arguments = add_argument_support_vector_machine(self.arguments)
+        self.arguments = add_ast_arguments()
+        self.arguments = add_conformer_arguments(self.arguments)
+        self.arguments = add_lstm_arguments(self.arguments)
+        self.arguments = add_mlp_arguments(self.arguments)
+        self.arguments = add_residual_arguments(self.arguments)
+        self.arguments = add_wav_to_vec_arguments(self.arguments)
 
         self.arguments = self.arguments.parse_args()
 
-        LoggerSetup(self.arguments)
         self.show_all_settings()
 
     def show_all_settings(self):

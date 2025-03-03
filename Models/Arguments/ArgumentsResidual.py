@@ -49,7 +49,7 @@ DEFAULT_NUMBER_SPLITS = 5
 DEFAULT_SIZE_CONVOLUTIONAL_FILTERS = (3, 3)
 
 
-def get_residual_model_args(parser):
+def add_residual_arguments(parser):
 
     parser.add_argument('--residual_hop_length', type=int,
                         default=DEFAULT_HOP_LENGTH, help='Hop length for STFT')
