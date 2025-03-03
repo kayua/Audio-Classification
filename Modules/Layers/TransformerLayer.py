@@ -8,18 +8,21 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-from Modules.Layers.PositionalEncoding import PositionalEncoding
-from Modules.Layers.TransformerDecoder import TransformerDecoder
-from Modules.Layers.TransformerEncoder import TransformerEncoder
-
 try:
     import sys
     import tensorflow
+
     from tensorflow.keras.layers import Layer
     from tensorflow.keras.layers import Dense
     from tensorflow.keras.layers import Dropout
+
     from tensorflow.keras.layers import MultiHeadAttention
     from tensorflow.keras.layers import LayerNormalization
+
+    from Modules.Layers.PositionalEncoding import PositionalEncoding
+    from Modules.Layers.TransformerDecoder import TransformerDecoder
+    from Modules.Layers.TransformerEncoder import TransformerEncoder
+
 
 except ImportError as error:
     print(error)
@@ -51,10 +54,10 @@ class Transformer(Layer):
         multi-head attention mechanisms and positional encodings to better capture sequential dependencies.
 
     Args:
-        embedding_dimension (int): The dimensionality of the input embeddings.
-        number_heads (int): The number of attention heads in the multi-head attention mechanism.
-        feedforward_dimension (int): The dimensionality of the feedforward network's hidden layer.
-        dropout_rate (float): The dropout rate applied after attention and feedforward layers. Default is 0.1.
+        @embedding_dimension (int): The dimensionality of the input embeddings.
+        @number_heads (int): The number of attention heads in the multi-head attention mechanism.
+        @feedforward_dimension (int): The dimensionality of the feedforward network's hidden layer.
+        @dropout_rate (float): The dropout rate applied after attention and feedforward layers. Default is 0.1.
 
     Attributes:
         @embedding_dimension (int): The dimensionality of the input embeddings.

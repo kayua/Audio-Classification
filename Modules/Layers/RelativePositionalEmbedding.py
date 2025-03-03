@@ -53,7 +53,8 @@ class RelativePositionalEmbedding(Layer):
             A matrix containing the positional embeddings for each position (from 0 to max_length-1),
             initialized with a uniform distribution.
 
-    Example:
+    Example
+    -------
         >>> # Create a RelativePositionalEmbedding layer with maximum sequence length of 50 and embedding dimension of 128
         ...     pos_embed_layer = RelativePositionalEmbedding(max_length=50, embedding_dimension=128)
         ...     # Sample input tensor (batch_size=2, sequence_length=10, embedding_dim=128)
