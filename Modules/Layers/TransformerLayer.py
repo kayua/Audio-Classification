@@ -45,9 +45,11 @@ class Transformer(Layer):
 
     The decoder takes both the current input sequence (decoder input) and the output from the encoder
     as inputs. It performs two types of attention:
-    1. **Self-attention**: Attention over the decoder's own input sequence.
-    2. **Encoder-decoder attention**: Attention over the encoder's output, allowing the decoder
-       to focus on relevant parts of the encoder's context.
+
+        - 1. **Self-attention**: Attention over the decoder's own input sequence.
+
+        - 2. **Encoder-decoder attention**: Attention over the encoder's output, allowing the decoder to focus on
+            relevant parts of the encoder's context.
 
     Reference:
         Vaswani et al., "Attention is All You Need" (2017). The Transformer architecture introduced
@@ -74,19 +76,17 @@ class Transformer(Layer):
         @second_dropout (Dropout): The dropout layer applied after the second attention output.
         @third_dropout (Dropout): The dropout layer applied after the feedforward output.
 
-    Example Usage:
-    --------------
-        # Create a TransformerDecoder layer with embedding dimension of 128, 8 attention heads,
-        # feedforward layer dimension of 512, and a dropout rate of 0.1
-        decoder_layer = TransformerDecoder(embedding_dimension=128, number_heads=8, feedforward_dimension=512)
-
-        # Sample input tensors (batch_size=2, sequence_length=10, embedding_dim=128)
-        decoder_input = tf.random.normal((2, 10, 128))  # Decoder input
-        encoder_output = tf.random.normal((2, 10, 128))  # Encoder output
-
-        # Apply the Transformer decoder layer
-        output = decoder_layer(decoder_input, encoder_output, training=True)
-        print(output.shape)  # Output tensor with shape (batch_size, sequence_length, embedding_dim)
+    Example
+    -------
+        >>> # Create a TransformerDecoder layer with embedding dimension of 128, 8 attention heads,
+        ...     # feedforward layer dimension of 512, and a dropout rate of 0.1
+        ...     decoder_layer = TransformerDecoder(embedding_dimension=128, number_heads=8, feedforward_dimension=512)
+        ...     # Sample input tensors (batch_size=2, sequence_length=10, embedding_dim=128)
+        ...     decoder_input = tf.random.normal((2, 10, 128))  # Decoder input
+        ...     encoder_output = tf.random.normal((2, 10, 128))  # Encoder output
+        ...     # Apply the Transformer decoder layer
+        ...     output = decoder_layer(decoder_input, encoder_output, training=True)
+        >>>     print(output.shape)  # Output tensor with shape (batch_size, sequence_length, embedding_dim)
     """
 
     def __init__(self, embedding_dimension, number_heads, feedforward_dimension, number_layers, max_sequence_length,
