@@ -114,15 +114,35 @@ class ConvolutionalModule(Layer):
             Padding type for the convolutional layers.
         **kwargs : Additional keyword arguments.
         """
+        # Calling the parent class (Layer) constructor to initialize the base layer
         super(ConvolutionalModule, self).__init__(**kwargs)
+
+        # Defining the layer variables with provided or default values
+        # Padding type for convolutions
         self.convolutional_padding = convolutional_padding
+
+        # Layer normalization to stabilize the learning process
         self.layer_normalization = LayerNormalization()
+
+        # First point-wise convolution (1x1), increasing the number of filters
         self.first_point_wise_convolutional = Conv1D(number_filters * 2, kernel_size=1)
+
+        # GLU (Gated Linear Unit) activation
         self.glu_activation = GLU()
+
+        # Depth-wise convolution, which applies a filter to each input channel individually
         self.depth_wise_convolutional = DepthwiseConv1D(kernel_size=size_kernel, padding=self.convolutional_padding)
+
+        # Batch normalization after the depth-wise convolution
         self.batch_normalization = BatchNormalization()
+
+        # Swish activation function
         self.swish_activation = Activation(tensorflow.nn.swish)
+
+        # Second point-wise convolution (1x1) to project the results to the desired output
         self.second_point_wise_convolutional = Conv1D(1, kernel_size=1)
+
+        # Dropout layer to prevent overfitting
         self.dropout = Dropout(dropout_decay)
 
     def call(self, neural_network_flow: tensorflow.Tensor) -> tensorflow.Tensor:
@@ -139,17 +159,32 @@ class ConvolutionalModule(Layer):
         tf.Tensor
             Output tensor after applying the convolutional transformations.
         """
+        # Storing the original input for applying the residual connection later
         residual_flow = neural_network_flow
+
+        # Normalizing the input before the convolutions to stabilize the training process
         neural_network_flow = self.layer_normalization(neural_network_flow)
 
+        # Applying the first point-wise convolution (1x1)
         neural_network_flow = self.first_point_wise_convolutional(neural_network_flow)
+
+        # Applying the GLU activation (Gated Linear Unit)
         neural_network_flow = self.glu_activation(neural_network_flow)
 
+        # Applying the depth-wise convolution
         neural_network_flow = self.depth_wise_convolutional(neural_network_flow)
 
+        # Normalizing the output of the depth-wise convolution
         neural_network_flow = self.batch_normalization(neural_network_flow)
+
+        # Applying the Swish activation
         neural_network_flow = self.swish_activation(neural_network_flow)
+
+        # Applying the second point-wise convolution (1x1)
         neural_network_flow = self.second_point_wise_convolutional(neural_network_flow)
+
+        # Applying the dropout layer to prevent overfitting
         neural_network_flow = self.dropout(neural_network_flow)
 
-        return neural_network_flow + residual_flow
+        # Adding the original input (residual connection) back to the final output
+        return neural_network_flow + residual_flow  # Returning the output with the residual connection
