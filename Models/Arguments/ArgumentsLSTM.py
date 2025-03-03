@@ -44,35 +44,35 @@ DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
 
 def add_lstm_arguments(parser):
 
-    parser.add_argument('--lstm_list_lstm_cells',
-                        default=DEFAULT_LIST_LSTM_CELLS, help='List of LSTM cell sizes for each layer')
+    parser.add_argument('--lstm_list_lstm_cells', default=DEFAULT_LIST_LSTM_CELLS,
+                        help='List of LSTM cell sizes for each layer')
 
-    parser.add_argument('--lstm_hop_length', type=int,
-                        default=DEFAULT_HOP_LENGTH, help='Hop length for STFT')
+    parser.add_argument('--lstm_hop_length', type=int, default=DEFAULT_HOP_LENGTH,
+                        help='Hop length for STFT')
 
-    parser.add_argument('--lstm_overlap', type=int,
-                        default=DEFAULT_OVERLAP, help='Overlap between patches in the spectrogram')
+    parser.add_argument('--lstm_overlap', type=int, default=DEFAULT_OVERLAP,
+                        help='Overlap between patches in the spectrogram')
 
-    parser.add_argument('--lstm_dropout_rate', type=float,
-                        default=DEFAULT_DROPOUT_RATE, help='Dropout rate in the network')
+    parser.add_argument('--lstm_dropout_rate', type=float, default=DEFAULT_DROPOUT_RATE,
+                        help='Dropout rate in the network')
 
-    parser.add_argument('--lstm_window_size', type=int,
-                        default=DEFAULT_WINDOW_SIZE, help='Size of the FFT window')
+    parser.add_argument('--lstm_window_size', type=int, default=DEFAULT_WINDOW_SIZE,
+                        help='Size of the FFT window')
 
-    parser.add_argument('--lstm_decibel_scale_factor', type=float,
-                        default=DEFAULT_DECIBEL_SCALE_FACTOR, help='Scale factor for converting to decibels')
+    parser.add_argument('--lstm_decibel_scale_factor', type=float, default=DEFAULT_DECIBEL_SCALE_FACTOR,
+                        help='Scale factor for converting to decibels')
 
-    parser.add_argument('--lstm_window_size_factor', type=int,
-                        default=DEFAULT_WINDOW_SIZE_FACTOR, help='Factor applied to FFT window size')
+    parser.add_argument('--lstm_window_size_factor', type=int, default=DEFAULT_WINDOW_SIZE_FACTOR,
+                        help='Factor applied to FFT window size')
 
-    parser.add_argument('--lstm_last_layer_activation', type=str,
-                        default=DEFAULT_LAST_LAYER_ACTIVATION, help='Activation function for the last layer')
+    parser.add_argument('--lstm_last_layer_activation', type=str, default=DEFAULT_LAST_LAYER_ACTIVATION,
+                        help='Activation function for the last layer')
 
-    parser.add_argument('--lstm_recurrent_activation', type=str,
-                        default=DEFAULT_RECURRENT_ACTIVATION, help='Activation function for LSTM recurrent step')
+    parser.add_argument('--lstm_recurrent_activation', type=str, default=DEFAULT_RECURRENT_ACTIVATION,
+                        help='Activation function for LSTM recurrent step')
 
-    parser.add_argument('--lstm_intermediary_layer_activation', type=str,
-                        default=DEFAULT_INTERMEDIARY_LAYER_ACTIVATION, help='Activation function for intermediary layers')
+    parser.add_argument('--lstm_intermediary_layer_activation', type=str, default=DEFAULT_INTERMEDIARY_LAYER_ACTIVATION,
+                        help='Activation function for intermediary layers')
 
 
     return parser

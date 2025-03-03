@@ -8,16 +8,18 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-from Models.Arguments.ArgumentsAST import add_ast_arguments
-from Models.Arguments.ArgumentsConformer import add_conformer_arguments
-from Models.Arguments.ArgumentsLSTM import add_lstm_arguments
-from Models.Arguments.ArgumentsMLP import add_MLP_arguments, add_mlp_arguments
-from Models.Arguments.ArgumentsResidual import add_residual_arguments
-from Models.Arguments.ArgumentsWav2Vec2 import add_wav_to_vec_arguments
-
 try:
     import sys
     import logging
+    import argparse
+
+    from Models.Arguments.ArgumentsAST import add_ast_arguments
+    from Models.Arguments.ArgumentsMLP import add_mlp_arguments
+    from Models.Arguments.ArgumentsLSTM import add_lstm_arguments
+
+    from Models.Arguments.ArgumentsResidual import add_residual_arguments
+    from Models.Arguments.ArgumentsWav2Vec2 import add_wav_to_vec_arguments
+    from Models.Arguments.ArgumentsConformer import add_conformer_arguments
 
 except ImportError as error:
     print(error)
@@ -26,6 +28,27 @@ except ImportError as error:
     print("  pip3 install -r requirements.txt ")
     print()
     sys.exit(-1)
+
+DEFAULT_MATRIX_FIGURE_SIZE = (5, 5)
+DEFAULT_MATRIX_COLOR_MAP = 'Blues'
+DEFAULT_MATRIX_ANNOTATION_FONT_SIZE = 10
+DEFAULT_MATRIX_LABEL_FONT_SIZE = 12
+DEFAULT_MATRIX_TITLE_FONT_SIZE = 14
+DEFAULT_SHOW_PLOT = False
+DEFAULT_DATASET_DIRECTORY = "Dataset/"
+DEFAULT_NUMBER_EPOCHS = 2
+DEFAULT_BATCH_SIZE = 32
+DEFAULT_NUMBER_SPLITS = 2
+DEFAULT_LOSS = 'sparse_categorical_crossentropy'
+DEFAULT_SAMPLE_RATE = 8000
+DEFAULT_OVERLAP = 2
+DEFAULT_NUMBER_CLASSES = 4
+DEFAULT_OUTPUT_DIRECTORY = "Results/"
+DEFAULT_PLOT_WIDTH = 14
+DEFAULT_PLOT_HEIGHT = 8
+DEFAULT_PLOT_BAR_WIDTH = 0.15
+DEFAULT_PLOT_CAP_SIZE = 10
+
 
 DEFAULT_VERBOSITY = logging.INFO
 TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
@@ -75,7 +98,8 @@ class Arguments:
         """
         # Initialize arguments from the framework
         super().__init__()
-        self.arguments = add_ast_arguments()
+        self.arguments = self.get_arguments()
+        self.arguments = add_ast_arguments(self.arguments)
         self.arguments = add_conformer_arguments(self.arguments)
         self.arguments = add_lstm_arguments(self.arguments)
         self.arguments = add_mlp_arguments(self.arguments)
@@ -110,3 +134,52 @@ class Arguments:
             logging.info(settings_parser)
 
         logging.info("")  # Log a newline for spacing
+
+    @staticmethod
+    def get_arguments():
+        argument_parser = argparse.ArgumentParser(description="Model evaluation with metrics and confusion matrices.")
+
+        argument_parser.add_argument("--dataset_directory", type=str,
+                            default=DEFAULT_DATASET_DIRECTORY, help="Directory containing the dataset.")
+
+        argument_parser.add_argument("--number_epochs", type=int,
+                            default=DEFAULT_NUMBER_EPOCHS, help="Number of training epochs.")
+
+        argument_parser.add_argument("--batch_size", type=int,
+                            default=DEFAULT_BATCH_SIZE, help="Size of the batches for training.")
+
+        argument_parser.add_argument("--number_splits", type=int,
+                            default=DEFAULT_NUMBER_SPLITS, help="Number of splits for cross-validation.")
+
+        argument_parser.add_argument("--loss", type=str,
+                            default=DEFAULT_LOSS, help="Loss function to use during training.")
+
+        argument_parser.add_argument("--sample_rate", type=int,
+                            default=DEFAULT_SAMPLE_RATE, help="Sample rate of the audio files.")
+
+        argument_parser.add_argument("--overlap", type=int,
+                            default=DEFAULT_OVERLAP, help="Overlap for the audio segments.")
+
+        argument_parser.add_argument("--number_classes", type=int,
+                            default=DEFAULT_NUMBER_CLASSES, help="Number of classes in the dataset.")
+
+        argument_parser.add_argument("--output_directory", type=str,
+                            default=DEFAULT_OUTPUT_DIRECTORY, help="Directory to save output files.")
+
+        argument_parser.add_argument("--plot_width", type=float,
+                            default=DEFAULT_PLOT_WIDTH, help="Width of the plots.")
+
+        argument_parser.add_argument("--plot_height", type=float,
+                            default=DEFAULT_PLOT_HEIGHT, help="Height of the plots.")
+
+        argument_parser.add_argument("--plot_bar_width", type=float,
+                            default=DEFAULT_PLOT_BAR_WIDTH, help="Width of the bars in the bar plots.")
+
+        argument_parser.add_argument("--plot_cap_size", type=float,
+                            default=DEFAULT_PLOT_CAP_SIZE, help="Capsize of the error bars in the bar plots.")
+
+        argument_parser.add_argument("--verbosity", type=int,
+                            help='Verbosity (Default {})'.format(DEFAULT_VERBOSITY), default=DEFAULT_VERBOSITY)
+
+
+        return arguments
