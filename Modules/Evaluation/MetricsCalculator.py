@@ -42,7 +42,6 @@ class MetricsCalculator:
 
     Example usage:
     >>> python3
-    ...    from metrics_calculator import MetricsCalculator
     ...    true_labels = [0, 1, 1, 2, 2, 2]
     ...    predicted_labels = [0, 1, 0, 2, 2, 1]
     ...    calculator = MetricsCalculator()
