@@ -8,37 +8,30 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-
 try:
+
     import os
     import sys
     import glob
     import numpy
     import librosa
-    import logging
     import tensorflow
 
     from tqdm import tqdm
 
-    from sklearn.utils import resample
-
     from tensorflow.keras import Model
+    from sklearn.utils import resample
 
     from tensorflow.keras.layers import Dense
     from tensorflow.keras.layers import Input
-    from tensorflow.keras.layers import Layer
-    from tensorflow.keras.layers import Dropout
+    from tensorflow.keras.layers import LSTM
     from tensorflow.keras.layers import Flatten
-    from tensorflow.keras.layers import Reshape
-    from tensorflow.keras.layers import Concatenate
-    from tensorflow.keras.layers import GlobalAveragePooling1D
-
+    from tensorflow.keras.layers import Dropout
+    from tensorflow.keras.layers import Bidirectional
     from sklearn.model_selection import StratifiedKFold
     from sklearn.model_selection import train_test_split
-
-    from Modules.Layers.ConformerBlock import ConformerBlock
-    from Modules.Evaluation.MetricsCalculator import MetricsCalculator
-    from Modules.Layers.ConvolutionalSubsampling import ConvolutionalSubsampling
+    from tensorflow.keras.layers import GlobalAveragePooling1D
+    from Engine.Modules.Evaluation.MetricsCalculator import MetricsCalculator
 
 except ImportError as error:
     print(error)
@@ -48,78 +41,37 @@ except ImportError as error:
     print()
     sys.exit(-1)
 
-DEFAULT_INPUT_DIMENSION = (80, 40)
-DEFAULT_NUMBER_CONFORMER_BLOCKS = 4
-DEFAULT_EMBEDDING_DIMENSION = 64
-DEFAULT_NUMBER_HEADS = 4
-DEFAULT_MAX_LENGTH = 100
-DEFAULT_KERNEL_SIZE = 3
-DEFAULT_DROPOUT_DECAY = 0.2
-DEFAULT_NUMBER_CLASSES = 4
-DEFAULT_SIZE_KERNEL = 3
-DEFAULT_SAMPLE_RATE = 8000
-DEFAULT_HOP_LENGTH = 256
-DEFAULT_SIZE_BATCH = 32
-DEFAULT_OVERLAP = 2
-DEFAULT_DROPOUT_RATE = 0.2
-DEFAULT_WINDOW_SIZE = 1024
-DEFAULT_NUMBER_EPOCHS = 10
-DEFAULT_NUMBER_SPLITS = 5
-DEFAULT_DECIBEL_SCALE_FACTOR = 80
-DEFAULT_WINDOW_SIZE_FACTOR = 40
-DEFAULT_NUMBER_FILTERS_SPECTROGRAM = 80
-DEFAULT_LAST_LAYER_ACTIVATION = 'softmax'
-DEFAULT_FILE_EXTENSION = "*.wav"
-DEFAULT_OPTIMIZER_FUNCTION = 'adam'
-DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
 
+DEFAULT_LIST_DENSE_NEURONS = [128, 129]
 
-class TransposeLayer(Layer):
-    def __init__(self, perm, **kwargs):
-        super(TransposeLayer, self).__init__(**kwargs)
-        self.channels_permutation = perm
-
-    def call(self, inputs):
-        return tensorflow.transpose(inputs, perm=self.channels_permutation)
-
-    def compute_output_shape(self, input_shape):
-        return [input_shape[dim] for dim in self.channels_permutation]
-
-    def get_config(self):
-        config = super(TransposeLayer, self).get_config()
-        config.update({
-            'perm': self.channels_permutation
-        })
-        return config
-
-
-class Conformer(MetricsCalculator):
+class AudioDense(MetricsCalculator):
 
     def __init__(self,
-                 number_conformer_blocks: int = DEFAULT_NUMBER_CONFORMER_BLOCKS,
-                 embedding_dimension: int = DEFAULT_EMBEDDING_DIMENSION,
-                 number_heads: int = DEFAULT_NUMBER_HEADS,
-                 size_kernel: tuple = DEFAULT_KERNEL_SIZE,
-                 number_classes: int = DEFAULT_NUMBER_CLASSES,
-                 last_layer_activation: str = DEFAULT_LAST_LAYER_ACTIVATION,
-                 size_batch: int = DEFAULT_SIZE_BATCH,
-                 number_splits: int = DEFAULT_NUMBER_SPLITS,
-                 number_epochs: int = DEFAULT_NUMBER_EPOCHS,
-                 loss_function: str = DEFAULT_LOSS_FUNCTION,
-                 optimizer_function: str = DEFAULT_OPTIMIZER_FUNCTION,
-                 window_size_factor: int = DEFAULT_WINDOW_SIZE_FACTOR,
-                 decibel_scale_factor: int = DEFAULT_DECIBEL_SCALE_FACTOR,
-                 hop_length: int = DEFAULT_HOP_LENGTH,
-                 window_size_fft: int = DEFAULT_WINDOW_SIZE,
-                 number_filters_spectrogram: int = DEFAULT_NUMBER_FILTERS_SPECTROGRAM,
-                 overlap: int = DEFAULT_OVERLAP,
-                 sample_rate: int = DEFAULT_SAMPLE_RATE,
-                 dropout_rate: float = DEFAULT_DROPOUT_RATE,
-                 file_extension: str = DEFAULT_FILE_EXTENSION,
-                 input_dimension: tuple = DEFAULT_INPUT_DIMENSION):
+                 number_classes: int,
+                 last_layer_activation: str,
+                 size_batch: int,
+                 number_splits: int,
+                 number_epochs: int,
+                 loss_function: str,
+                 optimizer_function: str,
+                 window_size_factor: int,
+                 decibel_scale_factor: int,
+                 hop_length: int,
+                 overlap: int,
+                 sample_rate: int,
+                 dropout_rate: float,
+                 file_extension: str,
+                 intermediary_layer_activation: str,
+                 input_dimension: tuple,
+                 list_lstm_cells=None):
+
+
+        if list_lstm_cells is None:
+            list_lstm_cells = DEFAULT_LIST_DENSE_NEURONS
 
         self.neural_network_model = None
         self.size_batch = size_batch
+        self.list_number_neurons = list_lstm_cells
         self.number_splits = number_splits
         self.number_epochs = number_epochs
         self.loss_function = loss_function
@@ -127,85 +79,47 @@ class Conformer(MetricsCalculator):
         self.window_size_factor = window_size_factor
         self.decibel_scale_factor = decibel_scale_factor
         self.hop_length = hop_length
-        self.window_size_fft = window_size_fft
-        self.number_filters_spectrogram = number_filters_spectrogram
+        self.intermediary_layer_activation = intermediary_layer_activation
         self.overlap = overlap
-        self.window_size = hop_length * (self.window_size_factor - 1)
+        self.window_size = self.hop_length * self.window_size_factor
         self.sample_rate = sample_rate
         self.file_extension = file_extension
         self.input_dimension = input_dimension
-        self.number_conformer_blocks = number_conformer_blocks
-        self.embedding_dimension = embedding_dimension
-        self.number_heads = number_heads
         self.number_classes = number_classes
-        self.kernel_size = size_kernel
         self.dropout_rate = dropout_rate
-        self.model_name = "Conformer"
         self.last_layer_activation = last_layer_activation
+        self.model_name = "MLP"
 
     def build_model(self) -> None:
 
         inputs = Input(shape=self.input_dimension)
-        neural_network_flow = ConvolutionalSubsampling()(inputs)
-        neural_network_flow = TransposeLayer(perm=[0, 2, 1])(neural_network_flow)
-        neural_network_flow = Dense(self.embedding_dimension)(neural_network_flow)
 
-        for _ in range(self.number_conformer_blocks):
-            neural_network_flow = ConformerBlock(self.embedding_dimension,
-                                                 self.number_heads,
-                                                 self.input_dimension[0] // 2,
-                                                 self.kernel_size,
-                                                 self.dropout_rate)(neural_network_flow)
+        neural_network_flow = inputs
+        neural_network_flow = Flatten()(neural_network_flow)
+        for i, number_neurons in enumerate(self.list_number_neurons):
+            neural_network_flow = Dense(number_neurons,
+                                        activation=self.intermediary_layer_activation)(neural_network_flow)
+            neural_network_flow = Dropout(self.dropout_rate)(neural_network_flow)
 
-        neural_network_flow = GlobalAveragePooling1D()(neural_network_flow)
         neural_network_flow = Dense(self.number_classes, activation=self.last_layer_activation)(neural_network_flow)
         self.neural_network_model = Model(inputs=inputs, outputs=neural_network_flow, name=self.model_name)
 
     def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,
                           batch_size: int, validation_data: tuple = None) -> tensorflow.keras.callbacks.History:
 
-        # Compile the model with the specified optimizer, loss function, and metrics
         self.neural_network_model.compile(optimizer=self.optimizer_function, loss=self.loss_function,
                                           metrics=['accuracy'])
 
-        # Train the model with the training data and labels, and optionally validation data
         training_history = self.neural_network_model.fit(train_data, train_labels, epochs=epochs,
                                                          batch_size=batch_size,
                                                          validation_data=validation_data)
         return training_history
 
 
-    def compile_model(self) -> None:
-        """
-        Compiles the CNN model with the specified loss function and optimizer.
-
-        This method prepares the model for training by setting the optimizer, loss function, and metrics.
-        """
-        self.neural_network_model.compile(optimizer=self.optimizer_function, loss=self.loss_function,
-                                          metrics=['accuracy'])
 
     def train(self, dataset_directory, number_epochs, batch_size, number_splits,
               loss, sample_rate, overlap, number_classes, arguments) -> tuple:
-        """
-        Trains the model using cross-validation.
 
-        Parameters
-        ----------
-        dataset_directory : str
-            Directory containing the training data.
-        number_epochs : int, optional
-            Number of training epochs.
-        batch_size : int, optional
-            Batch size for training.
-        number_splits : int, optional
-            Number of splits for cross-validation.
-
-        Returns
-        -------
-        tuple
-            A tuple containing the mean metrics, the training history, the mean confusion matrix,
-            and the predicted probabilities along with the ground truth labels.
-        """
         # Use default values if not provided
         self.number_epochs = number_epochs or self.number_epochs
         self.number_splits = number_splits or self.number_splits
@@ -215,17 +129,15 @@ class Conformer(MetricsCalculator):
         self.overlap = overlap or self.overlap
         self.number_classes = number_classes or self.number_classes
 
-        self.window_size_factor = arguments.conformer_window_size_factor
-        self.decibel_scale_factor = arguments.conformer_decibel_scale_factor
-        self.hop_length = arguments.conformer_hop_length
-        self.number_filters_spectrogram = arguments.conformer_number_filters_spectrogram
-        self.overlap = arguments.conformer_overlap
-        self.window_size = self.hop_length * (self.window_size_factor - 1)
-        self.number_conformer_blocks = arguments.conformer_number_conformer_blocks
-        self.embedding_dimension = arguments.conformer_embedding_dimension
-        self.number_heads = arguments.conformer_number_heads
-        self.kernel_size = arguments.conformer_size_kernel
-        self.dropout_rate = arguments.conformer_dropout_rate
+        self.list_number_neurons = arguments.mlp_list_dense_neurons
+        self.window_size_factor = arguments.mlp_window_size_factor
+        self.decibel_scale_factor = arguments.mlp_decibel_scale_factor
+        self.hop_length = arguments.mlp_hop_length
+        self.intermediary_layer_activation = arguments.mlp_intermediary_layer_activation
+        self.overlap = arguments.mlp_overlap
+        self.window_size = self.hop_length * self.window_size_factor
+        self.dropout_rate = arguments.mlp_dropout_rate
+        self.last_layer_activation = arguments.mlp_last_layer_activation
 
         history_model = None
         features, labels = self.load_data(dataset_directory)
@@ -236,6 +148,7 @@ class Conformer(MetricsCalculator):
         features_train_val, features_test, labels_train_val, labels_test = train_test_split(
             features, labels, test_size=0.2, stratify=labels, random_state=42
         )
+
 
         # Balance training/validation set
         features_train_val, labels_train_val = balance_classes(features_train_val, labels_train_val)
@@ -301,4 +214,3 @@ class Conformer(MetricsCalculator):
 
         return (mean_metrics, {"Name": self.model_name, "History": history_model.history}, mean_confusion_matrices,
                 probabilities_predicted)
-

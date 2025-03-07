@@ -42,12 +42,12 @@ try:
 
     from tensorflow.keras.layers import LayerNormalization
     from tensorflow.keras.layers import MultiHeadAttention
-    from Modules.Layers.CLSTokenLayer import CLSTokenLayer
+    from Engine.Modules.Layers.CLSTokenLayer import CLSTokenLayer
 
     from tensorflow.keras.layers import GlobalAveragePooling1D
-    from Modules.Evaluation.MetricsCalculator import MetricsCalculator
+    from Engine.Modules.Evaluation.MetricsCalculator import MetricsCalculator
 
-    from Modules.Layers.PositionalEmbeddingsLayer import PositionalEmbeddingsLayer
+    from Engine.Modules.Layers.PositionalEmbeddingsLayer import PositionalEmbeddingsLayer
 
 except ImportError as error:
     print(error)

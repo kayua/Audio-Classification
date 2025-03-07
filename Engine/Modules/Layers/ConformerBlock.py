@@ -14,10 +14,10 @@ try:
 
     from tensorflow.keras.layers import Layer
     from tensorflow.keras.layers import LayerNormalization
-    from Modules.FeedForwardModule import FeedForwardModule
+    from Engine.Modules.FeedForwardModule import FeedForwardModule
 
-    from Modules.ConvolutionalModule import ConvolutionalModule
-    from Modules.MultiheadSelfAttentionModule import MultiHeadSelfAttentionModule
+    from Engine.Modules.ConvolutionalModule import ConvolutionalModule
+    from Engine.Modules.MultiheadSelfAttentionModule import MultiHeadSelfAttentionModule
 
 except ImportError as error:
     print(error)

@@ -8,7 +8,6 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-import logging
 
 try:
     import os
@@ -16,26 +15,23 @@ try:
     import glob
     import numpy
     import librosa
+    import argparse
     import tensorflow
 
     from tqdm import tqdm
-    import librosa.display
-    from tensorflow.keras import Model
     from sklearn.utils import resample
-    from tensorflow.keras.layers import Conv2D
-    from tensorflow.keras.layers import Flatten
+    from tensorflow.keras import Model
     from tensorflow.keras.layers import Dense
     from tensorflow.keras.layers import Input
+    from tensorflow.keras.layers import LSTM
     from tensorflow.keras.layers import Dropout
-    from tensorflow.keras.layers import Concatenate
-    from tensorflow.keras.layers import MaxPooling2D
+    from tensorflow.keras.layers import Bidirectional
     from sklearn.model_selection import StratifiedKFold
     from sklearn.model_selection import train_test_split
-
-    from Modules.Evaluation.MetricsCalculator import MetricsCalculator
+    from tensorflow.keras.layers import GlobalAveragePooling1D
+    from Engine.Modules.Evaluation.MetricsCalculator import MetricsCalculator
 
 except ImportError as error:
-
     print(error)
     print("1. Install requirements:")
     print("  pip3 install --upgrade pip")
@@ -43,122 +39,79 @@ except ImportError as error:
     print()
     sys.exit(-1)
 
-# Default values
-DEFAULT_SAMPLE_RATE = 8000
-DEFAULT_HOP_LENGTH = 256
-DEFAULT_SIZE_BATCH = 32
-DEFAULT_WINDOW_SIZE_FACTOR = 40
-DEFAULT_NUMBER_FILTERS_SPECTROGRAM = 512
-DEFAULT_FILTERS_PER_BLOCK = [16, 32, 64, 96]
-DEFAULT_FILE_EXTENSION = "*.wav"
-DEFAULT_DROPOUT_RATE = 0.1
-DEFAULT_NUMBER_LAYERS = 4
-DEFAULT_OPTIMIZER_FUNCTION = 'adam'
-DEFAULT_OVERLAP = 2
-DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
-DEFAULT_DECIBEL_SCALE_FACTOR = 80
-DEFAULT_CONVOLUTIONAL_PADDING = 'same'
-DEFAULT_INPUT_DIMENSION = (513, 40, 1)
-DEFAULT_INTERMEDIARY_ACTIVATION = 'relu'
-DEFAULT_LAST_LAYER_ACTIVATION = 'softmax'
-DEFAULT_NUMBER_CLASSES = 4
-DEFAULT_SIZE_POOLING = (2, 2)
-DEFAULT_WINDOW_SIZE = 1024
-DEFAULT_NUMBER_EPOCHS = 10
-DEFAULT_NUMBER_SPLITS = 5
-DEFAULT_SIZE_CONVOLUTIONAL_FILTERS = (3, 3)
+
+DEFAULT_LIST_LSTM_CELLS = [128, 129]
+
+class AudioLSTM(MetricsCalculator):
 
 
-class ResidualModel(MetricsCalculator):
+    def __init__(self,
+                 number_classes: int,
+                 last_layer_activation: str,
+                 size_batch: int,
+                 number_splits: int,
+                 number_epochs: int,
+                 loss_function: str,
+                 optimizer_function: str,
+                 window_size_factor: int,
+                 decibel_scale_factor: int,
+                 hop_length: int,
+                 overlap: int,
+                 sample_rate: int,
+                 dropout_rate: float,
+                 file_extension: str,
+                 intermediary_layer_activation: str,
+                 recurrent_activation: str,
+                 input_dimension: tuple,
+                 list_lstm_cells=None):
 
-    def __init__(self, sample_rate=DEFAULT_SAMPLE_RATE,
-                 hop_length=DEFAULT_HOP_LENGTH,
-                 window_size_factor=DEFAULT_WINDOW_SIZE_FACTOR,
-                 number_filters_spectrogram=DEFAULT_NUMBER_FILTERS_SPECTROGRAM,
-                 number_layers=DEFAULT_NUMBER_LAYERS,
-                 input_dimension=DEFAULT_INPUT_DIMENSION,
-                 overlap=DEFAULT_OVERLAP,
-                 convolutional_padding=DEFAULT_CONVOLUTIONAL_PADDING,
-                 intermediary_activation=DEFAULT_INTERMEDIARY_ACTIVATION,
-                 last_layer_activation=DEFAULT_LAST_LAYER_ACTIVATION,
-                 number_classes=DEFAULT_NUMBER_CLASSES,
-                 size_convolutional_filters=DEFAULT_SIZE_CONVOLUTIONAL_FILTERS,
-                 size_pooling=DEFAULT_SIZE_POOLING,
-                 window_size_fft=DEFAULT_WINDOW_SIZE,
-                 decibel_scale_factor=DEFAULT_DECIBEL_SCALE_FACTOR,
-                 filters_per_block=None,
-                 size_batch=DEFAULT_SIZE_BATCH,
-                 number_splits=DEFAULT_NUMBER_SPLITS,
-                 number_epochs=DEFAULT_NUMBER_EPOCHS,
-                 loss_function=DEFAULT_LOSS_FUNCTION,
-                 optimizer_function=DEFAULT_OPTIMIZER_FUNCTION,
-                 dropout_rate=DEFAULT_DROPOUT_RATE,
-                 file_extension=DEFAULT_FILE_EXTENSION):
+        if list_lstm_cells is None:
+            list_lstm_cells = DEFAULT_LIST_LSTM_CELLS
 
-
-        if filters_per_block is None:
-            filters_per_block = DEFAULT_FILTERS_PER_BLOCK
-
-        self.model_name = "ResidualModel"
+        self.model_name = "LSTM"
         self.neural_network_model = None
-        self.sample_rate = sample_rate
         self.size_batch = size_batch
+        self.list_lstm_cells = list_lstm_cells
         self.number_splits = number_splits
-        self.loss_function = loss_function
-        self.size_pooling = size_pooling
-        self.filters_per_block = filters_per_block
-        self.hop_length = hop_length
-        self.decibel_scale_factor = decibel_scale_factor
-        self.window_size_fft = window_size_fft
-        self.window_size_factor = window_size_factor
-        self.window_size = hop_length * (self.window_size_factor - 1)
-        self.number_filters_spectrogram = number_filters_spectrogram
-        self.number_layers = number_layers
-        self.input_shape = input_dimension
-        self.overlap = overlap
         self.number_epochs = number_epochs
+        self.loss_function = loss_function
         self.optimizer_function = optimizer_function
-        self.dropout_rate = dropout_rate
+        self.window_size_factor = window_size_factor
+        self.decibel_scale_factor = decibel_scale_factor
+        self.hop_length = hop_length
+        self.recurrent_activation = recurrent_activation
+        self.intermediary_layer_activation = intermediary_layer_activation
+        self.overlap = overlap
+        self.window_size = self.hop_length * self.window_size_factor
+        self.sample_rate = sample_rate
         self.file_extension = file_extension
-        self.size_convolutional_filters = size_convolutional_filters
+        self.input_dimension = input_dimension
         self.number_classes = number_classes
+        self.dropout_rate = dropout_rate
         self.last_layer_activation = last_layer_activation
-        self.convolutional_padding = convolutional_padding
-        self.intermediary_activation = intermediary_activation
+        self.model_name = "LSTM"
 
-    def build_model(self):
+    def build_model(self) -> None:
 
-        inputs = Input(shape=self.input_shape)
+        inputs = Input(shape=self.input_dimension)
+
         neural_network_flow = inputs
 
-        for number_filters in self.filters_per_block:
-            residual_flow = neural_network_flow
-
-            # Apply convolutional layers
-            neural_network_flow = Conv2D(number_filters, self.size_convolutional_filters,
-                                         activation=self.intermediary_activation,
-                                         padding=self.convolutional_padding)(neural_network_flow)
-            neural_network_flow = Conv2D(number_filters, self.size_convolutional_filters,
-                                         activation=self.intermediary_activation,
-                                         padding=self.convolutional_padding)(neural_network_flow)
-
-            # Add residual connection
-            neural_network_flow = Concatenate()([neural_network_flow, residual_flow])
-
-            # Apply pooling and dropout
-            neural_network_flow = MaxPooling2D(self.size_pooling)(neural_network_flow)
+        for i, cells in enumerate(self.list_lstm_cells):
+            neural_network_flow = LSTM(cells, activation=self.intermediary_layer_activation,
+                                       recurrent_activation=self.recurrent_activation,
+                                       return_sequences=True)(neural_network_flow)
             neural_network_flow = Dropout(self.dropout_rate)(neural_network_flow)
 
-        # Flatten and apply dense layer
-        neural_network_flow = Flatten()(neural_network_flow)
+        neural_network_flow = GlobalAveragePooling1D()(neural_network_flow)
         neural_network_flow = Dense(self.number_classes, activation=self.last_layer_activation)(neural_network_flow)
+        self.neural_network_model = Model(inputs=inputs, outputs=neural_network_flow)
 
-        # Define the model
-        self.neural_network_model = Model(inputs=inputs, outputs=neural_network_flow, name=self.model_name)
-
-
-    def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,
-                          batch_size: int, validation_data: tuple = None) -> tensorflow.keras.callbacks.History:
+    def compile_and_train(self,
+                          train_data: tensorflow.Tensor,
+                          train_labels: tensorflow.Tensor,
+                          epochs: int, batch_size: int,
+                          validation_data: tuple = None) -> tensorflow.keras.callbacks.History:
 
         self.neural_network_model.compile(optimizer=self.optimizer_function, loss=self.loss_function,
                                           metrics=['accuracy'])
@@ -168,10 +121,10 @@ class ResidualModel(MetricsCalculator):
                                                          validation_data=validation_data)
         return training_history
 
+
     def train(self, dataset_directory, number_epochs, batch_size, number_splits,
               loss, sample_rate, overlap, number_classes, arguments) -> tuple:
 
-        # Use default values if not provided
         self.number_epochs = number_epochs or self.number_epochs
         self.number_splits = number_splits or self.number_splits
         self.size_batch = batch_size or self.size_batch
@@ -180,20 +133,18 @@ class ResidualModel(MetricsCalculator):
         self.overlap = overlap or self.overlap
         self.number_classes = number_classes or self.number_classes
 
-        self.size_pooling = arguments.residual_size_pooling
-        self.filters_per_block = arguments.residual_filters_per_block
-        self.hop_length = arguments.residual_hop_length
-        self.decibel_scale_factor = arguments.residual_decibel_scale_factor
-        self.window_size_factor = arguments.residual_window_size_factor
-        self.window_size = self.hop_length * (self.window_size_factor - 1)
-        self.number_filters_spectrogram = arguments.residual_number_filters_spectrogram
-        self.number_layers = arguments.residual_number_layers
-        self.overlap = arguments.residual_overlap
-        self.dropout_rate = arguments.residual_dropout_rate
-        self.size_convolutional_filters = arguments.residual_size_convolutional_filters
-        self.last_layer_activation = arguments.residual_last_layer_activation
-        self.convolutional_padding = arguments.residual_convolutional_padding
-        self.intermediary_activation = arguments.residual_intermediary_activation
+        self.list_lstm_cells = arguments.lstm_list_lstm_cells
+        self.window_size_factor = arguments.lstm_window_size_factor
+        self.decibel_scale_factor = arguments.lstm_decibel_scale_factor
+        self.hop_length = arguments.lstm_hop_length
+        self.recurrent_activation = arguments.lstm_recurrent_activation
+        self.intermediary_layer_activation = arguments.lstm_intermediary_layer_activation
+        self.overlap =  arguments.lstm_overlap
+        self.window_size = self.hop_length * self.window_size_factor
+        self.number_classes = number_classes
+        self.dropout_rate = arguments.lstm_dropout_rate
+        self.last_layer_activation = arguments.lstm_last_layer_activation
+        self.model_name = "LSTM"
 
         history_model = None
         features, labels = self.load_data(dataset_directory)
@@ -210,11 +161,12 @@ class ResidualModel(MetricsCalculator):
 
         # Stratified k-fold cross-validation on the training/validation set
         instance_k_fold = StratifiedKFold(n_splits=self.number_splits, shuffle=True, random_state=42)
+        list_history_model = []
         probabilities_list = []
         real_labels_list = []
 
+        print("STARTING TRAINING MODEL: {}".format(self.model_name))
         for train_indexes, val_indexes in instance_k_fold.split(features_train_val, labels_train_val):
-
             features_train, features_val = features_train_val[train_indexes], features_train_val[val_indexes]
             labels_train, labels_val = labels_train_val[train_indexes], labels_train_val[val_indexes]
 
@@ -270,4 +222,3 @@ class ResidualModel(MetricsCalculator):
 
         return (mean_metrics, {"Name": self.model_name, "History": history_model.history}, mean_confusion_matrices,
                 probabilities_predicted)
-

@@ -39,15 +39,15 @@ try:
     from tensorflow.keras.layers import LayerNormalization
     from tensorflow.keras.layers import GlobalAveragePooling1D
 
-    from Modules.Loss.ContrastiveLoss import ContrastiveLoss
-    from Modules.Layers.QuantizerLayerMLP import QuantizationLayer
+    from Engine.Modules.Loss.ContrastiveLoss import ContrastiveLoss
+    from Engine.Modules.Layers.QuantizerLayerMLP import QuantizationLayer
 
     from sklearn.model_selection import StratifiedKFold
     from sklearn.model_selection import train_test_split
 
     from sklearn.utils import resample
 
-    from Modules.Evaluation.MetricsCalculator import MetricsCalculator
+    from Engine.Modules.Evaluation.MetricsCalculator import MetricsCalculator
 
 except ImportError as error:
     print(error)

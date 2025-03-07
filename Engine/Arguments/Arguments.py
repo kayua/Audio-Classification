@@ -13,13 +13,13 @@ try:
     import logging
     import argparse
 
-    from Models.Arguments.ArgumentsAST import add_ast_arguments
-    from Models.Arguments.ArgumentsMLP import add_mlp_arguments
-    from Models.Arguments.ArgumentsLSTM import add_lstm_arguments
+    from Engine.Arguments.Arguments import add_ast_arguments
+    from Engine.Arguments.Arguments import add_mlp_arguments
+    from Engine.Arguments.Arguments import add_lstm_arguments
 
-    from Models.Arguments.ArgumentsResidual import add_residual_arguments
-    from Models.Arguments.ArgumentsWav2Vec2 import add_wav_to_vec_arguments
-    from Models.Arguments.ArgumentsConformer import add_conformer_arguments
+    from Engine.Arguments.ArgumentsResidual import add_residual_arguments
+    from Engine.Arguments.Arguments import add_wav_to_vec_arguments
+    from Engine.Arguments.ArgumentsConformer import add_conformer_arguments
 
 except ImportError as error:
     print(error)

@@ -37,13 +37,13 @@ try:
     from sklearn.metrics import confusion_matrix
 
     from logging.handlers import RotatingFileHandler
-    from Models.AST import AudioAST, get_audio_ast_args
-    from Models.LSTM import AudioLSTM, get_lstm_model_args
-    from Models.MLP import AudioDense, get_MLP_model_args
+    from Engine.Models.AST import AudioAST, get_audio_ast_args
+    from Engine.Models.LSTM import AudioLSTM, get_lstm_model_args
+    from Engine.Models.MLP import AudioDense, get_MLP_model_args
 
-    from Models.Conformer import Conformer, get_conformer_models_args
-    from Models.Wav2Vec2 import AudioWav2Vec2, get_wav_to_vec_args
-    from Models.ResidualModel import ResidualModel, get_residual_model_args
+    from Engine.Models.Conformer import Conformer, get_conformer_models_args
+    from Engine.Models.Wav2Vec2 import AudioWav2Vec2, get_wav_to_vec_args
+    from Engine.Models.ResidualModel import ResidualModel, get_residual_model_args
 
 except ImportError as error:
     print(error)
