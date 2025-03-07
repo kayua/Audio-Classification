@@ -56,21 +56,7 @@ class DataLoader:
         return class_paths
 
     def _process_all_classes(self, class_paths: list, file_extension: str) -> tuple:
-        """
-        Process all class directories, loading and segmenting their audio files.
 
-        Parameters
-        ----------
-        class_paths : list
-            List of paths to class directories.
-        file_extension : str
-            File extension filter (e.g., "*.wav").
-
-        Returns
-        -------
-        tuple
-            (list_spectrogram, list_labels)
-        """
         list_spectrogram = []
         list_labels = []
 
