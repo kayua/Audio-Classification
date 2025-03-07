@@ -31,7 +31,7 @@ try:
     from sklearn.model_selection import StratifiedKFold
     from sklearn.model_selection import train_test_split
     from tensorflow.keras.layers import GlobalAveragePooling1D
-    from Engine.Modules.Evaluation.MetricsCalculator import MetricsCalculator
+    from Engine.Evaluation.MetricsCalculator import MetricsCalculator
 
 except ImportError as error:
     print(error)

@@ -47,7 +47,7 @@ try:
 
     from sklearn.utils import resample
 
-    from Engine.Modules.Evaluation.MetricsCalculator import MetricsCalculator
+    from Engine.Evaluation.MetricsCalculator import MetricsCalculator
 
 except ImportError as error:
     print(error)

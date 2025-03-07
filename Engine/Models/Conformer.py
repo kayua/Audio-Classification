@@ -37,7 +37,7 @@ try:
     from sklearn.model_selection import train_test_split
 
     from Engine.Modules.Layers.ConformerBlock import ConformerBlock
-    from Engine.Modules.Evaluation.MetricsCalculator import MetricsCalculator
+    from Engine.Evaluation.MetricsCalculator import MetricsCalculator
     from Engine.Modules.Layers.ConvolutionalSubsampling import ConvolutionalSubsampling
 
 except ImportError as error:

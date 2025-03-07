@@ -45,7 +45,7 @@ try:
     from Engine.Modules.Layers.CLSTokenLayer import CLSTokenLayer
 
     from tensorflow.keras.layers import GlobalAveragePooling1D
-    from Engine.Modules.Evaluation.MetricsCalculator import MetricsCalculator
+    from Engine.Evaluation.MetricsCalculator import MetricsCalculator
 
     from Engine.Modules.Layers.PositionalEmbeddingsLayer import PositionalEmbeddingsLayer
 
