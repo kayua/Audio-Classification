@@ -41,57 +41,35 @@ except ImportError as error:
     print()
     sys.exit(-1)
 
-# Default values
-DEFAULT_SAMPLE_RATE = 8000
-DEFAULT_HOP_LENGTH = 256
-DEFAULT_SIZE_BATCH = 32
-DEFAULT_WINDOW_SIZE_FACTOR = 40
-DEFAULT_NUMBER_FILTERS_SPECTROGRAM = 512
 DEFAULT_FILTERS_PER_BLOCK = [16, 32, 64, 96]
-DEFAULT_FILE_EXTENSION = "*.wav"
-DEFAULT_DROPOUT_RATE = 0.1
-DEFAULT_NUMBER_LAYERS = 4
-DEFAULT_OPTIMIZER_FUNCTION = 'adam'
-DEFAULT_OVERLAP = 2
-DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
-DEFAULT_DECIBEL_SCALE_FACTOR = 80
-DEFAULT_CONVOLUTIONAL_PADDING = 'same'
-DEFAULT_INPUT_DIMENSION = (513, 40, 1)
-DEFAULT_INTERMEDIARY_ACTIVATION = 'relu'
-DEFAULT_LAST_LAYER_ACTIVATION = 'softmax'
-DEFAULT_NUMBER_CLASSES = 4
-DEFAULT_SIZE_POOLING = (2, 2)
-DEFAULT_WINDOW_SIZE = 1024
-DEFAULT_NUMBER_EPOCHS = 10
-DEFAULT_NUMBER_SPLITS = 5
-DEFAULT_SIZE_CONVOLUTIONAL_FILTERS = (3, 3)
 
 
 class ResidualModel(MetricsCalculator):
 
-    def __init__(self, sample_rate=DEFAULT_SAMPLE_RATE,
-                 hop_length=DEFAULT_HOP_LENGTH,
-                 window_size_factor=DEFAULT_WINDOW_SIZE_FACTOR,
-                 number_filters_spectrogram=DEFAULT_NUMBER_FILTERS_SPECTROGRAM,
-                 number_layers=DEFAULT_NUMBER_LAYERS,
-                 input_dimension=DEFAULT_INPUT_DIMENSION,
-                 overlap=DEFAULT_OVERLAP,
-                 convolutional_padding=DEFAULT_CONVOLUTIONAL_PADDING,
-                 intermediary_activation=DEFAULT_INTERMEDIARY_ACTIVATION,
-                 last_layer_activation=DEFAULT_LAST_LAYER_ACTIVATION,
-                 number_classes=DEFAULT_NUMBER_CLASSES,
-                 size_convolutional_filters=DEFAULT_SIZE_CONVOLUTIONAL_FILTERS,
-                 size_pooling=DEFAULT_SIZE_POOLING,
-                 window_size_fft=DEFAULT_WINDOW_SIZE,
-                 decibel_scale_factor=DEFAULT_DECIBEL_SCALE_FACTOR,
-                 filters_per_block=None,
-                 size_batch=DEFAULT_SIZE_BATCH,
-                 number_splits=DEFAULT_NUMBER_SPLITS,
-                 number_epochs=DEFAULT_NUMBER_EPOCHS,
-                 loss_function=DEFAULT_LOSS_FUNCTION,
-                 optimizer_function=DEFAULT_OPTIMIZER_FUNCTION,
-                 dropout_rate=DEFAULT_DROPOUT_RATE,
-                 file_extension=DEFAULT_FILE_EXTENSION):
+    def __init__(self,
+                 sample_rate: int,
+                 hop_length: int,
+                 window_size_factor: int,
+                 number_filters_spectrogram: int,
+                 number_layers: int,
+                 input_dimension: tuple[int, int, int],
+                 overlap: int,
+                 convolutional_padding: str,
+                 intermediary_activation: str,
+                 last_layer_activation: str,
+                 number_classes: int,
+                 size_convolutional_filters: tuple[int, int],
+                 size_pooling: tuple[int, int],
+                 window_size_fft: int,
+                 decibel_scale_factor: int,
+                 filters_per_block: list[int],
+                 size_batch: int,
+                 number_splits: int,
+                 number_epochs: int,
+                 loss_function: str,
+                 optimizer_function: str,
+                 dropout_rate: float,
+                 file_extension: str):
 
 
         if filters_per_block is None:
