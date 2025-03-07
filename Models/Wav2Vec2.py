@@ -149,9 +149,9 @@ class AudioWav2Vec2(MetricsCalculator):
 
         # Apply Convolutional layers
         for number_filters in self.list_filters_encoder:
+
             neural_network_flow = TimeDistributed(
-                Conv1D(number_filters,
-                       self.kernel_size, strides=(2,),
+                Conv1D(number_filters, self.kernel_size, strides=(2,),
                        activation=self.intermediary_layer_activation))(neural_network_flow)
 
         flatten_flow = TimeDistributed(Flatten())(neural_network_flow)
@@ -160,9 +160,9 @@ class AudioWav2Vec2(MetricsCalculator):
         dense_layer = TimeDistributed(Dense(self.number_classes,
                                             activation=self.intermediary_layer_activation))(flatten_flow)
 
-        def create_mask(seq_len):
-            mask = tensorflow.linalg.band_part(tensorflow.ones((seq_len, seq_len)), -1, 0)
-            return mask
+        # def create_mask(seq_len):
+        #     mask = tensorflow.linalg.band_part(tensorflow.ones((seq_len, seq_len)), -1, 0)
+        #     return mask
 
         causal_mask = create_mask(128)
         # Transformer Block
@@ -244,29 +244,6 @@ class AudioWav2Vec2(MetricsCalculator):
 
         return training_history
 
-    @staticmethod
-    def windows(data, window_size, overlap):
-        """
-        Generates windowed segments of the input data.
-
-        Parameters
-        ----------
-        data : numpy.ndarray
-            The input data array.
-        window_size : int
-            The size of each window.
-        overlap : int
-            The overlap between consecutive windows.
-
-        Yields
-        ------
-        tuple
-            Start and end indices of each window.
-        """
-        start = 0
-        while start < len(data):
-            yield start, start + window_size
-            start += (window_size // overlap)
 
     def load_data(self, sub_directories: str = None, file_extension: str = None) -> tuple:
         """
@@ -339,26 +316,7 @@ class AudioWav2Vec2(MetricsCalculator):
 
     def train(self, dataset_directory, number_epochs, batch_size, number_splits,
               loss, sample_rate, overlap, number_classes, arguments) -> tuple:
-        """
-        Trains the model using cross-validation.
 
-        Parameters
-        ----------
-        dataset_directory : str
-            Directory containing the training data.
-        number_epochs : int, optional
-            Number of training epochs.
-        batch_size : int, optional
-            Batch size for training.
-        number_splits : int, optional
-            Number of splits for cross-validation.
-
-        Returns
-        -------
-        tuple
-            A tuple containing the mean metrics, the training history, the mean confusion matrix,
-            and the predicted probabilities along with the ground truth labels.
-        """
         # Use default values if not provided
         self.number_epochs = number_epochs or self.number_epochs
         self.number_splits = number_splits or self.number_splits
@@ -392,33 +350,6 @@ class AudioWav2Vec2(MetricsCalculator):
         features_train_val, features_test, labels_train_val, labels_test = train_test_split(
             features, labels, test_size=0.2, stratify=labels, random_state=42
         )
-
-        # Function to balance the classes by resampling
-        def balance_classes(features, labels):
-            unique_classes = numpy.unique(labels)
-            max_samples = max([sum(labels == c) for c in unique_classes])
-
-            balanced_features = []
-            balanced_labels = []
-
-            for c in unique_classes:
-                features_class = features[labels == c]
-                labels_class = labels[labels == c]
-
-                features_class_resampled, labels_class_resampled = resample(
-                    features_class, labels_class,
-                    replace=True,
-                    n_samples=max_samples,
-                    random_state=0
-                )
-
-                balanced_features.append(features_class_resampled)
-                balanced_labels.append(labels_class_resampled)
-
-            balanced_features = numpy.vstack(balanced_features)
-            balanced_labels = numpy.hstack(balanced_labels)
-
-            return balanced_features, balanced_labels
 
         # Balance training/validation set
         features_train_val, labels_train_val = balance_classes(features_train_val, labels_train_val)
