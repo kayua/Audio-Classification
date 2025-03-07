@@ -1,7 +1,7 @@
 import os
 import glob
 import logging
-import numpy as np
+import numpy
 import librosa
 from tqdm import tqdm
 
@@ -35,13 +35,13 @@ class DataLoader:
 
         all_spectrograms, all_labels = self._process_all_classes(class_paths, file_extension)
 
-        features = np.array(all_spectrograms, dtype=np.float32)
-        features = np.expand_dims(features, axis=-1)  # Add channel dimension
+        features = numpy.array(all_spectrograms, dtype=numpy.float32)
+        features = numpy.expand_dims(features, axis=-1)  # Add channel dimension
 
         logging.info(f"Loaded {len(features)} feature arrays.")
         logging.info("Data loading complete.")
 
-        return features, np.array(all_labels, dtype=np.int32)
+        return features, numpy.array(all_labels, dtype=numpy.int32)
 
     def _get_class_paths(self, parent_directory: str) -> list:
 
@@ -105,22 +105,22 @@ class DataLoader:
         label_str = file_path.split('/')[-2].split('_')[0]
         return int(label_str)
 
-    def _segment_and_normalize(self, segment: np.ndarray) -> np.ndarray:
+    def _segment_and_normalize(self, segment: numpy.ndarray) -> numpy.ndarray:
 
         local_window = len(segment) // self.window_size_factor
 
         # Split into patches
         patches = [segment[i:i + local_window] for i in range(0, len(segment), local_window)]
-        patches = np.abs(np.array(patches))
+        patches = numpy.abs(numpy.array(patches))
 
         # Normalize
-        signal_min = np.min(patches)
-        signal_max = np.max(patches)
+        signal_min = numpy.min(patches)
+        signal_max = numpy.max(patches)
 
         if signal_max != signal_min:
             normalized_patches = (patches - signal_min) / (signal_max - signal_min)
         else:
-            normalized_patches = np.zeros_like(patches)
+            normalized_patches = numpy.zeros_like(patches)
 
         return normalized_patches
 

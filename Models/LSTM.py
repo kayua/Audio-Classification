@@ -39,48 +39,30 @@ except ImportError as error:
     print()
     sys.exit(-1)
 
-DEFAULT_INPUT_DIMENSION = (40, 256)
-DEFAULT_NUMBER_CLASSES = 4
-DEFAULT_LIST_LSTM_CELLS = [128, 129]
-DEFAULT_SAMPLE_RATE = 8000
-DEFAULT_HOP_LENGTH = 256
-DEFAULT_SIZE_BATCH = 32
-DEFAULT_OVERLAP = 2
-DEFAULT_DROPOUT_RATE = 0.1
-DEFAULT_WINDOW_SIZE = 1024
-DEFAULT_NUMBER_EPOCHS = 10
-DEFAULT_NUMBER_SPLITS = 5
-DEFAULT_DECIBEL_SCALE_FACTOR = 80
-DEFAULT_WINDOW_SIZE_FACTOR = 40
-DEFAULT_LAST_LAYER_ACTIVATION = 'softmax'
-DEFAULT_FILE_EXTENSION = "*.wav"
-DEFAULT_OPTIMIZER_FUNCTION = 'adam'
-DEFAULT_RECURRENT_ACTIVATION = 'sigmoid'
-DEFAULT_INTERMEDIARY_LAYER_ACTIVATION = 'tanh'
-DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
 
+DEFAULT_LIST_LSTM_CELLS = [128, 129]
 
 class AudioLSTM(MetricsCalculator):
 
 
     def __init__(self,
-                 number_classes: int = DEFAULT_NUMBER_CLASSES,
-                 last_layer_activation: str = DEFAULT_LAST_LAYER_ACTIVATION,
-                 size_batch: int = DEFAULT_SIZE_BATCH,
-                 number_splits: int = DEFAULT_NUMBER_SPLITS,
-                 number_epochs: int = DEFAULT_NUMBER_EPOCHS,
-                 loss_function: str = DEFAULT_LOSS_FUNCTION,
-                 optimizer_function: str = DEFAULT_OPTIMIZER_FUNCTION,
-                 window_size_factor: int = DEFAULT_WINDOW_SIZE_FACTOR,
-                 decibel_scale_factor: int = DEFAULT_DECIBEL_SCALE_FACTOR,
-                 hop_length: int = DEFAULT_HOP_LENGTH,
-                 overlap: int = DEFAULT_OVERLAP,
-                 sample_rate: int = DEFAULT_SAMPLE_RATE,
-                 dropout_rate: float = DEFAULT_DROPOUT_RATE,
-                 file_extension: str = DEFAULT_FILE_EXTENSION,
-                 intermediary_layer_activation: str = DEFAULT_INTERMEDIARY_LAYER_ACTIVATION,
-                 recurrent_activation: str = DEFAULT_RECURRENT_ACTIVATION,
-                 input_dimension: tuple = DEFAULT_INPUT_DIMENSION,
+                 number_classes: int,
+                 last_layer_activation: str,
+                 size_batch: int,
+                 number_splits: int,
+                 number_epochs: int,
+                 loss_function: str,
+                 optimizer_function: str,
+                 window_size_factor: int,
+                 decibel_scale_factor: int,
+                 hop_length: int,
+                 overlap: int,
+                 sample_rate: int,
+                 dropout_rate: float,
+                 file_extension: str,
+                 intermediary_layer_activation: str,
+                 recurrent_activation: str,
+                 input_dimension: tuple,
                  list_lstm_cells=None):
 
         if list_lstm_cells is None:

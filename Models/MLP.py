@@ -43,45 +43,28 @@ except ImportError as error:
     print()
     sys.exit(-1)
 
-DEFAULT_INPUT_DIMENSION = (40, 256)
-DEFAULT_NUMBER_CLASSES = 4
-DEFAULT_LIST_DENSE_NEURONS = [128, 129]
-DEFAULT_SAMPLE_RATE = 8000
-DEFAULT_HOP_LENGTH = 256
-DEFAULT_SIZE_BATCH = 32
-DEFAULT_OVERLAP = 2
-DEFAULT_DROPOUT_RATE = 0.1
-DEFAULT_WINDOW_SIZE = 1024
-DEFAULT_NUMBER_EPOCHS = 10
-DEFAULT_NUMBER_SPLITS = 5
-DEFAULT_DECIBEL_SCALE_FACTOR = 80
-DEFAULT_WINDOW_SIZE_FACTOR = 40
-DEFAULT_LAST_LAYER_ACTIVATION = 'softmax'
-DEFAULT_FILE_EXTENSION = "*.wav"
-DEFAULT_OPTIMIZER_FUNCTION = 'adam'
-DEFAULT_INTERMEDIARY_LAYER_ACTIVATION = 'relu'
-DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
 
+DEFAULT_LIST_DENSE_NEURONS = [128, 129]
 
 class AudioDense(MetricsCalculator):
 
     def __init__(self,
-                 number_classes: int = DEFAULT_NUMBER_CLASSES,
-                 last_layer_activation: str = DEFAULT_LAST_LAYER_ACTIVATION,
-                 size_batch: int = DEFAULT_SIZE_BATCH,
-                 number_splits: int = DEFAULT_NUMBER_SPLITS,
-                 number_epochs: int = DEFAULT_NUMBER_EPOCHS,
-                 loss_function: str = DEFAULT_LOSS_FUNCTION,
-                 optimizer_function: str = DEFAULT_OPTIMIZER_FUNCTION,
-                 window_size_factor: int = DEFAULT_WINDOW_SIZE_FACTOR,
-                 decibel_scale_factor: int = DEFAULT_DECIBEL_SCALE_FACTOR,
-                 hop_length: int = DEFAULT_HOP_LENGTH,
-                 overlap: int = DEFAULT_OVERLAP,
-                 sample_rate: int = DEFAULT_SAMPLE_RATE,
-                 dropout_rate: float = DEFAULT_DROPOUT_RATE,
-                 file_extension: str = DEFAULT_FILE_EXTENSION,
-                 intermediary_layer_activation: str = DEFAULT_INTERMEDIARY_LAYER_ACTIVATION,
-                 input_dimension: tuple = DEFAULT_INPUT_DIMENSION,
+                 number_classes: int,
+                 last_layer_activation: str,
+                 size_batch: int,
+                 number_splits: int,
+                 number_epochs: int,
+                 loss_function: str,
+                 optimizer_function: str,
+                 window_size_factor: int,
+                 decibel_scale_factor: int,
+                 hop_length: int,
+                 overlap: int,
+                 sample_rate: int,
+                 dropout_rate: float,
+                 file_extension: str,
+                 intermediary_layer_activation: str,
+                 input_dimension: tuple,
                  list_lstm_cells=None):
 
 
@@ -135,62 +118,6 @@ class AudioDense(MetricsCalculator):
         return training_history
 
 
-    def load_data(self, sub_directories: str = None, file_extension: str = None) -> tuple:
-
-        logging.info("Starting data loading process.")
-
-        list_spectrogram, list_labels, list_class_path = [], [], []
-        file_extension = file_extension or self.file_extension
-
-        # Collect class paths
-        logging.info(f"Listing subdirectories in {sub_directories}")
-        for class_dir in os.listdir(sub_directories):
-            class_path = os.path.join(sub_directories, class_dir)
-            list_class_path.append(class_path)
-
-        # Process each subdirectory
-        for idx, sub_directory in enumerate(list_class_path):
-            logging.info(f"Loading class {idx + 1}/{len(list_class_path)} from directory: {sub_directory}")
-
-            for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
-
-                # Load the audio signal
-                signal, _ = librosa.load(file_name, sr=self.sample_rate)
-
-                # Extract label from the file path (assumes label is part of directory structure)
-                label = file_name.split('/')[-2].split('_')[0]
-
-                # Segment the audio into windows
-                for (start, end) in self.windows(signal, self.window_size, self.overlap):
-                    if len(signal[start:end]) == self.window_size:
-                        local_window = len(signal[start:end]) // self.window_size_factor
-
-                        # Divide the window into smaller segments
-                        signal_segments = [signal[i:i + local_window] for i in range(0, len(signal[start:end]), local_window)]
-                        signal_segments = numpy.abs(numpy.array(signal_segments))
-
-                        # Normalize each segment
-                        signal_min = numpy.min(signal_segments)
-                        signal_max = numpy.max(signal_segments)
-
-                        if signal_max != signal_min:
-                            normalized_signal = (signal_segments - signal_min) / (signal_max - signal_min)
-                        else:
-                            normalized_signal = numpy.zeros_like(signal_segments)
-
-                        list_spectrogram.append(normalized_signal)
-                        list_labels.append(label)
-
-        # Convert lists to numpy arrays
-        array_features = numpy.array(list_spectrogram, dtype=numpy.float32)
-
-        # Adding channel dimension for model compatibility
-        array_features = numpy.expand_dims(array_features, axis=-1)
-
-        array_labels = numpy.array(list_labels, dtype=numpy.int32)
-
-        logging.info("Data loading complete.")
-        return array_features, array_labels
 
     def train(self, dataset_directory, number_epochs, batch_size, number_splits,
               loss, sample_rate, overlap, number_classes, arguments) -> tuple:
