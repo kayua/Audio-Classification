@@ -36,6 +36,7 @@ class WindowGenerator:
         """
         if window_size <= 0:
             raise ValueError("window_size must be a positive integer.")
+
         if overlap <= 0:
             raise ValueError("overlap must be a positive integer.")
 

@@ -298,29 +298,29 @@ class AudioAST(MetricsCalculator):
         # Return the list of file paths and corresponding labels
         return file_paths, labels
 
-    @staticmethod
-    def windows(data, window_size, overlap):
-        """
-        Generates windowed segments of the input data.
-
-        Parameters
-        ----------
-        data : numpy.ndarray
-            The input data array.
-        window_size : int
-            The size of each window.
-        overlap : int
-            The overlap between consecutive windows.
-
-        Yields
-        ------
-        tuple
-            Start and end indices of each window.
-        """
-        start = 0
-        while start < len(data):
-            yield start, start + window_size
-            start += (window_size // overlap)
+    # @staticmethod
+    # def windows(data, window_size, overlap):
+    #     """
+    #     Generates windowed segments of the input data.
+    #
+    #     Parameters
+    #     ----------
+    #     data : numpy.ndarray
+    #         The input data array.
+    #     window_size : int
+    #         The size of each window.
+    #     overlap : int
+    #         The overlap between consecutive windows.
+    #
+    #     Yields
+    #     ------
+    #     tuple
+    #         Start and end indices of each window.
+    #     """
+    #     start = 0
+    #     while start < len(data):
+    #         yield start, start + window_size
+    #         start += (window_size // overlap)
 
 
     def load_dataset(self, sub_directories: str = None, file_extension: str = None) -> tuple:
