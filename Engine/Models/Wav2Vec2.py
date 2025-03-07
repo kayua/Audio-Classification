@@ -57,58 +57,34 @@ except ImportError as error:
     print()
     sys.exit(-1)
 
-DEFAULT_INPUT_DIMENSION = (10240,)
-DEFAULT_NUMBER_CLASSES = 4
-DEFAULT_NUMBER_HEADS = 2
-DEFAULT_KEY_DIMENSION = 16
-DEFAULT_SAMPLE_RATE = 8000
-DEFAULT_HOP_LENGTH = 256
-DEFAULT_SIZE_BATCH = 8
-DEFAULT_OVERLAP = 1
-DEFAULT_DROPOUT_RATE = 0.1
-DEFAULT_WINDOW_SIZE = 1024
-DEFAULT_NUMBER_EPOCHS = 10
-DEFAULT_NUMBER_SPLITS = 5
-DEFAULT_KERNEL_SIZE = 3
-DEFAULT_DECIBEL_SCALE_FACTOR = 80
-DEFAULT_CONTEXT_DIMENSION = 16
-
-DEFAULT_PROJECTION_MLP_DIMENSION = 128
-DEFAULT_WINDOW_SIZE_FACTOR = 40
 DEFAULT_LIST_FILTERS_ENCODER = [8, 16, 32]
-DEFAULT_LAST_LAYER_ACTIVATION = 'softmax'
-DEFAULT_FILE_EXTENSION = "*.wav"
-DEFAULT_OPTIMIZER_FUNCTION = 'adam'
-DEFAULT_QUANTIZATION_BITS = 8
-DEFAULT_INTERMEDIARY_LAYER_ACTIVATION = 'relu'
-DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
 
 
 class AudioWav2Vec2(MetricsCalculator):
 
     def __init__(self,
-                 number_classes: int = DEFAULT_NUMBER_CLASSES,
-                 last_layer_activation: str = DEFAULT_LAST_LAYER_ACTIVATION,
-                 size_batch: int = DEFAULT_SIZE_BATCH,
-                 number_splits: int = DEFAULT_NUMBER_SPLITS,
-                 number_epochs: int = DEFAULT_NUMBER_EPOCHS,
-                 loss_function: str = DEFAULT_LOSS_FUNCTION,
-                 optimizer_function: str = DEFAULT_OPTIMIZER_FUNCTION,
-                 window_size_factor: int = DEFAULT_WINDOW_SIZE_FACTOR,
-                 decibel_scale_factor: int = DEFAULT_DECIBEL_SCALE_FACTOR,
-                 hop_length: int = DEFAULT_HOP_LENGTH,
-                 overlap: int = DEFAULT_OVERLAP,
-                 quantization_units: int = DEFAULT_QUANTIZATION_BITS,
-                 sample_rate: int = DEFAULT_SAMPLE_RATE,
-                 key_dimension: int = DEFAULT_KEY_DIMENSION,
-                 dropout_rate: float = DEFAULT_DROPOUT_RATE,
-                 file_extension: str = DEFAULT_FILE_EXTENSION,
-                 intermediary_layer_activation: str = DEFAULT_INTERMEDIARY_LAYER_ACTIVATION,
-                 input_dimension: tuple = DEFAULT_INPUT_DIMENSION,
-                 number_heads: int = DEFAULT_NUMBER_HEADS,
-                 kernel_size: int = DEFAULT_KERNEL_SIZE,
-                 projection_mlp_dimension: int = DEFAULT_PROJECTION_MLP_DIMENSION,
-                 context_dimension: int = DEFAULT_CONTEXT_DIMENSION,
+                 number_classes: int,
+                 last_layer_activation: str,
+                 size_batch: int,
+                 number_splits: int,
+                 number_epochs: int,
+                 loss_function: str,
+                 optimizer_function: str,
+                 window_size_factor: int,
+                 decibel_scale_factor: int,
+                 hop_length: int,
+                 overlap: int,
+                 quantization_units: int,
+                 sample_rate: int,
+                 key_dimension: int,
+                 dropout_rate: float,
+                 file_extension: str,
+                 intermediary_layer_activation: str,
+                 input_dimension: tuple,
+                 number_heads: int,
+                 kernel_size: int,
+                 projection_mlp_dimension: int,
+                 context_dimension: int,
                  list_filters_encoder=None):
 
         if list_filters_encoder is None:
@@ -160,9 +136,6 @@ class AudioWav2Vec2(MetricsCalculator):
         dense_layer = TimeDistributed(Dense(self.number_classes,
                                             activation=self.intermediary_layer_activation))(flatten_flow)
 
-        # def create_mask(seq_len):
-        #     mask = tensorflow.linalg.band_part(tensorflow.ones((seq_len, seq_len)), -1, 0)
-        #     return mask
 
         causal_mask = create_mask(128)
         # Transformer Block

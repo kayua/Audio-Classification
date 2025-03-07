@@ -48,75 +48,31 @@ except ImportError as error:
     print()
     sys.exit(-1)
 
-DEFAULT_INPUT_DIMENSION = (80, 40)
-DEFAULT_NUMBER_CONFORMER_BLOCKS = 4
-DEFAULT_EMBEDDING_DIMENSION = 64
-DEFAULT_NUMBER_HEADS = 4
-DEFAULT_MAX_LENGTH = 100
-DEFAULT_KERNEL_SIZE = 3
-DEFAULT_DROPOUT_DECAY = 0.2
-DEFAULT_NUMBER_CLASSES = 4
-DEFAULT_SIZE_KERNEL = 3
-DEFAULT_SAMPLE_RATE = 8000
-DEFAULT_HOP_LENGTH = 256
-DEFAULT_SIZE_BATCH = 32
-DEFAULT_OVERLAP = 2
-DEFAULT_DROPOUT_RATE = 0.2
-DEFAULT_WINDOW_SIZE = 1024
-DEFAULT_NUMBER_EPOCHS = 10
-DEFAULT_NUMBER_SPLITS = 5
-DEFAULT_DECIBEL_SCALE_FACTOR = 80
-DEFAULT_WINDOW_SIZE_FACTOR = 40
-DEFAULT_NUMBER_FILTERS_SPECTROGRAM = 80
-DEFAULT_LAST_LAYER_ACTIVATION = 'softmax'
-DEFAULT_FILE_EXTENSION = "*.wav"
-DEFAULT_OPTIMIZER_FUNCTION = 'adam'
-DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
-
-
-class TransposeLayer(Layer):
-    def __init__(self, perm, **kwargs):
-        super(TransposeLayer, self).__init__(**kwargs)
-        self.channels_permutation = perm
-
-    def call(self, inputs):
-        return tensorflow.transpose(inputs, perm=self.channels_permutation)
-
-    def compute_output_shape(self, input_shape):
-        return [input_shape[dim] for dim in self.channels_permutation]
-
-    def get_config(self):
-        config = super(TransposeLayer, self).get_config()
-        config.update({
-            'perm': self.channels_permutation
-        })
-        return config
-
 
 class Conformer(MetricsCalculator):
 
     def __init__(self,
-                 number_conformer_blocks: int = DEFAULT_NUMBER_CONFORMER_BLOCKS,
-                 embedding_dimension: int = DEFAULT_EMBEDDING_DIMENSION,
-                 number_heads: int = DEFAULT_NUMBER_HEADS,
-                 size_kernel: tuple = DEFAULT_KERNEL_SIZE,
-                 number_classes: int = DEFAULT_NUMBER_CLASSES,
-                 last_layer_activation: str = DEFAULT_LAST_LAYER_ACTIVATION,
-                 size_batch: int = DEFAULT_SIZE_BATCH,
-                 number_splits: int = DEFAULT_NUMBER_SPLITS,
-                 number_epochs: int = DEFAULT_NUMBER_EPOCHS,
-                 loss_function: str = DEFAULT_LOSS_FUNCTION,
-                 optimizer_function: str = DEFAULT_OPTIMIZER_FUNCTION,
-                 window_size_factor: int = DEFAULT_WINDOW_SIZE_FACTOR,
-                 decibel_scale_factor: int = DEFAULT_DECIBEL_SCALE_FACTOR,
-                 hop_length: int = DEFAULT_HOP_LENGTH,
-                 window_size_fft: int = DEFAULT_WINDOW_SIZE,
-                 number_filters_spectrogram: int = DEFAULT_NUMBER_FILTERS_SPECTROGRAM,
-                 overlap: int = DEFAULT_OVERLAP,
-                 sample_rate: int = DEFAULT_SAMPLE_RATE,
-                 dropout_rate: float = DEFAULT_DROPOUT_RATE,
-                 file_extension: str = DEFAULT_FILE_EXTENSION,
-                 input_dimension: tuple = DEFAULT_INPUT_DIMENSION):
+                 number_conformer_blocks: int,
+                 embedding_dimension: int,
+                 number_heads: int,
+                 size_kernel: tuple,
+                 number_classes: int,
+                 last_layer_activation: str,
+                 size_batch: int,
+                 number_splits: int,
+                 number_epochs: int,
+                 loss_function: str,
+                 optimizer_function: str,
+                 window_size_factor: int,
+                 decibel_scale_factor: int,
+                 hop_length: int,
+                 window_size_fft: int,
+                 number_filters_spectrogram: int,
+                 overlap: int,
+                 sample_rate: int,
+                 dropout_rate: float,
+                 file_extension: str,
+                 input_dimension: tuple):
 
         self.neural_network_model = None
         self.size_batch = size_batch
