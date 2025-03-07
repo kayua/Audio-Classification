@@ -52,52 +52,68 @@ DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
 
 def add_ast_arguments(parser):
 
-    parser.add_argument('--ast_projection_dimension', type=int,
-                        default=DEFAULT_PROJECTION_DIMENSION, help='Dimension for projection layer')
+    parser.add_argument('--ast_projection_dimension', type=int, default=DEFAULT_PROJECTION_DIMENSION,
+                        help='Dimension for projection layer'
+                        )
 
-    parser.add_argument('--ast_head_size', type=int,
-                        default=DEFAULT_HEAD_SIZE, help='Size of each head in multi-head attention')
+    parser.add_argument('--ast_head_size', type=int, default=DEFAULT_HEAD_SIZE,
+                        help='Size of each head in multi-head attention'
+                        )
 
-    parser.add_argument('--ast_number_heads', type=int,
-                        default=DEFAULT_NUMBER_HEADS, help='Number of heads in multi-head attention')
+    parser.add_argument('--ast_number_heads', type=int, default=DEFAULT_NUMBER_HEADS,
+                        help='Number of heads in multi-head attention'
+                        )
 
-    parser.add_argument('--ast_number_blocks', type=int,
-                        default=DEFAULT_NUMBER_BLOCKS, help='Number of transformer blocks')
+    parser.add_argument('--ast_number_blocks', type=int, default=DEFAULT_NUMBER_BLOCKS,
+                        help='Number of transformer blocks'
+                        )
 
-    parser.add_argument('--ast_hop_length', type=int,
-                        default=DEFAULT_HOP_LENGTH, help='Hop length for STFT')
+    parser.add_argument('--ast_hop_length', type=int, default=DEFAULT_HOP_LENGTH,
+                        help='Hop length for STFT'
+                        )
 
-    parser.add_argument('--ast_size_fft', type=int,
-                        default=DEFAULT_SIZE_FFT, help='Size of FFT window')
+    parser.add_argument('--ast_size_fft', type=int, default=DEFAULT_SIZE_FFT,
+                        help='Size of FFT window'
+                        )
 
-    parser.add_argument('--ast_patch_size', type=tuple,
-                        default=DEFAULT_SIZE_PATCH, help='Size of the patches in the spectrogram')
+    parser.add_argument('--ast_patch_size', type=tuple, default=DEFAULT_SIZE_PATCH,
+                        help='Size of the patches in the spectrogram'
+                        )
 
-    parser.add_argument('--ast_overlap', type=int,
-                        default=DEFAULT_OVERLAP, help='Overlap between patches in the spectrogram')
+    parser.add_argument('--ast_overlap', type=int, default=DEFAULT_OVERLAP,
+                        help='Overlap between patches in the spectrogram'
+                        )
 
-    parser.add_argument('--ast_dropout', type=float,
-                        default=DEFAULT_DROPOUT_RATE, help='Dropout rate in the network')
+    parser.add_argument('--ast_dropout', type=float, default=DEFAULT_DROPOUT_RATE,
+                        help='Dropout rate in the network'
+                        )
 
-    parser.add_argument('--ast_intermediary_activation', type=str,
-                        default=DEFAULT_INTERMEDIARY_ACTIVATION, help='Activation function for intermediary layers')
+    parser.add_argument('--ast_intermediary_activation', type=str, default=DEFAULT_INTERMEDIARY_ACTIVATION,
+                        help='Activation function for intermediary layers'
+                        )
 
-    parser.add_argument('--ast_last_activation_layer', type=str,
-                        default=DEFAULT_LAST_LAYER_ACTIVATION, help='Activation function for the last layer')
+    parser.add_argument('--ast_last_activation_layer', type=str, default=DEFAULT_LAST_LAYER_ACTIVATION,
+                        help='Activation function for the last layer'
+                        )
 
-    parser.add_argument('--ast_normalization_epsilon', type=float,
-                        default=DEFAULT_NORMALIZATION_EPSILON, help='Epsilon value for normalization layers')
+    parser.add_argument('--ast_normalization_epsilon', type=float, default=DEFAULT_NORMALIZATION_EPSILON,
+                        help='Epsilon value for normalization layers'
+                        )
 
-    parser.add_argument('--ast_decibel_scale_factor', type=float,
-                        default=DEFAULT_DECIBEL_SCALE_FACTOR, help='Scale factor for converting to decibels')
+    parser.add_argument('--ast_decibel_scale_factor', type=float, default=DEFAULT_DECIBEL_SCALE_FACTOR,
+                        help='Scale factor for converting to decibels'
+                        )
 
-    parser.add_argument('--ast_window_size_fft', type=int,
-                        default=DEFAULT_SIZE_FFT, help='Size of the FFT window for spectral analysis')
+    parser.add_argument('--ast_window_size_fft', type=int, default=DEFAULT_SIZE_FFT,
+                        help='Size of the FFT window for spectral analysis'
+                        )
 
-    parser.add_argument('--ast_window_size_factor', type=float,
-                        default=DEFAULT_WINDOW_SIZE_FACTOR, help='Factor applied to FFT window size')
+    parser.add_argument('--ast_window_size_factor', type=float, default=DEFAULT_WINDOW_SIZE_FACTOR,
+                        help='Factor applied to FFT window size'
+                        )
 
-    parser.add_argument('--ast_number_filters_spectrogram', type=int,
-                        default=DEFAULT_NUMBER_FILTERS_SPECTROGRAM, help='Number of filters in the spectrogram')
+    parser.add_argument('--ast_number_filters_spectrogram', type=int, default=DEFAULT_NUMBER_FILTERS_SPECTROGRAM,
+                        help='Number of filters in the spectrogram'
+                        )
 
     return parser

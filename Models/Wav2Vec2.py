@@ -8,7 +8,6 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-import logging
 
 try:
     import os
@@ -16,6 +15,7 @@ try:
     import glob
     import numpy
     import librosa
+    import logging
     import argparse
     import tensorflow
 
@@ -34,13 +34,13 @@ try:
     from tensorflow.keras.layers import Embedding
     from tensorflow.keras.layers import Activation
 
+    from tensorflow.keras.layers import TimeDistributed
     from tensorflow.keras.layers import MultiHeadAttention
     from tensorflow.keras.layers import LayerNormalization
-    from tensorflow.keras.layers import TimeDistributed
     from tensorflow.keras.layers import GlobalAveragePooling1D
 
-    from Modules.Layers.QuantizerLayerMLP import QuantizationLayer
     from Modules.Loss.ContrastiveLoss import ContrastiveLoss
+    from Modules.Layers.QuantizerLayerMLP import QuantizationLayer
 
     from sklearn.model_selection import StratifiedKFold
     from sklearn.model_selection import train_test_split

@@ -52,37 +52,48 @@ DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
 
 def add_conformer_arguments(parser):
 
-    parser.add_argument('--conformer_number_conformer_blocks', type=int,
-                        default=DEFAULT_NUMBER_CONFORMER_BLOCKS, help='Number of conformer blocks')
+    parser.add_argument('--conformer_number_conformer_blocks', type=int, default=DEFAULT_NUMBER_CONFORMER_BLOCKS,
+                        help='Number of conformer blocks'
+                        )
 
-    parser.add_argument('--conformer_embedding_dimension', type=int,
-                        default=DEFAULT_EMBEDDING_DIMENSION, help='Dimension of embedding layer')
+    parser.add_argument('--conformer_embedding_dimension', type=int, default=DEFAULT_EMBEDDING_DIMENSION,
+                        help='Dimension of embedding layer'
+                        )
 
-    parser.add_argument('--conformer_number_heads', type=int,
-                        default=DEFAULT_NUMBER_HEADS, help='Number of heads in multi-head attention')
+    parser.add_argument('--conformer_number_heads', type=int, default=DEFAULT_NUMBER_HEADS,
+                        help='Number of heads in multi-head attention'
+                        )
 
-    parser.add_argument('--conformer_size_kernel', type=int,
-                        default=DEFAULT_SIZE_KERNEL, help='Size of convolution kernel')
+    parser.add_argument('--conformer_size_kernel', type=int, default=DEFAULT_SIZE_KERNEL,
+                        help='Size of convolution kernel'
+                        )
 
-    parser.add_argument('--conformer_hop_length', type=int,
-                        default=DEFAULT_HOP_LENGTH, help='Hop length for STFT')
+    parser.add_argument('--conformer_hop_length', type=int, default=DEFAULT_HOP_LENGTH,
+                        help='Hop length for STFT'
+                        )
 
-    parser.add_argument('--conformer_overlap', type=int,
-                        default=DEFAULT_OVERLAP, help='Overlap between patches in the spectrogram')
+    parser.add_argument('--conformer_overlap', type=int, default=DEFAULT_OVERLAP,
+                        help='Overlap between patches in the spectrogram'
+                        )
 
-    parser.add_argument('--conformer_dropout_rate', type=float,
-                        default=DEFAULT_DROPOUT_RATE, help='Dropout rate in the network')
+    parser.add_argument('--conformer_dropout_rate', type=float, default=DEFAULT_DROPOUT_RATE,
+                        help='Dropout rate in the network'
+                        )
 
-    parser.add_argument('--conformer_window_size', type=int,
-                        default=DEFAULT_WINDOW_SIZE, help='Size of the FFT window')
+    parser.add_argument('--conformer_window_size', type=int, default=DEFAULT_WINDOW_SIZE,
+                        help='Size of the FFT window'
+                        )
 
-    parser.add_argument('--conformer_decibel_scale_factor', type=float,
-                        default=DEFAULT_DECIBEL_SCALE_FACTOR, help='Scale factor for converting to decibels')
+    parser.add_argument('--conformer_decibel_scale_factor', type=float, default=DEFAULT_DECIBEL_SCALE_FACTOR,
+                        help='Scale factor for converting to decibels'
+                        )
 
-    parser.add_argument('--conformer_window_size_factor', type=int,
-                        default=DEFAULT_WINDOW_SIZE_FACTOR, help='Factor applied to FFT window size')
+    parser.add_argument('--conformer_window_size_factor', type=int, default=DEFAULT_WINDOW_SIZE_FACTOR,
+                        help='Factor applied to FFT window size'
+                        )
 
-    parser.add_argument('--conformer_number_filters_spectrogram', type=int,
-                        default=DEFAULT_NUMBER_FILTERS_SPECTROGRAM, help='Number of filters in the spectrogram')
+    parser.add_argument('--conformer_number_filters_spectrogram', type=int, default=DEFAULT_NUMBER_FILTERS_SPECTROGRAM,
+                        help='Number of filters in the spectrogram'
+                        )
 
     return parser

@@ -80,24 +80,56 @@ def arguments(function):
 
 class Arguments:
     """
-    Class to manage and parse command-line arguments for various machine
-    learning models and settings. It initializes the arguments using
-    multiple specific argument addition functions.
+    Arguments Class
 
-    Attributes:
-        arguments (Namespace): Parsed command-line arguments.
+    This class manages the configuration and command-line arguments for a machine learning training
+    and evaluation pipeline. It collects arguments from multiple subsystems (AST, Conformer, LSTM,
+    MLP, Residual, Wav2Vec) and consolidates them into a single namespace.
+
+    The class also handles argument parsing, logging of all settings, and provides a static method
+    to define the core arguments related to dataset handling, training parameters, plotting, and
+    logging verbosity.
+
+    Methods
+    -------
+    __init__() :
+        Initializes the argument parser, adds arguments from multiple components, parses the
+        command-line arguments, and logs the final settings.
+
+    show_all_settings() :
+        Logs the parsed arguments in a formatted manner for better visibility, including
+        the command used to launch the script.
+
+    get_arguments() :
+        Static method that defines the base arguments required for dataset handling, training,
+        plotting, and logging.
+
+    Notes
+    -----
+    This class relies on external functions to append arguments related to specific model types
+    (AST, Conformer, LSTM, MLP, Residual, Wav2Vec). These functions are expected to extend the
+    `ArgumentParser` instance with additional arguments specific to each model architecture.
     """
 
     def __init__(self):
         """
-        Initializes the Arguments class by adding various argument
-        options for different machine learning models and settings.
-        It also configures logging based on verbosity settings and
-        prepares the output directory for storing logs.
+        Initializes the Arguments class.
+
+        This constructor:
+        1. Initializes a base ArgumentParser with common arguments.
+        2. Sequentially adds arguments from different model components.
+        3. Parses the command-line arguments.
+        4. Logs all parsed arguments and the command used to run the script.
+
+        External functions (add_ast_arguments, add_conformer_arguments, etc.) are assumed to
+        be responsible for adding architecture-specific arguments to the parser.
         """
-        # Initialize arguments from the framework
         super().__init__()
+
+        # Initialize argument parser with common arguments
         self.arguments = self.get_arguments()
+
+        # Append additional arguments related to specific architectures
         self.arguments = add_ast_arguments(self.arguments)
         self.arguments = add_conformer_arguments(self.arguments)
         self.arguments = add_lstm_arguments(self.arguments)
@@ -105,80 +137,131 @@ class Arguments:
         self.arguments = add_residual_arguments(self.arguments)
         self.arguments = add_wav_to_vec_arguments(self.arguments)
 
+        # Parse the combined set of arguments
         self.arguments = self.arguments.parse_args()
 
+        # Log all parsed settings
         self.show_all_settings()
 
     def show_all_settings(self):
         """
-        Logs all settings and command-line arguments after parsing.
-        Displays the command used to run the script along with the
-        corresponding values for each argument.
+        Logs all parsed arguments in a formatted and structured way.
+
+        This method logs:
+        - The full command used to run the script (useful for reproducibility).
+        - All arguments and their values, properly formatted for readability.
+
+        This function is particularly useful in machine learning experiments where tracking
+        hyperparameters and configurations is critical.
+
+        The output is printed to the logging framework, typically to console or log files.
         """
-        # Log the command used to execute the script
         logging.info("Command:\n\t{0}\n".format(" ".join([x for x in sys.argv])))
+
         logging.info("Settings:")
-        # Calculate the maximum length of argument names for formatting
+
+        # Compute maximum argument name length for aligned logging
         lengths = [len(x) for x in vars(self.arguments).keys()]
         max_length = max(lengths)
 
-        # Log each argument and its value
+        # Log each argument name and value pair
         for keys, values in sorted(vars(self.arguments).items()):
-            settings_parser = "\t"  # Start with a tab for indentation
-            # Left-justify the argument name for better readability
-            settings_parser += keys.ljust(max_length, " ")
-            # Append the value of the argument
-            settings_parser += " : {}".format(values)
-            # Log the formatted argument and value
+            settings_parser = "\t" + keys.ljust(max_length, " ") + " : {}".format(values)
             logging.info(settings_parser)
 
-        logging.info("")  # Log a newline for spacing
+        # Extra spacing for readability
+        logging.info("")
 
     @staticmethod
     def get_arguments():
-        argument_parser = argparse.ArgumentParser(description="Model evaluation with metrics and confusion matrices.")
+        """
+        Defines the base arguments required for the training and evaluation pipeline.
 
-        argument_parser.add_argument("--dataset_directory", type=str,
-                            default=DEFAULT_DATASET_DIRECTORY, help="Directory containing the dataset.")
+        These arguments are common across different models and cover:
+        - Dataset paths and structure.
+        - Training parameters such as epochs, batch size, and cross-validation splits.
+        - Loss function selection.
+        - Audio-specific settings such as sample rate and overlap.
+        - Plotting configuration for visualizations.
+        - Logging verbosity level.
 
-        argument_parser.add_argument("--number_epochs", type=int,
-                            default=DEFAULT_NUMBER_EPOCHS, help="Number of training epochs.")
+        Returns
+        -------
+        argparse.ArgumentParser
+            Configured ArgumentParser with all core arguments.
+        """
+        argument_parser = argparse.ArgumentParser(
+            description="Model evaluation with metrics and confusion matrices."
+        )
 
-        argument_parser.add_argument("--batch_size", type=int,
-                            default=DEFAULT_BATCH_SIZE, help="Size of the batches for training.")
+        argument_parser.add_argument(
+            "--dataset_directory", type=str, default=DEFAULT_DATASET_DIRECTORY,
+            help="Directory containing the dataset files (audio, labels, etc.)."
+        )
 
-        argument_parser.add_argument("--number_splits", type=int,
-                            default=DEFAULT_NUMBER_SPLITS, help="Number of splits for cross-validation.")
+        argument_parser.add_argument(
+            "--number_epochs", type=int, default=DEFAULT_NUMBER_EPOCHS,
+            help="Number of training epochs for model training."
+        )
 
-        argument_parser.add_argument("--loss", type=str,
-                            default=DEFAULT_LOSS, help="Loss function to use during training.")
+        argument_parser.add_argument(
+            "--batch_size", type=int, default=DEFAULT_BATCH_SIZE,
+            help="Size of the training batches."
+        )
 
-        argument_parser.add_argument("--sample_rate", type=int,
-                            default=DEFAULT_SAMPLE_RATE, help="Sample rate of the audio files.")
+        argument_parser.add_argument(
+            "--number_splits", type=int, default=DEFAULT_NUMBER_SPLITS,
+            help="Number of splits for cross-validation."
+        )
 
-        argument_parser.add_argument("--overlap", type=int,
-                            default=DEFAULT_OVERLAP, help="Overlap for the audio segments.")
+        argument_parser.add_argument(
+            "--loss", type=str, default=DEFAULT_LOSS,
+            help="Loss function to be used during training (e.g., cross-entropy, MSE)."
+        )
 
-        argument_parser.add_argument("--number_classes", type=int,
-                            default=DEFAULT_NUMBER_CLASSES, help="Number of classes in the dataset.")
+        argument_parser.add_argument(
+            "--sample_rate", type=int, default=DEFAULT_SAMPLE_RATE,
+            help="Sample rate for audio files (e.g., 16000 Hz)."
+        )
 
-        argument_parser.add_argument("--output_directory", type=str,
-                            default=DEFAULT_OUTPUT_DIRECTORY, help="Directory to save output files.")
+        argument_parser.add_argument(
+            "--overlap", type=int, default=DEFAULT_OVERLAP,
+            help="Overlap size (in samples or frames) when splitting audio segments."
+        )
 
-        argument_parser.add_argument("--plot_width", type=float,
-                            default=DEFAULT_PLOT_WIDTH, help="Width of the plots.")
+        argument_parser.add_argument(
+            "--number_classes", type=int, default=DEFAULT_NUMBER_CLASSES,
+            help="Total number of classes in the dataset (for classification tasks)."
+        )
 
-        argument_parser.add_argument("--plot_height", type=float,
-                            default=DEFAULT_PLOT_HEIGHT, help="Height of the plots.")
+        argument_parser.add_argument(
+            "--output_directory", type=str, default=DEFAULT_OUTPUT_DIRECTORY,
+            help="Directory where outputs (models, plots, logs) will be saved."
+        )
 
-        argument_parser.add_argument("--plot_bar_width", type=float,
-                            default=DEFAULT_PLOT_BAR_WIDTH, help="Width of the bars in the bar plots.")
+        argument_parser.add_argument(
+            "--plot_width", type=float, default=DEFAULT_PLOT_WIDTH,
+            help="Width of plots (in inches) for visualizations."
+        )
 
-        argument_parser.add_argument("--plot_cap_size", type=float,
-                            default=DEFAULT_PLOT_CAP_SIZE, help="Capsize of the error bars in the bar plots.")
+        argument_parser.add_argument(
+            "--plot_height", type=float, default=DEFAULT_PLOT_HEIGHT,
+            help="Height of plots (in inches) for visualizations."
+        )
 
-        argument_parser.add_argument("--verbosity", type=int,
-                            help='Verbosity (Default {})'.format(DEFAULT_VERBOSITY), default=DEFAULT_VERBOSITY)
+        argument_parser.add_argument(
+            "--plot_bar_width", type=float, default=DEFAULT_PLOT_BAR_WIDTH,
+            help="Width of individual bars in bar plots."
+        )
 
+        argument_parser.add_argument(
+            "--plot_cap_size", type=float, default=DEFAULT_PLOT_CAP_SIZE,
+            help="Size of error bar caps in plots."
+        )
 
-        return arguments
+        argument_parser.add_argument(
+            "--verbosity", type=int, default=DEFAULT_VERBOSITY,
+            help="Logging verbosity level (higher values indicate more detailed logs)."
+        )
+
+        return argument_parser

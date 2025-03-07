@@ -14,8 +14,8 @@ try:
     from typing import List
     from typing import Dict
     from typing import Tuple
-    from typing import Optional
     from typing import Union
+    from typing import Optional
 
     from sklearn.metrics import accuracy_score
     from sklearn.metrics import precision_score
