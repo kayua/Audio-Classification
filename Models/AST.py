@@ -136,52 +136,7 @@ class AudioAST(MetricsCalculator):
         # Return the processed signal and the sample rate
         return signal, sample_rate
 
-    # def split_spectrogram_into_patches(self, spectrogram: numpy.ndarray) -> numpy.ndarray:
-    #
-    #     # Calculate the padding needed to make the dimensions divisible by patch_size
-    #     pad_height = (self.patch_size[0] - (spectrogram.shape[0] % self.patch_size[0])) % self.patch_size[0]
-    #     pad_width = (self.patch_size[1] - (spectrogram.shape[1] % self.patch_size[1])) % self.patch_size[1]
-    #
-    #     # Pad the spectrogram with zeros
-    #     padded_spectrogram = numpy.pad(spectrogram, ((0, pad_height), (0, pad_width)), mode='constant',
-    #                                    constant_values=0)
-    #
-    #     num_patches_x = padded_spectrogram.shape[0] // self.patch_size[0]
-    #     num_patches_y = padded_spectrogram.shape[1] // self.patch_size[1]
-    #
-    #     list_patches = []
-    #
-    #     for i in range(num_patches_x):
-    #
-    #         for j in range(num_patches_y):
-    #
-    #             patch = padded_spectrogram[
-    #                     i * self.patch_size[0]:(i + 1) * self.patch_size[0],
-    #                     j * self.patch_size[1]:(j + 1) * self.patch_size[1]]
-    #
-    #             list_patches.append(patch)
-    #
-    #     return numpy.array(list_patches)
-
-    # def linear_projection(self, tensor_patches: numpy.ndarray) -> numpy.ndarray:
-    #
-    #     patches_flat = tensor_patches.reshape(tensor_patches.shape[0], -1)
-    #     return Dense(self.projection_dimension)(patches_flat)
-
     def transformer_encoder(self, inputs: tensorflow.Tensor) -> tensorflow.Tensor:
-        """
-        Builds the transformer encoder.
-
-        Parameters
-        ----------
-        inputs : tensorflow.Tensor
-            The input tensor.
-
-        Returns
-        -------
-        tensorflow.Tensor
-            The output tensor of the transformer encoder.
-        """
 
         # Iterate over the number of transformer blocks
         for _ in range(self.number_blocks):
@@ -217,19 +172,7 @@ class AudioAST(MetricsCalculator):
         return inputs
 
     def build_model(self, number_patches: int) -> tensorflow.keras.models.Model:
-        """
-        Builds the audio classification model.
 
-        Parameters
-        ----------
-        number_patches : int
-            The number of patches in the input.
-
-        Returns
-        -------
-        tensorflow.keras.models.Model
-            The built Keras model.
-        """
         # Define the input layer with shape (number_patches, projection_dimension)
         inputs = Input(shape=(number_patches, self.patch_size[0], self.patch_size[1]))
         input_flatten = TimeDistributed(Flatten())(inputs)
@@ -298,50 +241,8 @@ class AudioAST(MetricsCalculator):
         # Return the list of file paths and corresponding labels
         return file_paths, labels
 
-    # @staticmethod
-    # def windows(data, window_size, overlap):
-    #     """
-    #     Generates windowed segments of the input data.
-    #
-    #     Parameters
-    #     ----------
-    #     data : numpy.ndarray
-    #         The input data array.
-    #     window_size : int
-    #         The size of each window.
-    #     overlap : int
-    #         The overlap between consecutive windows.
-    #
-    #     Yields
-    #     ------
-    #     tuple
-    #         Start and end indices of each window.
-    #     """
-    #     start = 0
-    #     while start < len(data):
-    #         yield start, start + window_size
-    #         start += (window_size // overlap)
-
-
     def load_dataset(self, sub_directories: str = None, file_extension: str = None) -> tuple:
-        """
-        Loads audio data, extracts features, and prepares labels.
 
-        This method reads audio files from the specified directories, extracts mel spectrogram features,
-        and prepares the corresponding labels. It also supports splitting spectrograms into patches.
-
-        Parameters
-        ----------
-        sub_directories : str, optional
-            Path to the directory containing subdirectories of audio files.
-        file_extension : str, optional
-            The file extension for audio files (e.g., '*.wav').
-
-        Returns
-        -------
-        tuple
-            A tuple containing the feature array and label array.
-        """
         logging.info("Starting to load the dataset...")
         list_spectrogram, list_labels, list_class_path = [], [], []
         file_extension = file_extension or self.sound_file_format
@@ -408,26 +309,6 @@ class AudioAST(MetricsCalculator):
 
     def train(self, dataset_directory, number_epochs, batch_size, number_splits, loss, sample_rate, overlap,
               number_classes, arguments) -> tuple:
-        """
-        Trains the model using cross-validation.
-
-        Parameters
-        ----------
-        dataset_directory : str
-            Directory containing the training data.
-        number_epochs : int, optional
-            Number of training epochs.
-        batch_size : int, optional
-            Batch size for training.
-        number_splits : int, optional
-            Number of splits for cross-validation.
-
-        Returns
-        -------
-        tuple
-            A tuple containing the mean metrics, the training history, the mean confusion matrix,
-            and the predicted probabilities along with the ground truth labels.
-        """
 
         # Use default values if not provided
         self.number_epochs = number_epochs or self.number_epochs
@@ -466,34 +347,6 @@ class AudioAST(MetricsCalculator):
         features_train_val, features_test, labels_train_val, labels_test = train_test_split(
             features, labels, test_size=0.2, stratify=labels, random_state=42
         )
-
-        # Function to balance the classes by resampling
-        # def balance_classes(features, labels):
-        #     unique_classes = numpy.unique(labels)
-        #     max_samples = max([sum(labels == c) for c in unique_classes])
-        #
-        #     balanced_features = []
-        #     balanced_labels = []
-        #
-        #     for c in unique_classes:
-        #
-        #         features_class = features[labels == c]
-        #         labels_class = labels[labels == c]
-        #
-        #         features_class_resampled, labels_class_resampled = resample(
-        #             features_class, labels_class,
-        #             replace=True,
-        #             n_samples=max_samples,
-        #             random_state=0
-        #         )
-        #
-        #         balanced_features.append(features_class_resampled)
-        #         balanced_labels.append(labels_class_resampled)
-        #
-        #     balanced_features = numpy.vstack(balanced_features)
-        #     balanced_labels = numpy.hstack(balanced_labels)
-        #
-        #     return balanced_features, balanced_labels
 
         # Balance training/validation set
         features_train_val, labels_train_val = balance_classes(features_train_val, labels_train_val)
