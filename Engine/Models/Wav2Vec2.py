@@ -39,7 +39,7 @@ try:
     from tensorflow.keras.layers import LayerNormalization
     from tensorflow.keras.layers import GlobalAveragePooling1D
 
-    from Engine.Modules.Loss.ContrastiveLoss import ContrastiveLoss
+    from Engine.Loss.ContrastiveLoss import ContrastiveLoss
     from Engine.Layers.QuantizerLayerMLP import QuantizationLayer
 
     from sklearn.model_selection import StratifiedKFold
