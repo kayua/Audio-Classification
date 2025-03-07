@@ -14,12 +14,14 @@ try:
     import sys
     import glob
     import numpy
+
     import logging
     import librosa
     import argparse
     import tensorflow
 
     from tqdm import tqdm
+
     from sklearn.utils import resample
     from tensorflow.keras import models
 
@@ -30,18 +32,21 @@ try:
     from tensorflow.keras.layers import Conv1D
     from tensorflow.keras.layers import Flatten
     from tensorflow.keras.layers import Dropout
+
     from tensorflow.keras.layers import Embedding
     from tensorflow.keras.layers import Concatenate
-    from tensorflow.keras.layers import TimeDistributed
-    from tensorflow.keras.layers import LayerNormalization
-    from tensorflow.keras.layers import MultiHeadAttention
-    from tensorflow.keras.layers import GlobalAveragePooling1D
 
+    from tensorflow.keras.layers import TimeDistributed
     from sklearn.model_selection import StratifiedKFold
     from sklearn.model_selection import train_test_split
 
+    from tensorflow.keras.layers import LayerNormalization
+    from tensorflow.keras.layers import MultiHeadAttention
     from Modules.Layers.CLSTokenLayer import CLSTokenLayer
+
+    from tensorflow.keras.layers import GlobalAveragePooling1D
     from Modules.Evaluation.MetricsCalculator import MetricsCalculator
+
     from Modules.Layers.PositionalEmbeddingsLayer import PositionalEmbeddingsLayer
 
 except ImportError as error:
@@ -131,32 +136,32 @@ class AudioAST(MetricsCalculator):
         # Return the processed signal and the sample rate
         return signal, sample_rate
 
-    def split_spectrogram_into_patches(self, spectrogram: numpy.ndarray) -> numpy.ndarray:
-
-        # Calculate the padding needed to make the dimensions divisible by patch_size
-        pad_height = (self.patch_size[0] - (spectrogram.shape[0] % self.patch_size[0])) % self.patch_size[0]
-        pad_width = (self.patch_size[1] - (spectrogram.shape[1] % self.patch_size[1])) % self.patch_size[1]
-
-        # Pad the spectrogram with zeros
-        padded_spectrogram = numpy.pad(spectrogram, ((0, pad_height), (0, pad_width)), mode='constant',
-                                       constant_values=0)
-
-        num_patches_x = padded_spectrogram.shape[0] // self.patch_size[0]
-        num_patches_y = padded_spectrogram.shape[1] // self.patch_size[1]
-
-        list_patches = []
-
-        for i in range(num_patches_x):
-
-            for j in range(num_patches_y):
-
-                patch = padded_spectrogram[
-                        i * self.patch_size[0]:(i + 1) * self.patch_size[0],
-                        j * self.patch_size[1]:(j + 1) * self.patch_size[1]]
-
-                list_patches.append(patch)
-
-        return numpy.array(list_patches)
+    # def split_spectrogram_into_patches(self, spectrogram: numpy.ndarray) -> numpy.ndarray:
+    #
+    #     # Calculate the padding needed to make the dimensions divisible by patch_size
+    #     pad_height = (self.patch_size[0] - (spectrogram.shape[0] % self.patch_size[0])) % self.patch_size[0]
+    #     pad_width = (self.patch_size[1] - (spectrogram.shape[1] % self.patch_size[1])) % self.patch_size[1]
+    #
+    #     # Pad the spectrogram with zeros
+    #     padded_spectrogram = numpy.pad(spectrogram, ((0, pad_height), (0, pad_width)), mode='constant',
+    #                                    constant_values=0)
+    #
+    #     num_patches_x = padded_spectrogram.shape[0] // self.patch_size[0]
+    #     num_patches_y = padded_spectrogram.shape[1] // self.patch_size[1]
+    #
+    #     list_patches = []
+    #
+    #     for i in range(num_patches_x):
+    #
+    #         for j in range(num_patches_y):
+    #
+    #             patch = padded_spectrogram[
+    #                     i * self.patch_size[0]:(i + 1) * self.patch_size[0],
+    #                     j * self.patch_size[1]:(j + 1) * self.patch_size[1]]
+    #
+    #             list_patches.append(patch)
+    #
+    #     return numpy.array(list_patches)
 
     # def linear_projection(self, tensor_patches: numpy.ndarray) -> numpy.ndarray:
     #
