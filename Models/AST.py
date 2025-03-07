@@ -52,100 +52,37 @@ except ImportError as error:
     print()
     sys.exit(-1)
 
-# Default constants for the Audio Classification Model
-DEFAULT_WINDOW_SIZE_FACTOR = 40
-DEFAULT_PROJECTION_DIMENSION = 64  # Dimension of the linear projection
-DEFAULT_HEAD_SIZE = 256  # Size of each attention head
-DEFAULT_NUMBER_HEADS = 2  # Number of attention heads
-DEFAULT_NUMBER_BLOCKS = 2  # Number of transformer encoder blocks
-DEFAULT_NUMBER_CLASSES = 4  # Number of output classes for classification
-DEFAULT_SAMPLE_RATE = 8000  # Sample rate for loading audio
-DEFAULT_NUMBER_FILTERS = 128  # Number of filters for the Mel spectrogram
-DEFAULT_HOP_LENGTH = 512  # Hop length for the Mel spectrogram
-DEFAULT_SIZE_FFT = 1024  # FFT size for the Mel spectrogram
-DEFAULT_SIZE_PATCH = (16, 16)  # Size of the patches to be extracted from the spectrogram
-DEFAULT_OVERLAP = 2  # Overlap ratio between patches
-DEFAULT_DROPOUT_RATE = 0.2  # Dropout rate
-DEFAULT_NUMBER_EPOCHS = 10  # Number of training epochs
-DEFAULT_SIZE_BATCH = 32  # Batch size for training
-DEFAULT_NUMBER_SPLITS = 5  # Number of splits for cross-validation
-DEFAULT_NORMALIZATION_EPSILON = 1e-6  # Epsilon value for layer normalization
-DEFAULT_INTERMEDIARY_ACTIVATION = 'relu'  # Activation function for intermediary layers
-DEFAULT_LAST_LAYER_ACTIVATION = 'softmax'  # Activation function for the output layer
-DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'  # Loss function for model compilation
-DEFAULT_OPTIMIZER_FUNCTION = 'adam'  # Optimizer function for model compilation
-DEFAULT_FILE_EXTENSION = "*.wav"  # File format for sound files
-DEFAULT_AUDIO_DURATION = 10  # Duration of audio to be considered
-DEFAULT_DECIBEL_SCALE_FACTOR = 80
-DEFAULT_NUMBER_FILTERS_SPECTROGRAM = 512
-
 
 class AudioAST(MetricsCalculator):
-    """
-    A class used to build and train an audio classification model.
-
-    Attributes
-    ----------
-    Various attributes with default values for model parameters.
-    """
 
     def __init__(self,
-                 projection_dimension: int = DEFAULT_PROJECTION_DIMENSION,
-                 head_size: int = DEFAULT_HEAD_SIZE,
-                 num_heads: int = DEFAULT_NUMBER_HEADS,
-                 number_blocks: int = DEFAULT_NUMBER_BLOCKS,
-                 number_classes: int = DEFAULT_NUMBER_CLASSES,
-                 sample_rate: int = DEFAULT_SAMPLE_RATE,
-                 hop_length: int = DEFAULT_HOP_LENGTH,
-                 size_fft: int = DEFAULT_SIZE_FFT,
-                 patch_size: tuple = DEFAULT_SIZE_PATCH,
-                 overlap: int = DEFAULT_OVERLAP,
-                 number_epochs: int = DEFAULT_NUMBER_EPOCHS,
-                 size_batch: int = DEFAULT_SIZE_BATCH,
-                 dropout: float = DEFAULT_DROPOUT_RATE,
-                 intermediary_activation: str = DEFAULT_INTERMEDIARY_ACTIVATION,
-                 loss_function: str = DEFAULT_LOSS_FUNCTION,
-                 last_activation_layer: str = DEFAULT_LAST_LAYER_ACTIVATION,
-                 optimizer_function: str = DEFAULT_OPTIMIZER_FUNCTION,
-                 number_splits: int = DEFAULT_NUMBER_SPLITS,
-                 normalization_epsilon: float = DEFAULT_NORMALIZATION_EPSILON,
-                 audio_duration: int = DEFAULT_AUDIO_DURATION,
-                 decibel_scale_factor=DEFAULT_DECIBEL_SCALE_FACTOR,
-                 window_size_fft=DEFAULT_SIZE_FFT,
-                 window_size_factor=DEFAULT_WINDOW_SIZE_FACTOR,
-                 number_filters_spectrogram=DEFAULT_NUMBER_FILTERS_SPECTROGRAM,
-                 file_extension=DEFAULT_FILE_EXTENSION):
+                 projection_dimension: int,
+                 head_size: int,
+                 num_heads: int,
+                 number_blocks: int,
+                 number_classes: int,
+                 sample_rate: int,
+                 hop_length: int,
+                 size_fft: int,
+                 patch_size: tuple,
+                 overlap: int,
+                 number_epochs: int,
+                 size_batch: int,
+                 dropout: float,
+                 intermediary_activation: str,
+                 loss_function: str,
+                 last_activation_layer: str,
+                 optimizer_function: str,
+                 number_splits: int,
+                 normalization_epsilon: float,
+                 audio_duration: int,
+                 decibel_scale_factor,
+                 window_size_fft,
+                 window_size_factor,
+                 number_filters_spectrogram,
+                 file_extension):
 
-        """
-        Parameters
 
-        ----------
-        projection_dimension: Dimension of the projection in the linear layer.
-        head_size: Size of each attention head.
-        num_heads: Number of attention heads.
-        mlp_output: Output size of the MLP layer.
-        number_blocks: Number of transformer encoder blocks.
-        number_classes: Number of output classes for classification.
-        sample_rate: Sample rate for loading audio.
-        number_filters: Number of filters for the Mel spectrogram.
-        hop_length: Hop length for the Mel spectrogram.
-        size_fft: FFT size for the Mel spectrogram.
-        patch_size: Size of the patches to be extracted from the spectrogram.
-        overlap: Overlap ratio between patches.
-        number_epochs: Number of training epochs.
-        size_batch: Batch size for training.
-        dropout: Dropout rate.
-        intermediary_activation: Activation function for intermediary layers.
-        loss_function: Loss function for model compilation.
-        last_activation_layer: Activation function for the output layer.
-        optimizer_function: Optimizer function for model compilation.
-        sound_file_format: File format for sound files.
-        kernel_size: Kernel size for convolutional layers.
-        number_splits: Number of splits for cross-validation.
-        normalization_epsilon: Epsilon value for layer normalization.
-        audio_duration: Duration of audio to be considered.
-
-        """
         self.neural_network_model = None
         self.head_size = head_size
         self.number_heads = num_heads
@@ -176,20 +113,7 @@ class AudioAST(MetricsCalculator):
         self.number_filters_spectrogram = number_filters_spectrogram
 
     def load_audio(self, filename: str) -> tuple:
-        """
-        Loads an audio file and pads or truncates it to the required duration.
 
-        Parameters
-        ----------
-        filename : str
-            Path to the audio file.
-
-        Returns
-        -------
-        tuple
-            A tuple containing the signal and the sample rate. The signal is a numpy array representing the audio waveform,
-            and the sample rate is an integer representing the number of samples per second.
-        """
         # Load the audio file with the specified sample rate
         signal, sample_rate = librosa.load(filename, sr=self.sample_rate)
 
@@ -208,19 +132,6 @@ class AudioAST(MetricsCalculator):
         return signal, sample_rate
 
     def split_spectrogram_into_patches(self, spectrogram: numpy.ndarray) -> numpy.ndarray:
-        """
-        Splits a spectrogram into non-overlapping patches of a fixed size with padding.
-
-        Parameters
-        ----------
-        spectrogram : numpy.ndarray
-            The spectrogram to be split. This is a 2D numpy array representing the Mel spectrogram.
-
-        Returns
-        -------
-        numpy.ndarray
-            An array of patches. Each patch is a 2D numpy array extracted from the spectrogram.
-        """
 
         # Calculate the padding needed to make the dimensions divisible by patch_size
         pad_height = (self.patch_size[0] - (spectrogram.shape[0] % self.patch_size[0])) % self.patch_size[0]
@@ -247,22 +158,10 @@ class AudioAST(MetricsCalculator):
 
         return numpy.array(list_patches)
 
-    def linear_projection(self, tensor_patches: numpy.ndarray) -> numpy.ndarray:
-        """
-        Applies a linear projection to the patches.
-
-        Parameters
-        ----------
-        tensor_patches : numpy.ndarray
-            The tensor of patches.
-
-        Returns
-        -------
-        numpy.ndarray
-            The projected patches.
-        """
-        patches_flat = tensor_patches.reshape(tensor_patches.shape[0], -1)
-        return Dense(self.projection_dimension)(patches_flat)
+    # def linear_projection(self, tensor_patches: numpy.ndarray) -> numpy.ndarray:
+    #
+    #     patches_flat = tensor_patches.reshape(tensor_patches.shape[0], -1)
+    #     return Dense(self.projection_dimension)(patches_flat)
 
     def transformer_encoder(self, inputs: tensorflow.Tensor) -> tensorflow.Tensor:
         """
@@ -359,52 +258,17 @@ class AudioAST(MetricsCalculator):
 
     def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,
                           batch_size: int, validation_data: tuple = None) -> tensorflow.keras.callbacks.History:
-        """
-        Compiles and trains the neural network model.
 
-        Parameters
-        ----------
-        train_data : tf.Tensor
-            Training data tensor with shape (samples, ...), where ... represents the feature dimensions.
-        train_labels : tf.Tensor
-            Training labels tensor with shape (samples,), representing the class labels.
-        epochs : int
-            Number of epochs to train the model.
-        batch_size : int
-            Number of samples per batch.
-        validation_data : tuple, optional
-            A tuple (validation_data, validation_labels) for validation during training. If not provided,
-             no validation is performed.
-
-        Returns
-        -------
-        tf.keras.callbacks.History
-            History object containing the training history, including loss and metrics over epochs.
-        """
-        # Compile the model with the specified optimizer, loss function, and metrics
         self.neural_network_model.compile(optimizer=self.optimizer_function, loss=self.loss_function,
                                           metrics=['accuracy'])
 
-        # Train the model with the training data and labels, and optionally validation data
         training_history = self.neural_network_model.fit(train_data, train_labels, epochs=epochs,
                                                          batch_size=batch_size,
                                                          validation_data=validation_data)
         return training_history
 
     def load_data(self, data_dir: str) -> tuple:
-        """
-        Loads audio file paths and labels from the given directory.
 
-        Parameters
-        ----------
-        data_dir : str
-            Directory containing the audio files.
-
-        Returns
-        -------
-        tuple
-            A tuple containing the file paths and labels.
-        """
         file_paths, labels = [], []
 
         # Iterate over each class directory in the given data directory
