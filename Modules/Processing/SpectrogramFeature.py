@@ -1,100 +1,100 @@
 import glob
 import logging
 import os
-
-import librosa
 import numpy
+import librosa
 from tqdm import tqdm
 
 
-def load_data(self, sub_directories: str = None, file_extension: str = None, stack_segments = False) -> tuple:
+class SpectrogramFeature:
+    def __init__(self, sample_rate=22050, window_size=2048, overlap=2,
+                 number_filters_spectrogram=128, window_size_fft=2048, hop_length=512, decibel_scale_factor=80):
+        self.sample_rate = sample_rate
+        self.window_size = window_size
+        self.overlap = overlap
+        self.number_filters_spectrogram = number_filters_spectrogram
+        self.window_size_fft = window_size_fft
+        self.hop_length = hop_length
+        self.decibel_scale_factor = decibel_scale_factor
 
-    logging.info("Starting to load data...")
-    list_spectrogram, list_labels, list_class_path = [], [], []
-    file_extension = file_extension or self.file_extension
+    def load_data(self, sub_directories: str, file_extension: str, stack_segments=False):
+        logging.info("Starting to load data...")
+        file_extension = file_extension or "*.wav"
 
-    # Check if directory exists
-    if not os.path.exists(sub_directories):
-        logging.error(f"Directory '{sub_directories}' does not exist.")
-        return None, None
+        if not os.path.exists(sub_directories):
+            logging.error(f"Directory '{sub_directories}' does not exist.")
+            return None, None
 
-    # Collect all class directories
-    logging.info(f"Reading subdirectories in '{sub_directories}'...")
-    for class_dir in os.listdir(sub_directories):
+        class_paths = self._get_class_paths(sub_directories)
+        spectrograms, labels = self._process_files(class_paths, file_extension)
 
-        class_path = os.path.join(sub_directories, class_dir)
+        return self._prepare_output(spectrograms, labels, stack_segments)
 
-        if os.path.isdir(class_path):
-            list_class_path.append(class_path)
+    @staticmethod
+    def _get_class_paths(sub_directories):
+        logging.info(f"Reading subdirectories in '{sub_directories}'...")
+        class_paths = [os.path.join(sub_directories, d) for d in os.listdir(sub_directories) if
+                       os.path.isdir(os.path.join(sub_directories, d))]
+        logging.info(f"Found {len(class_paths)} class directories.")
+        return class_paths
 
-    logging.info(f"Found {len(list_class_path)} class directories.")
+    def _process_files(self, class_paths, file_extension):
+        spectrograms, labels = [], []
 
-    # Process each audio file in subdirectories
-    for sub_directory in list_class_path:
-        logging.info(f"Processing class directory: {sub_directory}...")
+        for class_path in class_paths:
+            logging.info(f"Processing class directory: {class_path}...")
+            for file_name in tqdm(glob.glob(os.path.join(class_path, file_extension))):
+                try:
+                    signal, label = self._load_audio_and_extract_label(file_name)
+                    spectrograms.extend(self._extract_spectrograms(signal))
+                    labels.extend([label] * len(spectrograms))
+                except Exception as e:
+                    logging.error(f"Error processing file '{file_name}': {e}")
 
-        for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
+        return spectrograms, labels
 
-            try:
+    def _load_audio_and_extract_label(self, file_name):
+        signal, _ = librosa.load(file_name, sr=self.sample_rate)
+        label = os.path.basename(os.path.dirname(file_name)).split('_')[0]
+        return signal, label
 
-                signal, _ = librosa.load(file_name, sr=self.sample_rate)
-                label = file_name.split('/')[-2].split('_')[0]
+    def _extract_spectrograms(self, signal):
+        spectrograms = []
+        for start, end in self._generate_windows(len(signal)):
+            if len(signal[start:end]) == self.window_size:
+                spectrograms.append(self._generate_mel_spectrogram(signal[start:end]))
+        return spectrograms
 
-                for (start, end) in self.windows(signal, self.window_size, self.overlap):
+    def _generate_windows(self, length):
+        start = 0
+        while start < length:
+            yield start, start + self.window_size
+            start += self.window_size // self.overlap
 
-                    if len(signal[start:end]) == self.window_size:
-                        signal_window = signal[start:end]
+    def _generate_mel_spectrogram(self, signal_window):
+        spectrogram = librosa.feature.melspectrogram(
+            y=signal_window,
+            sr=self.sample_rate,
+            n_mels=self.number_filters_spectrogram,
+            n_fft=self.window_size_fft,
+            hop_length=self.hop_length
+        )
+        return (librosa.power_to_db(spectrogram, ref=numpy.max) / self.decibel_scale_factor) + 1
 
-                        # Generate mel spectrogram
-                        spectrogram = librosa.feature.melspectrogram(
-                            y=signal_window,
-                            n_mels=self.number_filters_spectrogram,
-                            sr=self.sample_rate,
-                            n_fft=self.window_size_fft,
-                            hop_length=self.hop_length
-                        )
-
-                        # Convert spectrogram to decibels
-                        spectrogram_decibel_scale = librosa.power_to_db(spectrogram, ref=numpy.max)
-                        spectrogram_decibel_scale = (spectrogram_decibel_scale / self.decibel_scale_factor) + 1
-
-                        # Append spectrogram and label
-                        list_spectrogram.append(spectrogram_decibel_scale)
-                        list_labels.append(label)
-
-            except Exception as e:
-                logging.error(f"Error processing file '{file_name}': {e}")
-
-    # For Residual Model
-    if stack_segments:
-
-        array_features = numpy.array(list_spectrogram).reshape(len(list_spectrogram),
-                                                           self.number_filters_spectrogram,
-                                                           self.window_size_factor, 1)
-        array_labels = numpy.array(list_labels, dtype=numpy.int32)
-
-        logging.info("Reshaping feature array.")
-        new_shape = list(array_features.shape)
-        new_shape[1] += 1
-        new_array = numpy.zeros(new_shape)
-        new_array[:, :self.number_filters_spectrogram, :, :] = array_features
-
-        logging.info("Data loading complete.")
-        return numpy.array(new_array, dtype=numpy.float32), array_labels
-
-    else:
-
-        array_features = numpy.array(list_spectrogram).reshape(
-            len(list_spectrogram),
+    def _prepare_output(self, spectrograms, labels, stack_segments):
+        array_features = numpy.array(spectrograms).reshape(
+            len(spectrograms),
             self.number_filters_spectrogram,
             self.window_size // self.hop_length,
             1
         )
+        array_labels = numpy.array(labels, dtype=numpy.int32)
 
-        array_labels = numpy.array(list_labels, dtype=numpy.int32)
+        if stack_segments:
+            new_shape = list(array_features.shape)
+            new_shape[1] += 1
+            stacked_features = numpy.zeros(new_shape)
+            stacked_features[:, :self.number_filters_spectrogram, :, :] = array_features
+            return stacked_features.astype(numpy.float32), array_labels
 
-        logging.info(f"Loaded {len(array_features)} spectrogram features.")
-        logging.info("Data loading complete.")
-
-        return numpy.array(array_features, dtype=numpy.float32), array_labels
-
+        return array_features.astype(numpy.float32), array_labels

@@ -157,64 +157,6 @@ class ResidualModel(MetricsCalculator):
         self.neural_network_model = Model(inputs=inputs, outputs=neural_network_flow, name=self.model_name)
 
 
-    def load_data(self, sub_directories: str = None, file_extension: str = None) -> tuple:
-
-        logging.info("Starting data loading process.")
-
-        list_spectrogram, list_labels, list_class_path = [], [], []
-        file_extension = file_extension or self.file_extension
-
-        # Collect class paths
-        logging.info(f"Listing subdirectories in {sub_directories}")
-        for class_dir in os.listdir(sub_directories):
-            class_path = os.path.join(sub_directories, class_dir)
-            list_class_path.append(class_path)
-
-        # Process each subdirectory
-        for _, sub_directory in enumerate(list_class_path):
-            logging.info(f"Processing directory: {sub_directory}")
-
-            for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
-
-                # Load the audio signal
-                signal, _ = librosa.load(file_name, sr=self.sample_rate)
-                label = file_name.split('/')[-2].split('_')[0]  # Extract label from the file path
-
-                # Segment the audio into windows
-                for (start, end) in self.windows(signal, self.window_size, self.overlap):
-
-                    if len(signal[start:end]) == self.window_size:
-                        signal_segment = signal[start:end]
-
-                        # Generate a mel spectrogram
-                        spectrogram = librosa.feature.melspectrogram(y=signal_segment,
-                                                                     n_mels=self.number_filters_spectrogram,
-                                                                     sr=self.sample_rate,
-                                                                     n_fft=self.window_size_fft,
-                                                                     hop_length=self.hop_length)
-
-                        # Convert the spectrogram to decibel scale
-                        spectrogram_decibel_scale = librosa.power_to_db(spectrogram, ref=numpy.max)
-                        spectrogram_decibel_scale = (spectrogram_decibel_scale / self.decibel_scale_factor) + 1
-                        list_spectrogram.append(spectrogram_decibel_scale)
-                        list_labels.append(label)
-
-        # Convert lists to arrays
-        array_features = numpy.array(list_spectrogram).reshape(len(list_spectrogram),
-                                                            self.number_filters_spectrogram,
-                                                            self.window_size_factor, 1)
-        array_labels = numpy.array(list_labels, dtype=numpy.int32)
-
-        # Adjust array shape for additional dimensions
-        logging.info("Reshaping feature array.")
-        new_shape = list(array_features.shape)
-        new_shape[1] += 1  # Adding an additional filter dimension
-        new_array = numpy.zeros(new_shape)
-        new_array[:, :self.number_filters_spectrogram, :, :] = array_features
-
-        logging.info("Data loading complete.")
-        return numpy.array(new_array, dtype=numpy.float32), array_labels
-
     def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,
                           batch_size: int, validation_data: tuple = None) -> tensorflow.keras.callbacks.History:
 
