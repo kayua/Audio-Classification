@@ -64,11 +64,6 @@ DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
 
 
 class AudioDense(MetricsCalculator):
-    """
-    A Long Short-Term Memory (LSTM) model for audio classification, integrating LSTM layers and a final classification layer.
-
-    This class inherits from MetricsCalculator to enable calculation of various metrics for model evaluation.
-    """
 
     def __init__(self,
                  number_classes: int = DEFAULT_NUMBER_CLASSES,
@@ -88,31 +83,11 @@ class AudioDense(MetricsCalculator):
                  intermediary_layer_activation: str = DEFAULT_INTERMEDIARY_LAYER_ACTIVATION,
                  input_dimension: tuple = DEFAULT_INPUT_DIMENSION,
                  list_lstm_cells=None):
-        """
-        Initializes the AudioLSTM model with the specified parameters.
 
-        :param number_classes: Number of classes for classification.
-        :param last_layer_activation: Activation function for the final dense layer.
-        :param size_batch: Batch size for training.
-        :param number_splits: Number of splits for cross-validation.
-        :param number_epochs: Number of training epochs.
-        :param loss_function: Loss function for model compilation.
-        :param optimizer_function: Optimizer function for model compilation.
-        :param window_size_factor: Factor to determine the window size for audio processing.
-        :param decibel_scale_factor: Factor to scale decibel values.
-        :param hop_length: Length of the hop between successive frames in audio processing.
-        :param overlap: Overlap between consecutive windows in audio processing.
-        :param sample_rate: Sampling rate of the audio signals.
-        :param dropout_rate: Dropout rate for regularization.
-        :param file_extension: File extension of the audio files.
-        :param intermediary_layer_activation: Activation function for the LSTM layers.
-        :param recurrent_activation: Recurrent activation function for the LSTM layers.
-        :param input_dimension: Dimension of the input data.
-        :param list_lstm_cells: List containing the number of LSTM cells for each layer.
-        """
 
         if list_lstm_cells is None:
             list_lstm_cells = DEFAULT_LIST_DENSE_NEURONS
+
         self.neural_network_model = None
         self.size_batch = size_batch
         self.list_number_neurons = list_lstm_cells
@@ -135,17 +110,7 @@ class AudioDense(MetricsCalculator):
         self.model_name = "MLP"
 
     def build_model(self) -> None:
-        """
-        Builds the LSTM model architecture using the initialized parameters.
 
-        The model consists of:
-        - MLP layers with specified number of number_neurons and activation functions
-        - Dropout layers for regularization
-        - Global average pooling layer
-        - Dense layer for final classification
-
-        The constructed model is stored in the `neural_network_model` attribute.
-        """
         inputs = Input(shape=self.input_dimension)
 
         neural_network_flow = inputs
@@ -160,16 +125,7 @@ class AudioDense(MetricsCalculator):
 
     def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,
                           batch_size: int, validation_data: tuple = None) -> tensorflow.keras.callbacks.History:
-        """
-        Compiles and trains the LSTM model on the provided training data.
 
-        :param train_data: Tensor containing the training data.
-        :param train_labels: Tensor containing the training labels.
-        :param epochs: Number of training epochs.
-        :param batch_size: Batch size for training.
-        :param validation_data: Tuple containing validation data and labels (optional).
-        :return: Training history containing metrics and loss values for each epoch.
-        """
         self.neural_network_model.compile(optimizer=self.optimizer_function, loss=self.loss_function,
                                           metrics=['accuracy'])
 
@@ -178,51 +134,9 @@ class AudioDense(MetricsCalculator):
                                                          validation_data=validation_data)
         return training_history
 
-    @staticmethod
-    def windows(data, window_size, overlap):
-        """
-        Generates windowed segments of the input data.
-
-        Parameters
-        ----------
-        data : numpy.ndarray
-            The input data array.
-        window_size : int
-            The size of each window.
-        overlap : int
-            The overlap between consecutive windows.
-
-        Yields
-        ------
-        tuple
-            Start and end indices of each window.
-        """
-        start = 0
-        while start < len(data):
-            yield start, start + window_size
-            start += (window_size // overlap)
 
     def load_data(self, sub_directories: str = None, file_extension: str = None) -> tuple:
-        """
-        Loads audio data, extracts features, and prepares labels.
 
-        This method reads audio files from the specified directories, segments them into windows,
-        normalizes the windows, and returns the extracted features along with their corresponding labels.
-
-        Parameters
-        ----------
-        sub_directories : str
-            Path to the parent directory containing subdirectories with audio files.
-        file_extension : str, optional
-            The file extension for audio files. If not provided, the default file extension is used.
-
-        Returns
-        -------
-        tuple
-            A tuple containing:
-            - numpy.ndarray: Feature array (normalized spectrograms).
-            - numpy.ndarray: Label array (class labels).
-        """
         logging.info("Starting data loading process.")
 
         list_spectrogram, list_labels, list_class_path = [], [], []
@@ -280,26 +194,7 @@ class AudioDense(MetricsCalculator):
 
     def train(self, dataset_directory, number_epochs, batch_size, number_splits,
               loss, sample_rate, overlap, number_classes, arguments) -> tuple:
-        """
-        Trains the model using cross-validation.
 
-        Parameters
-        ----------
-        dataset_directory : str
-            Directory containing the training data.
-        number_epochs : int, optional
-            Number of training epochs.
-        batch_size : int, optional
-            Batch size for training.
-        number_splits : int, optional
-            Number of splits for cross-validation.
-
-        Returns
-        -------
-        tuple
-            A tuple containing the mean metrics, the training history, the mean confusion matrix,
-            and the predicted probabilities along with the ground truth labels.
-        """
         # Use default values if not provided
         self.number_epochs = number_epochs or self.number_epochs
         self.number_splits = number_splits or self.number_splits
@@ -329,32 +224,6 @@ class AudioDense(MetricsCalculator):
             features, labels, test_size=0.2, stratify=labels, random_state=42
         )
 
-        # Function to balance the classes by resampling
-        def balance_classes(features, labels):
-            unique_classes = numpy.unique(labels)
-            max_samples = max([sum(labels == c) for c in unique_classes])
-
-            balanced_features = []
-            balanced_labels = []
-
-            for c in unique_classes:
-                features_class = features[labels == c]
-                labels_class = labels[labels == c]
-
-                features_class_resampled, labels_class_resampled = resample(
-                    features_class, labels_class,
-                    replace=True,
-                    n_samples=max_samples,
-                    random_state=0
-                )
-
-                balanced_features.append(features_class_resampled)
-                balanced_labels.append(labels_class_resampled)
-
-            balanced_features = numpy.vstack(balanced_features)
-            balanced_labels = numpy.hstack(balanced_labels)
-
-            return balanced_features, balanced_labels
 
         # Balance training/validation set
         features_train_val, labels_train_val = balance_classes(features_train_val, labels_train_val)

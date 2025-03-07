@@ -43,10 +43,10 @@ class ClassBalancer:
         balanced_features = []
         balanced_labels = []
 
-        for c in unique_classes:
+        for class_id in unique_classes:
             # Extract features and labels for the current class
-            features_class = features[labels == c]
-            labels_class = labels[labels == c]
+            features_class = features[labels == class_id]
+            labels_class = labels[labels == class_id]
 
             # Resample to match the largest class
             features_class_resampled, labels_class_resampled = resample(

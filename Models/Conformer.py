@@ -94,11 +94,6 @@ class TransposeLayer(Layer):
 
 
 class Conformer(MetricsCalculator):
-    """
-    A Conformer model for audio classification, integrating convolutional subsampling, conformer blocks,
-    and a final classification layer.
-
-    """
 
     def __init__(self,
                  number_conformer_blocks: int = DEFAULT_NUMBER_CONFORMER_BLOCKS,
@@ -122,32 +117,7 @@ class Conformer(MetricsCalculator):
                  dropout_rate: float = DEFAULT_DROPOUT_RATE,
                  file_extension: str = DEFAULT_FILE_EXTENSION,
                  input_dimension: tuple = DEFAULT_INPUT_DIMENSION):
-        """
-        Initializes the Conformer model with the given parameters.
 
-        Parameters
-        ----------
-        number_conformer_blocks: Number of conformer blocks to use in the model.
-        embedding_dimension: Dimensionality of the embedding space.
-        number_heads: Number of attention heads in the multi-head attention mechanism.
-        size_kernel: Size of the kernel for convolutional layers.
-        number_classes: Number of output classes for classification.
-        last_layer_activation: Activation function for the final dense layer.
-        size_batch: Batch size for training and evaluation.
-        number_splits: Number of splits for cross-validation or other purposes.
-        number_epochs: Number of epochs for training.
-        loss_function: Loss function to be used during training.
-        optimizer_function: Optimizer function to be used during training.
-        window_size_factor: Factor to determine the window size for FFT.
-        decibel_scale_factor: Factor to scale decibel values.
-        hop_length: Hop length for audio processing.
-        window_size_fft: Window size for FFT.
-        number_filters_spectrogram: Number of filters in the spectrogram processing layer.
-        overlap: Overlap factor for audio processing.
-        sample_rate: Sample rate for audio data.
-        file_extension: File extension for audio files.
-        input_dimension: Dimension of the input tensor.
-        """
         self.neural_network_model = None
         self.size_batch = size_batch
         self.number_splits = number_splits
@@ -174,19 +144,7 @@ class Conformer(MetricsCalculator):
         self.last_layer_activation = last_layer_activation
 
     def build_model(self) -> None:
-        """
-        Builds the Conformer model architecture using the initialized parameters.
 
-        Constructs the model with the following components:
-        - Convolutional subsampling layer
-        - Embedding layer
-        - Dropout layer
-        - Multiple Conformer blocks
-        - Global average pooling layer
-        - Dense layer for classification with the specified activation function
-
-        The resulting model is stored in the `neural_network_model` attribute.
-        """
         inputs = Input(shape=self.input_dimension)
         neural_network_flow = ConvolutionalSubsampling()(inputs)
         neural_network_flow = TransposeLayer(perm=[0, 2, 1])(neural_network_flow)
@@ -205,28 +163,7 @@ class Conformer(MetricsCalculator):
 
     def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,
                           batch_size: int, validation_data: tuple = None) -> tensorflow.keras.callbacks.History:
-        """
-        Compiles and trains the neural network model.
 
-        Parameters
-        ----------
-        train_data : tf.Tensor
-            Training data tensor with shape (samples, ...), where ... represents the feature dimensions.
-        train_labels : tf.Tensor
-            Training labels tensor with shape (samples,), representing the class labels.
-        epochs : int
-            Number of epochs to train the model.
-        batch_size : int
-            Number of samples per batch.
-        validation_data : tuple, optional
-            A tuple (validation_data, validation_labels) for validation during training. If not provided,
-             no validation is performed.
-
-        Returns
-        -------
-        tf.keras.callbacks.History
-            History object containing the training history, including loss and metrics over epochs.
-        """
         # Compile the model with the specified optimizer, loss function, and metrics
         self.neural_network_model.compile(optimizer=self.optimizer_function, loss=self.loss_function,
                                           metrics=['accuracy'])
@@ -237,49 +174,9 @@ class Conformer(MetricsCalculator):
                                                          validation_data=validation_data)
         return training_history
 
-    @staticmethod
-    def windows(data, window_size, overlap):
-        """
-        Generates windowed segments of the input data.
-
-        Parameters
-        ----------
-        data : numpy.ndarray
-            The input data array.
-        window_size : int
-            The size of each window.
-        overlap : int
-            The overlap between consecutive windows.
-
-        Yields
-        ------
-        tuple
-            Start and end indices of each window.
-        """
-        start = 0
-        while start < len(data):
-            yield start, start + window_size
-            start += (window_size // overlap)
 
     def load_data(self, sub_directories: str = None, file_extension: str = None) -> tuple:
-        """
-        Loads audio data, extracts spectrogram features, and prepares labels.
 
-        This method reads audio files from the specified directories, extracts mel spectrogram features,
-        and prepares the corresponding labels.
-
-        Parameters
-        ----------
-        sub_directories : str, optional
-            Path to the directory containing subdirectories of audio files.
-        file_extension : str, optional
-            The file extension for audio files (e.g., '*.wav').
-
-        Returns
-        -------
-        tuple
-            A tuple containing the feature array and label array.
-        """
         logging.info("Starting to load data...")
         list_spectrogram, list_labels, list_class_path = [], [], []
         file_extension = file_extension or self.file_extension
@@ -408,33 +305,6 @@ class Conformer(MetricsCalculator):
         features_train_val, features_test, labels_train_val, labels_test = train_test_split(
             features, labels, test_size=0.2, stratify=labels, random_state=42
         )
-
-        # Function to balance the classes by resampling
-        def balance_classes(features, labels):
-            unique_classes = numpy.unique(labels)
-            max_samples = max([sum(labels == c) for c in unique_classes])
-
-            balanced_features = []
-            balanced_labels = []
-
-            for c in unique_classes:
-                features_class = features[labels == c]
-                labels_class = labels[labels == c]
-
-                features_class_resampled, labels_class_resampled = resample(
-                    features_class, labels_class,
-                    replace=True,
-                    n_samples=max_samples,
-                    random_state=0
-                )
-
-                balanced_features.append(features_class_resampled)
-                balanced_labels.append(labels_class_resampled)
-
-            balanced_features = numpy.vstack(balanced_features)
-            balanced_labels = numpy.hstack(balanced_labels)
-
-            return balanced_features, balanced_labels
 
         # Balance training/validation set
         features_train_val, labels_train_val = balance_classes(features_train_val, labels_train_val)

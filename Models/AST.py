@@ -468,32 +468,32 @@ class AudioAST(MetricsCalculator):
         )
 
         # Function to balance the classes by resampling
-        def balance_classes(features, labels):
-            unique_classes = numpy.unique(labels)
-            max_samples = max([sum(labels == c) for c in unique_classes])
-
-            balanced_features = []
-            balanced_labels = []
-
-            for c in unique_classes:
-
-                features_class = features[labels == c]
-                labels_class = labels[labels == c]
-
-                features_class_resampled, labels_class_resampled = resample(
-                    features_class, labels_class,
-                    replace=True,
-                    n_samples=max_samples,
-                    random_state=0
-                )
-
-                balanced_features.append(features_class_resampled)
-                balanced_labels.append(labels_class_resampled)
-
-            balanced_features = numpy.vstack(balanced_features)
-            balanced_labels = numpy.hstack(balanced_labels)
-
-            return balanced_features, balanced_labels
+        # def balance_classes(features, labels):
+        #     unique_classes = numpy.unique(labels)
+        #     max_samples = max([sum(labels == c) for c in unique_classes])
+        #
+        #     balanced_features = []
+        #     balanced_labels = []
+        #
+        #     for c in unique_classes:
+        #
+        #         features_class = features[labels == c]
+        #         labels_class = labels[labels == c]
+        #
+        #         features_class_resampled, labels_class_resampled = resample(
+        #             features_class, labels_class,
+        #             replace=True,
+        #             n_samples=max_samples,
+        #             random_state=0
+        #         )
+        #
+        #         balanced_features.append(features_class_resampled)
+        #         balanced_labels.append(labels_class_resampled)
+        #
+        #     balanced_features = numpy.vstack(balanced_features)
+        #     balanced_labels = numpy.hstack(balanced_labels)
+        #
+        #     return balanced_features, balanced_labels
 
         # Balance training/validation set
         features_train_val, labels_train_val = balance_classes(features_train_val, labels_train_val)

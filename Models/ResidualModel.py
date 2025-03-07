@@ -70,23 +70,6 @@ DEFAULT_SIZE_CONVOLUTIONAL_FILTERS = (3, 3)
 
 
 class ResidualModel(MetricsCalculator):
-    """
-    A class for creating and training a Convolutional Neural Network (CNN) with residual connections.
-
-    Methods
-    -------
-    build_model()
-        Constructs the CNN model with residual connections.
-    windows(data, window_size, overlap)
-        Generates windowed segments of the input data.
-    load_data(sub_directories: str = None, file_extension: str = None) -> tuple
-        Loads audio data, extracts features, and prepares labels.
-    compile_model() -> None
-        Compiles the CNN model with the specified loss function and optimizer.
-    train(train_data_dir: str, number_epochs: int = None, batch_size: int = None,
-          number_splits: int = None) -> tuple
-        Trains the model using cross-validation and returns the mean metrics and training history.
-    """
 
     def __init__(self, sample_rate=DEFAULT_SAMPLE_RATE,
                  hop_length=DEFAULT_HOP_LENGTH,
@@ -112,35 +95,6 @@ class ResidualModel(MetricsCalculator):
                  dropout_rate=DEFAULT_DROPOUT_RATE,
                  file_extension=DEFAULT_FILE_EXTENSION):
 
-        """
-        Initializes the ResidualModel with the given parameters.
-
-        Parameters
-        ----------
-        sample_rate: The sample rate of the audio data.
-        hop_length: The hop length for the spectrogram.
-        window_size_factor: The factor by which the window size is multiplied.
-        number_filters_spectrogram: The number of filters in the spectrogram.
-        number_layers: The number of layers in the model.
-        input_dimension: The shape of the input data.
-        overlap: The overlap between consecutive windows.
-        convolutional_padding: The padding type for convolutional layers.
-        intermediary_activation: The activation function for intermediate layers.
-        last_layer_activation: The activation function for the last layer.
-        number_classes: The number of output classes.
-        size_convolutional_filters: The size of the convolutional filters.
-        size_pooling: The size of the pooling layers.
-        window_size_fft: The size of the FFT window.
-        decibel_scale_factor: The scale factor for converting power spectrogram to decibels.
-        filters_per_block: List specifying the number of filters for each convolutional block.
-        size_batch: The batch size for training.
-        number_splits: The number of splits for cross-validation.
-        number_epochs: The number of epochs for training.
-        loss_function: The loss function used for training the model.
-        optimizer_function: The optimizer function used for training the model.
-        dropout_rate: The dropout rate used in the model.
-        file_extension: The file extension for audio files.
-        """
 
         if filters_per_block is None:
             filters_per_block = DEFAULT_FILTERS_PER_BLOCK
@@ -173,17 +127,7 @@ class ResidualModel(MetricsCalculator):
         self.intermediary_activation = intermediary_activation
 
     def build_model(self):
-        """
-        Constructs a Convolutional Neural Network (CNN) with residual connections.
 
-        This method creates a CNN model architecture by stacking convolutional layers with residual connections,
-        followed by pooling and dropout layers.
-
-        Returns
-        -------
-        keras.Model
-            The compiled Convolutional model.
-        """
         inputs = Input(shape=self.input_shape)
         neural_network_flow = inputs
 
@@ -212,51 +156,9 @@ class ResidualModel(MetricsCalculator):
         # Define the model
         self.neural_network_model = Model(inputs=inputs, outputs=neural_network_flow, name=self.model_name)
 
-    @staticmethod
-    def windows(data, window_size, overlap):
-        """
-        Generates windowed segments of the input data.
-
-        Parameters
-        ----------
-        data : numpy.ndarray
-            The input data array.
-        window_size : int
-            The size of each window.
-        overlap : int
-            The overlap between consecutive windows.
-
-        Yields
-        ------
-        tuple
-            Start and end indices of each window.
-        """
-        start = 0
-        while start < len(data):
-            yield start, start + window_size
-            start += (window_size // overlap)
 
     def load_data(self, sub_directories: str = None, file_extension: str = None) -> tuple:
-        """
-        Loads audio data, extracts features, and prepares labels.
 
-        This method reads audio files from the specified directories, extracts spectrogram features,
-        and prepares the corresponding labels.
-
-        Parameters
-        ----------
-        sub_directories : str
-            Path to the parent directory containing subdirectories with audio files.
-        file_extension : str, optional
-            The file extension for audio files. If not provided, the default from the initialization is used.
-
-        Returns
-        -------
-        tuple
-            A tuple containing:
-            - numpy.ndarray: Feature array (spectrograms).
-            - numpy.ndarray: Label array (class labels).
-        """
         logging.info("Starting data loading process.")
 
         list_spectrogram, list_labels, list_class_path = [], [], []
@@ -315,16 +217,7 @@ class ResidualModel(MetricsCalculator):
 
     def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,
                           batch_size: int, validation_data: tuple = None) -> tensorflow.keras.callbacks.History:
-        """
-        Compiles and trains the LSTM model on the provided training data.
 
-        :param train_data: Tensor containing the training data.
-        :param train_labels: Tensor containing the training labels.
-        :param epochs: Number of training epochs.
-        :param batch_size: Batch size for training.
-        :param validation_data: Tuple containing validation data and labels (optional).
-        :return: Training history containing metrics and loss values for each epoch.
-        """
         self.neural_network_model.compile(optimizer=self.optimizer_function, loss=self.loss_function,
                                           metrics=['accuracy'])
 
@@ -335,26 +228,7 @@ class ResidualModel(MetricsCalculator):
 
     def train(self, dataset_directory, number_epochs, batch_size, number_splits,
               loss, sample_rate, overlap, number_classes, arguments) -> tuple:
-        """
-        Trains the model using cross-validation.
 
-        Parameters
-        ----------
-        dataset_directory : str
-            Directory containing the training data.
-        number_epochs : int, optional
-            Number of training epochs.
-        batch_size : int, optional
-            Batch size for training.
-        number_splits : int, optional
-            Number of splits for cross-validation.
-
-        Returns
-        -------
-        tuple
-            A tuple containing the mean metrics, the training history, the mean confusion matrix,
-            and the predicted probabilities along with the ground truth labels.
-        """
         # Use default values if not provided
         self.number_epochs = number_epochs or self.number_epochs
         self.number_splits = number_splits or self.number_splits
@@ -379,10 +253,6 @@ class ResidualModel(MetricsCalculator):
         self.convolutional_padding = arguments.residual_convolutional_padding
         self.intermediary_activation = arguments.residual_intermediary_activation
 
-
-
-
-
         history_model = None
         features, labels = self.load_data(dataset_directory)
         metrics_list, confusion_matriz_list = [], []
@@ -392,33 +262,6 @@ class ResidualModel(MetricsCalculator):
         features_train_val, features_test, labels_train_val, labels_test = train_test_split(
             features, labels, test_size=0.2, stratify=labels, random_state=42
         )
-
-        # Function to balance the classes by resampling
-        def balance_classes(features, labels):
-            unique_classes = numpy.unique(labels)
-            max_samples = max([sum(labels == c) for c in unique_classes])
-
-            balanced_features = []
-            balanced_labels = []
-
-            for c in unique_classes:
-                features_class = features[labels == c]
-                labels_class = labels[labels == c]
-
-                features_class_resampled, labels_class_resampled = resample(
-                    features_class, labels_class,
-                    replace=True,
-                    n_samples=max_samples,
-                    random_state=0
-                )
-
-                balanced_features.append(features_class_resampled)
-                balanced_labels.append(labels_class_resampled)
-
-            balanced_features = numpy.vstack(balanced_features)
-            balanced_labels = numpy.hstack(balanced_labels)
-
-            return balanced_features, balanced_labels
 
         # Balance training/validation set
         features_train_val, labels_train_val = balance_classes(features_train_val, labels_train_val)
