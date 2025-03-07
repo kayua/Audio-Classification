@@ -39,7 +39,7 @@ try:
     from logging.handlers import RotatingFileHandler
     from Engine.Models.AST import AudioAST, get_audio_ast_args
     from Engine.Models.LSTM import AudioLSTM, get_lstm_model_args
-    from Engine.Models.MLP import AudioDense, get_MLP_model_args
+    from Engine.Models.MLP import DenseModel, get_MLP_model_args
 
     from Engine.Models.Conformer import Conformer, get_conformer_models_args
     from Engine.Models.Wav2Vec2 import AudioWav2Vec2, get_wav_to_vec_args
@@ -761,7 +761,7 @@ if __name__ == "__main__":
     available_models = [
         AudioAST,
         AudioLSTM,
-        AudioDense,
+        DenseModel,
         Conformer,
         AudioWav2Vec2,
         ResidualModel
