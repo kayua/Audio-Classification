@@ -420,34 +420,3 @@ class AudioDense(MetricsCalculator):
 
         return (mean_metrics, {"Name": self.model_name, "History": history_model.history}, mean_confusion_matrices,
                 probabilities_predicted)
-
-def get_MLP_model_args(parser):
-
-    parser.add_argument('--mlp_list_dense_neurons',
-                        default=DEFAULT_LIST_DENSE_NEURONS, help='List of LSTM cell sizes for each layer')
-
-    parser.add_argument('--mlp_hop_length', type=int,
-                        default=DEFAULT_HOP_LENGTH, help='Hop length for STFT')
-
-    parser.add_argument('--mlp_overlap', type=int,
-                        default=DEFAULT_OVERLAP, help='Overlap between patches in the spectrogram')
-
-    parser.add_argument('--mlp_dropout_rate', type=float,
-                        default=DEFAULT_DROPOUT_RATE, help='Dropout rate in the network')
-
-    parser.add_argument('--mlp_window_size', type=int,
-                        default=DEFAULT_WINDOW_SIZE, help='Size of the FFT window')
-
-    parser.add_argument('--mlp_decibel_scale_factor', type=float,
-                        default=DEFAULT_DECIBEL_SCALE_FACTOR, help='Scale factor for converting to decibels')
-
-    parser.add_argument('--mlp_window_size_factor', type=int,
-                        default=DEFAULT_WINDOW_SIZE_FACTOR, help='Factor applied to FFT window size')
-
-    parser.add_argument('--mlp_last_layer_activation', type=str,
-                        default=DEFAULT_LAST_LAYER_ACTIVATION, help='Activation function for the last layer')
-
-    parser.add_argument('--mlp_intermediary_layer_activation', type=str,
-                        default=DEFAULT_INTERMEDIARY_LAYER_ACTIVATION, help='Activation function for intermediary layers')
-
-    return parser
