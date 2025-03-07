@@ -335,5 +335,6 @@ class ResourceMonitorCallback(Callback):
             return bandwidth, transfer_rate
 
         except Exception as e:
+
             logging.error(f'Error collecting network info: {e}')
             return None, None
