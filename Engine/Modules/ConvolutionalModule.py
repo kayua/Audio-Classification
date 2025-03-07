@@ -12,7 +12,7 @@ try:
     import sys
     import tensorflow
 
-    from Engine.Modules.Layers.GLU import GLU
+    from Engine.Layers.GLU import GLU
 
     from tensorflow.keras.layers import Layer
     from tensorflow.keras.layers import Conv1D

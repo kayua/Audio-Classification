@@ -40,7 +40,7 @@ try:
     from tensorflow.keras.layers import GlobalAveragePooling1D
 
     from Engine.Modules.Loss.ContrastiveLoss import ContrastiveLoss
-    from Engine.Modules.Layers.QuantizerLayerMLP import QuantizationLayer
+    from Engine.Layers.QuantizerLayerMLP import QuantizationLayer
 
     from sklearn.model_selection import StratifiedKFold
     from sklearn.model_selection import train_test_split

@@ -14,7 +14,7 @@ try:
     import tensorflow
 
     from tensorflow.keras.layers import Layer
-    from Engine.Modules.Layers.KNNLayer import KNNLayer
+    from Engine.Layers.KNNLayer import KNNLayer
 
 except ImportError as error:
     print(error)

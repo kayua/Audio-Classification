@@ -19,9 +19,9 @@ try:
     from tensorflow.keras.layers import MultiHeadAttention
     from tensorflow.keras.layers import LayerNormalization
 
-    from Engine.Modules.Layers.PositionalEncoding import PositionalEncoding
-    from Engine.Modules.Layers.TransformerDecoder import TransformerDecoder
-    from Engine.Modules.Layers.TransformerEncoder import TransformerEncoder
+    from Engine.Layers.PositionalEncoding import PositionalEncoding
+    from Engine.Layers.TransformerDecoder import TransformerDecoder
+    from Engine.Layers.TransformerEncoder import TransformerEncoder
 
 
 except ImportError as error:

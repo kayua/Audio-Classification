@@ -18,7 +18,7 @@ try:
     from tensorflow.keras.layers import LayerNormalization
     from tensorflow.keras.layers import MultiHeadAttention
 
-    from Engine.Modules.Layers.RelativePositionalEmbedding import RelativePositionalEmbedding
+    from Engine.Layers.RelativePositionalEmbedding import RelativePositionalEmbedding
 
 except ImportError as error:
     print(error)
