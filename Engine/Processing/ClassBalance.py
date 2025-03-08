@@ -40,13 +40,11 @@ class ClassBalancer:
         unique_classes = numpy.unique(labels)
         max_samples = max([sum(labels == class_index) for class_index in unique_classes])
 
-        balanced_features = []
-        balanced_labels = []
+        balanced_features, balanced_labels = [], []
 
         for class_id in unique_classes:
             # Extract features and labels for the current class
-            features_class = features[labels == class_id]
-            labels_class = labels[labels == class_id]
+            features_class, labels_class = features[labels == class_id], labels[labels == class_id]
 
             # Resample to match the largest class
             features_class_resampled, labels_class_resampled = resample(
@@ -60,7 +58,6 @@ class ClassBalancer:
             balanced_labels.append(labels_class_resampled)
 
         # Combine balanced data from all classes
-        balanced_features = numpy.vstack(balanced_features)
-        balanced_labels = numpy.hstack(balanced_labels)
+        balanced_features, balanced_labels = numpy.vstack(balanced_features), numpy.hstack(balanced_labels)
 
         return balanced_features, balanced_labels
