@@ -1,13 +1,31 @@
-import logging
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
 
-from sklearn.metrics import f1_score
+__author__ = 'unknown'
+__email__ = 'unknown@unknown.com.br'
+__version__ = '{1}.{0}.{0}'
+__initial_data__ = '2024/07/17'
+__last_update__ = '2024/07/17'
+__credits__ = ['unknown']
 
-from sklearn.metrics import recall_score
-from sklearn.metrics import roc_auc_score
 
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import precision_score
-from sklearn.metrics import confusion_matrix
+try:
+    import sys
+
+    import logging
+
+    from sklearn.metrics import f1_score
+
+    from sklearn.metrics import recall_score
+    from sklearn.metrics import roc_auc_score
+
+    from sklearn.metrics import accuracy_score
+    from sklearn.metrics import precision_score
+    from sklearn.metrics import confusion_matrix
+
+except ImportError as error:
+    print(error)
+    sys.exit(-1)
 
 class Metrics:
 
