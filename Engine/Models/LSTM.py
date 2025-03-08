@@ -204,3 +204,92 @@ class AudioLSTM:
                                                          batch_size=batch_size,
                                                          validation_data=validation_data)
         return training_history
+
+
+    @property
+    def neural_network_model(self):
+        return self._neural_network_model
+
+    @neural_network_model.setter
+    def neural_network_model(self, value):
+        self._neural_network_model = value
+
+    @property
+    def list_lstm_cells(self):
+        return self._list_lstm_cells
+
+    @list_lstm_cells.setter
+    def list_lstm_cells(self, value):
+        self._list_lstm_cells = value
+
+    @property
+    def loss_function(self):
+        return self._loss_function
+
+    @loss_function.setter
+    def loss_function(self, value):
+        self._loss_function = value
+
+    @property
+    def optimizer_function(self):
+        return self._optimizer_function
+
+    @optimizer_function.setter
+    def optimizer_function(self, value):
+        self._optimizer_function = value
+
+    @property
+    def recurrent_activation(self):
+        return self._recurrent_activation
+
+    @recurrent_activation.setter
+    def recurrent_activation(self, value):
+        self._recurrent_activation = value
+
+    @property
+    def intermediary_layer_activation(self):
+        return self._intermediary_layer_activation
+
+    @intermediary_layer_activation.setter
+    def intermediary_layer_activation(self, value):
+        self._intermediary_layer_activation = value
+
+    @property
+    def input_dimension(self):
+        return self._input_dimension
+
+    @input_dimension.setter
+    def input_dimension(self, value):
+        self._input_dimension = value
+
+    @property
+    def number_classes(self):
+        return self._number_classes
+
+    @number_classes.setter
+    def number_classes(self, value):
+        self._number_classes = value
+
+    @property
+    def dropout_rate(self):
+        return self._dropout_rate
+
+    @dropout_rate.setter
+    def dropout_rate(self, value):
+        self._dropout_rate = value
+
+    @property
+    def last_layer_activation(self):
+        return self._last_layer_activation
+
+    @last_layer_activation.setter
+    def last_layer_activation(self, value):
+        self._last_layer_activation = value
+
+    @property
+    def model_name(self):
+        return self._model_name
+
+    @model_name.setter
+    def model_name(self, value):
+        self._model_name = value
