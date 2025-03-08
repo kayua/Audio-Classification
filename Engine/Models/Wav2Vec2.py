@@ -199,22 +199,22 @@ class AudioWav2Vec2:
         # Apply convolutional layers to extract features from the input audio
         for number_filters in self.list_filters_encoder:
             neural_network_flow = TimeDistributed(
-                Conv1D(number_filters, self.kernel_size, strides=(2,), activation=self.intermediary_layer_activation))(
-                neural_network_flow)
+                Conv1D(number_filters, self.kernel_size, strides=(2,),
+                       activation=self.intermediary_layer_activation))(neural_network_flow)
 
         # Flatten the convolutional output to feed into the dense layers
         flatten_flow = TimeDistributed(Flatten())(neural_network_flow)
 
         # Apply a dense layer with specified activation
-        dense_layer = TimeDistributed(Dense(self.number_classes, activation=self.intermediary_layer_activation))(
-            flatten_flow)
+        dense_layer = TimeDistributed(Dense(self.number_classes,
+                                            activation=self.intermediary_layer_activation))(flatten_flow)
 
         # Create causal mask for the transformer attention
         causal_mask = create_mask(128)
 
         # Transformer block with multi-head attention
-        transformer_attention = MultiHeadAttention(num_heads=self.number_heads, key_dim=4)(dense_layer, dense_layer,
-                                                                                           attention_mask=causal_mask)
+        transformer_attention = MultiHeadAttention(num_heads=self.number_heads,
+                                                   key_dim=4)(dense_layer, dense_layer, attention_mask=causal_mask)
 
         # Add residual connection and normalize using LayerNormalization
         transformer_attention = Add()([dense_layer, transformer_attention])
