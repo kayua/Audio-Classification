@@ -11,9 +11,11 @@ __credits__ = ['unknown']
 
 try:
     import sys
+
     import tensorflow
 
     from tensorflow.keras import Model
+
     from tensorflow.keras.layers import LSTM
 
     from tensorflow.keras.layers import Dense

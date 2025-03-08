@@ -10,11 +10,13 @@ __credits__ = ['unknown']
 
 try:
     import sys
+
     import librosa
     import tensorflow
 
     from tensorflow.keras.layers import Add
     from tensorflow.keras.layers import Layer
+
     from tensorflow.keras.layers import Embedding
 
 except ImportError as error:

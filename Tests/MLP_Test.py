@@ -1,7 +1,25 @@
-import unittest
-import tensorflow
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
 
-from Engine.Models.MLP import DenseModel
+__author__ = 'unknown'
+__email__ = 'unknown@unknown.com.br'
+__version__ = '{1}.{0}.{0}'
+__initial_data__ = '2024/07/17'
+__last_update__ = '2024/07/17'
+__credits__ = ['unknown']
+
+
+try:
+    import sys
+
+    import unittest
+    import tensorflow
+
+    from Engine.Models.MLP import DenseModel
+
+except ImportError as error:
+    print(error)
+    sys.exit(-1)
 
 
 class TestDenseModel(unittest.TestCase):

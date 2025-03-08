@@ -1,10 +1,33 @@
-import numpy
-import unittest
-import tensorflow
-from tensorflow.keras import backend as K
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
 
-from Engine.Models.AST import AudioSpectrogramTransformer
+__author__ = 'unknown'
+__email__ = 'unknown@unknown.com.br'
+__version__ = '{1}.{0}.{0}'
+__initial_data__ = '2024/07/17'
+__last_update__ = '2024/07/17'
+__credits__ = ['unknown']
 
+
+try:
+    import sys
+
+    import numpy
+
+    import unittest
+    import tensorflow
+
+    from tensorflow.keras import backend
+
+    from Engine.Models.AST import AudioSpectrogramTransformer
+
+except ImportError as error:
+    print(error)
+    print("1. Install requirements:")
+    print("  pip3 install --upgrade pip")
+    print("  pip3 install -r requirements.txt ")
+    print()
+    sys.exit(-1)
 
 class TestAudioSpectrogramTransformerModel(unittest.TestCase):
     """
@@ -143,7 +166,7 @@ class TestAudioSpectrogramTransformerModel(unittest.TestCase):
         Clean up after each test method to free resources.
         This method will be called after every test.
         """
-        K.clear_session()
+        backend.clear_session()
 
 
 if __name__ == '__main__':

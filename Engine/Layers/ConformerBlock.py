@@ -13,7 +13,9 @@ try:
     import tensorflow
 
     from tensorflow.keras.layers import Layer
+
     from tensorflow.keras.layers import LayerNormalization
+
     from Engine.Modules.FeedForwardModule import FeedForwardModule
 
     from Engine.Modules.ConvolutionalModule import ConvolutionalModule

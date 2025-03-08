@@ -31,6 +31,7 @@ try:
     from tensorflow.keras.layers import TimeDistributed
 
     from Engine.Layers.CLSTokenLayer import CLSTokenLayer
+
     from tensorflow.keras.layers import LayerNormalization
     from tensorflow.keras.layers import MultiHeadAttention
 

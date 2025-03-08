@@ -10,6 +10,7 @@ __credits__ = ['unknown']
 
 try:
     import sys
+
     import tensorflow
 
     from Engine.Layers.GLU import GLU
@@ -17,9 +18,11 @@ try:
     from tensorflow.keras.layers import Layer
     from tensorflow.keras.layers import Conv1D
     from tensorflow.keras.layers import Dropout
+
     from tensorflow.keras.layers import Activation
 
     from tensorflow.keras.layers import DepthwiseConv1D
+
     from tensorflow.keras.layers import BatchNormalization
     from tensorflow.keras.layers import LayerNormalization
 
