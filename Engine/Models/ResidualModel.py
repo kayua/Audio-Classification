@@ -9,30 +9,23 @@ __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
 try:
-    import os
     import sys
-    import glob
-    import numpy
-    import librosa
+
     import tensorflow
 
-    from tqdm import tqdm
-    import librosa.display
-
     from tensorflow.keras import Model
-    from sklearn.utils import resample
 
-    from tensorflow.keras.layers import Conv2D
-    from tensorflow.keras.layers import Flatten
     from tensorflow.keras.layers import Dense
     from tensorflow.keras.layers import Input
+
+    from tensorflow.keras.layers import Conv2D
     from tensorflow.keras.layers import Dropout
+    from tensorflow.keras.layers import Flatten
+
     from tensorflow.keras.layers import Concatenate
     from tensorflow.keras.layers import MaxPooling2D
-    from sklearn.model_selection import StratifiedKFold
-    from sklearn.model_selection import train_test_split
+
     from Engine.Models.Process.EvaluationProcess import EvaluationProcess
-    from Engine.Evaluation.MetricsCalculator import MetricsCalculator
 
 except ImportError as error:
 
