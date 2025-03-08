@@ -21,13 +21,6 @@ except ImportError as error:
     sys.exit(-1)
 
 
-DEFAULT_FIGURE_WIDTH = 12
-DEFAULT_FIGURE_HEIGHT = 8
-DEFAULT_BAR_WIDTH = 0.20
-DEFAULT_CAPTION_SIZE = 10
-DEFAULT_SHOW_PLOT = False
-
-
 
 class ComparativeMetricsPlotter:
     """
