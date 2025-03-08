@@ -44,8 +44,6 @@ except ImportError as error:
     sys.exit(-1)
 
 
-DEFAULT_LIST_DENSE_NEURONS = [128, 129]
-
 
 class DenseModel(RawProcess):
     """
@@ -126,9 +124,6 @@ class DenseModel(RawProcess):
         # If list_lstm_cells is not provided, use the default list of dense neurons.
         super().__init__(size_batch, number_splits, number_epochs, optimizer_function, window_size_factor,
                          decibel_scale_factor, hop_length, overlap, sample_rate, file_extension)
-
-        if list_lstm_cells is None:
-            list_lstm_cells = DEFAULT_LIST_DENSE_NEURONS
 
         # Model initialization attributes.
         self.neural_network_model = None  # Placeholder for the Keras model.

@@ -41,8 +41,6 @@ except ImportError as error:
     sys.exit(-1)
 
 
-DEFAULT_LIST_LSTM_CELLS = [128, 129]
-
 
 class AudioLSTM(RawProcess):
     """
@@ -125,9 +123,6 @@ class AudioLSTM(RawProcess):
 
         super().__init__(size_batch, number_splits, number_epochs, optimizer_function, window_size_factor,
                          decibel_scale_factor, hop_length, overlap, sample_rate, file_extension)
-
-        if list_lstm_cells is None:
-            list_lstm_cells = DEFAULT_LIST_LSTM_CELLS  # Default LSTM cells if not provided
 
         # Initialize model parameters
         self.neural_network_model = None
