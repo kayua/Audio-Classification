@@ -47,7 +47,7 @@ except ImportError as error:
 DEFAULT_LIST_DENSE_NEURONS = [128, 129]
 
 
-class DenseModel(MetricsCalculator):
+class DenseModel:
     """
     DenseModel is a class representing a simple Multi-Layer Perceptron (MLP) architecture.
 
