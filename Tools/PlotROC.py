@@ -151,9 +151,9 @@ class ROCPlotter:
         true_positive_r = {}
         roc_auc = {}
 
-        for i in range(y_score.shape[1]):  # Iterate over each class
-            false_positive_r[i], true_positive_r[i], _ = roc_curve(y_true_bin[:, i], y_score[:, i])
-            roc_auc[i] = auc(false_positive_r[i], true_positive_r[i])
+        for index in range(y_score.shape[1]):  # Iterate over each class
+            false_positive_r[index], true_positive_r[index], _ = roc_curve(y_true_bin[:, index], y_score[:, index])
+            roc_auc[index] = auc(false_positive_r[index], true_positive_r[index])
 
         return false_positive_r, true_positive_r, roc_auc
 
