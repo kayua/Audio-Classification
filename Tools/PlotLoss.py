@@ -31,7 +31,7 @@ class LossPlotter:
 
     Example:
     -------
-        >>> #python
+        >>> # python
         ...     history_dict_list = [
         ...     {"Name": "Model1", "History": {"loss": [0.5, 0.4, 0.3], "val_loss": [0.55, 0.45, 0.35]}},
         ...     {"Name": "Model2", "History": {"loss": [0.6, 0.5, 0.4], "val_loss": [0.65, 0.55, 0.45]}}

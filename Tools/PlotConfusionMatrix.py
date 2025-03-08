@@ -13,25 +13,26 @@ class ConfusionMatrixPlotter:
     multiple customization options like figure size, colormap, font sizes, axis tick label rotation,
     color bar options, annotation format, and the option to display or save the plot.
 
-    Example usage:
-    ---------------
-    cm_plotter = ConfusionMatrixPlotter()
-    cm_list = [
-        {
-            'confusion_matrix': [[50, 10], [5, 35]],
-            'class_names': ['Class A', 'Class B'],
-            'title': 'Model 1'
-        },
-        {
-            'confusion_matrix': [[30, 20], [10, 40]],
-            'class_names': ['Class A', 'Class B'],
-            'title': 'Model 2'
-        }
-    ]
-    cm_plotter.plot_confusion_matrices(cm_list, file_name_path='confusion_matrices/', show_plot=True)
+    Example:
+    -------
+        >>> # python
+        ...     cm_plotter = ConfusionMatrixPlotter()
+        ...     cm_list = [
+        ...     {
+        ...     'confusion_matrix': [[50, 10], [5, 35]],
+        ...     'class_names': ['Class A', 'Class B'],
+        ...     'title': 'Model 1'
+        ...     },
+        ...     {
+        ...     'confusion_matrix': [[30, 20], [10, 40]],
+        ...     'class_names': ['Class A', 'Class B'],
+        ...     'title': 'Model 2'
+        ...     }
+        ...     ]
+        >>>     cm_plotter.plot_confusion_matrices(cm_list, file_name_path='confusion_matrices/', show_plot=True)
     """
 
-    def __init__(self, fig_size=(5, 5), cmap='Blues', annot_font_size=10,
+    def __init__(self, figure_size=(5, 5), cmap='Blues', annot_font_size=10,
                  label_font_size=12, title_font_size=14, show_plot=False,
                  colorbar=True, annot_kws=None, fmt='d', rotation=45):
         """
@@ -39,29 +40,29 @@ class ConfusionMatrixPlotter:
 
         Parameters
         ----------
-        fig_size : tuple, optional
+        @fig_size : tuple, optional
             Size of the figure (default is (5, 5)).
-        cmap : str, optional
+        @cmap : str, optional
             Colormap for the confusion matrix (default is 'Blues').
-        annot_font_size : int, optional
+        @annot_font_size : int, optional
             Font size for the annotations (default is 10).
-        label_font_size : int, optional
+        @label_font_size : int, optional
             Font size for the axis labels (default is 12).
-        title_font_size : int, optional
+        @title_font_size : int, optional
             Font size for the plot title (default is 14).
-        show_plot : bool, optional
+        @show_plot : bool, optional
             Whether to display the plot interactively (default is False).
-        colorbar : bool, optional
+        @colorbar : bool, optional
             Whether to display the color bar (default is True).
-        annot_kws : dict, optional
+        @annot_kws : dict, optional
             Additional keyword arguments for annotations (default is None).
-        fmt : str, optional
+        @fmt : str, optional
             Format for annotations (default is 'd', for integers).
-        rotation : int, optional
+        @rotation : int, optional
             Rotation angle for x and y axis labels (default is 45).
         """
         # Initialize instance variables with provided or default values
-        self.fig_size = fig_size  # Size of the figure to be plotted
+        self.figure_size = figure_size  # Size of the figure to be plotted
         self.cmap = cmap  # Color map for the heatmap
         self.annot_font_size = annot_font_size  # Font size for annotations
         self.label_font_size = label_font_size  # Font size for axis labels
@@ -118,7 +119,7 @@ class ConfusionMatrixPlotter:
             The path where the confusion matrix image will be saved.
         """
         # Create a new figure with the specified size
-        plt.figure(figsize=self.fig_size)
+        plt.figure(figsize=self.figure_size)
 
         # Create the heatmap using seaborn's heatmap function
         ax = sns.heatmap(
