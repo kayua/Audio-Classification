@@ -59,7 +59,7 @@ class MultiHeadSelfAttentionModule(Layer):
     - Shaw, P., Uszkoreit, J., & Vaswani, A. (2018). Self-attention with relative position representations.
       Proceedings of the 2018 Conference on Empirical Methods in Natural Language Processing (EMNLP).
 
-    Example
+    Example:
     -------
         >>>  # Create an instance of the MultiHeadSelfAttentionModule
         ...     attention_module = MultiHeadSelfAttentionModule(embedding_dimension=128, num_heads=8, max_length=512)

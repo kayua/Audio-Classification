@@ -398,60 +398,6 @@ class EvaluationModels:
 
 
     @staticmethod
-    def plot_and_save_loss(history_dict_list, path_output):
-        """
-        Plots and saves the training and validation loss curves for each model in the history dictionary list.
-
-        Args:
-            history_dict_list (list): A list of dictionaries, each containing a model's history and name.
-            path_output (str): The path where the loss plot images should be saved.
-        """
-        logging.info("Starting to plot and save loss curves for models.")
-
-        for history_dict in history_dict_list:
-
-            try:
-                model_name = history_dict['Name']
-                history = history_dict['History']
-
-                logging.info(f"Processing model '{model_name}'.")
-
-                # Check if the history contains loss data
-                if 'loss' not in history:
-                    logging.warning(f"No 'loss' data found for model '{model_name}', skipping plot.")
-                    continue
-
-                # Plot loss curves
-                plt.figure(figsize=(10, 6))
-                plt.plot(history['loss'], label='Training Loss')
-
-                if 'val_loss' in history:
-                    plt.plot(history['val_loss'], label='Validation Loss')
-                    logging.debug(f"Validation loss data available for model '{model_name}'.")
-
-                plt.title(f'Loss for model {model_name}')
-                plt.xlabel('Epochs')
-                plt.ylabel('Loss')
-                plt.legend()
-
-                # Save the plot
-                file_path = f'{path_output}{model_name}_loss.png'
-                plt.savefig(file_path)
-                plt.close()
-
-                logging.info(f"Loss plot saved for model '{model_name}' at {file_path}.")
-
-            except KeyError as e:
-                logging.error(f"KeyError in model '{model_name}': {e}")
-
-            except Exception as e:
-                logging.error(f"Error occurred while processing model '{model_name}': {e}")
-                raise
-
-        logging.info("Completed plotting and saving loss curves for all models.")
-
-
-    @staticmethod
     def train_and_collect_metrics(model_class, dataset_directory, number_epochs, batch_size, number_splits, loss,
                                   sample_rate, overlap, number_classes, arguments):
         """
