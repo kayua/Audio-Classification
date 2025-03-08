@@ -26,9 +26,9 @@ class SpectrogramFeature:
             return None, None
 
         class_paths = self._get_class_paths(sub_directories)
-        spectrograms, labels = self._process_files(class_paths, file_extension)
+        list_all_spectrogram, list_all_labels = self._process_files(class_paths, file_extension)
 
-        return self._prepare_output(spectrograms, labels, stack_segments)
+        return self._prepare_output(list_all_spectrogram, list_all_labels, stack_segments)
 
     @staticmethod
     def _get_class_paths(sub_directories):
@@ -39,37 +39,31 @@ class SpectrogramFeature:
         return class_paths
 
     def _process_files(self, class_paths, file_extension):
-        spectrograms, labels = [], []
+        list_spectrogram, labels = [], []
 
         for class_path in class_paths:
             logging.info(f"Processing class directory: {class_path}...")
             for file_name in tqdm(glob.glob(os.path.join(class_path, file_extension))):
                 try:
                     signal, label = self._load_audio_and_extract_label(file_name)
-                    spectrograms.extend(self._extract_spectrograms(signal))
-                    labels.extend([label] * len(spectrograms))
+                    list_spectrogram.extend(self._extract_spectrogram(signal))
+                    labels.extend([label] * len(list_spectrogram))
                 except Exception as e:
                     logging.error(f"Error processing file '{file_name}': {e}")
 
-        return spectrograms, labels
+        return list_spectrogram, labels
 
     def _load_audio_and_extract_label(self, file_name):
-        signal, _ = librosa.load(file_name, sr=self.sample_rate)
+        raw_signal, _ = librosa.load(file_name, sr=self.sample_rate)
         label = os.path.basename(os.path.dirname(file_name)).split('_')[0]
-        return signal, label
+        return raw_signal, label
 
-    def _extract_spectrograms(self, signal):
-        spectrograms = []
+    def _extract_spectrogram(self, signal):
+        list_spectrogram = []
         for start, end in self._generate_windows(len(signal)):
             if len(signal[start:end]) == self.window_size:
-                spectrograms.append(self._generate_mel_spectrogram(signal[start:end]))
-        return spectrograms
-
-    def _generate_windows(self, length):
-        start = 0
-        while start < length:
-            yield start, start + self.window_size
-            start += self.window_size // self.overlap
+                list_spectrogram.append(self._generate_mel_spectrogram(signal[start:end]))
+        return list_spectrogram
 
     def _generate_mel_spectrogram(self, signal_window):
         spectrogram = librosa.feature.melspectrogram(
