@@ -5,11 +5,12 @@ import numpy
 import librosa
 from tqdm import tqdm
 
+from Engine.Processing.PathTools import PathTools
 from Engine.Processing.WindowGenerator import WindowGenerator
 from Engine.Transformations.SpectrogramPatcher import SpectrogramPatcher
 
 
-class PatcherSpectrogramFeature(SpectrogramPatcher, WindowGenerator):
+class PatcherSpectrogramFeature(SpectrogramPatcher, WindowGenerator, PathTools):
 
     def __init__(self, sample_rate: int, window_size: int, overlap: int, number_filters_spectrogram: int,
                  window_size_fft: int, hop_length: int, decibel_scale_factor: int, patch_size: tuple[int, int]):
@@ -46,26 +47,6 @@ class PatcherSpectrogramFeature(SpectrogramPatcher, WindowGenerator):
 
         # Prepare the final output (features and labels)
         return self._prepare_output(list_all_spectrogram, list_all_labels, stack_segments)
-
-    @staticmethod
-    def _get_class_paths(sub_directories: str) -> list:
-        """
-        Retrieves the paths of subdirectories representing different classes.
-
-        Args:
-            sub_directories (str): The parent directory containing subdirectories for each class.
-
-        Returns:
-            list: A list of paths to the class subdirectories.
-        """
-        logging.info(f"Reading subdirectories in '{sub_directories}'...")
-
-        # Get all class subdirectories
-        class_paths = [os.path.join(sub_directories, d) for d in os.listdir(sub_directories) if
-                       os.path.isdir(os.path.join(sub_directories, d))]
-
-        logging.info(f"Found {len(class_paths)} class directories.")
-        return class_paths
 
     def _process_files(self, class_paths: list, file_extension: str) -> tuple:
         """
@@ -143,7 +124,7 @@ class PatcherSpectrogramFeature(SpectrogramPatcher, WindowGenerator):
         list_spectrogram = []
 
         # Generate windows of the audio signal for processing
-        for start, end in self._generate_windows(len(signal)):
+        for start, end in self.generate_windows(len(signal)):
             if len(signal[start:end]) == self.window_size:
                 # Generate a Mel spectrogram for each window
                 list_spectrogram.append(self._generate_mel_spectrogram(signal[start:end]))

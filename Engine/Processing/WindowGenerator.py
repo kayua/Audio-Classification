@@ -43,7 +43,7 @@ class WindowGenerator:
         self.window_size = window_size
         self.overlap = overlap
 
-    def generate_windows(self, data: numpy.ndarray):
+    def generate_windows(self, data):
         """
         Generates the start and end indices for each window over the input data.
 

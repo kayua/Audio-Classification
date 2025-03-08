@@ -1,15 +1,14 @@
-import os
-import glob
-import numpy
-import librosa
 import logging
+import os
 
-from tqdm import tqdm
+import librosa
+import numpy
 
+from Engine.Processing.PathTools import PathTools
 from Engine.Processing.WindowGenerator import WindowGenerator
 
 
-class RawDataLoader(WindowGenerator):
+class RawDataLoader(WindowGenerator, PathTools):
     """
     A class for loading and processing audio data for machine learning models.
 
@@ -130,28 +129,6 @@ class RawDataLoader(WindowGenerator):
         return array_features, numpy.array(list_all_labels, dtype=numpy.int32)
 
 
-    @staticmethod
-    def _get_class_paths(parent_directory: str) -> list:
-        """
-        Retrieves the class subdirectories within the given parent directory.
-
-        Args:
-            parent_directory (str): The directory containing class subdirectories.
-
-        Returns:
-            list: A list of paths to the class subdirectories.
-        """
-        class_paths = []
-
-        # Loop through each directory in the parent directory
-        for class_dir in os.listdir(parent_directory):
-            class_path = os.path.join(parent_directory, class_dir)
-
-            # If it is a directory, add it to the list
-            if os.path.isdir(class_path):
-                class_paths.append(class_path)
-
-        return class_paths
 
     def _process_all_classes(self, class_paths: list, file_extension: str) -> tuple:
         """
@@ -176,34 +153,6 @@ class RawDataLoader(WindowGenerator):
             list_labels.extend(labels)
 
         return list_feature, list_labels
-
-    def _process_class_directory(self, class_path: str, file_extension: str) -> tuple:
-        """
-        Processes a single class directory, loading and processing all audio files.
-
-        Args:
-            class_path (str): Path to the class directory.
-            file_extension (str): The file extension of the audio files.
-
-        Returns:
-            tuple: A tuple containing:
-                - list: A list of feature extracted from the files in the class directory.
-                - list: A list of labels corresponding to the feature.
-        """
-        list_feature, list_labels = [], []
-
-        # Loop through all audio files in the directory using glob pattern
-        for file_name in tqdm(glob.glob(os.path.join(class_path, file_extension))):
-            try:
-                # Process each file and extract feature and labels
-                file_spectrogram, file_labels = self._process_file(file_name)
-                list_feature.extend(file_spectrogram)
-                list_labels.extend(file_labels)
-            except Exception as e:
-                logging.error(f"Error processing file '{file_name}': {e}")
-
-        return list_feature, list_labels
-
 
     def _process_file(self, file_name: str) -> tuple:
         """
@@ -234,20 +183,6 @@ class RawDataLoader(WindowGenerator):
                 labels_feature.append(sound_label)
 
         return list_spectrogram, labels_feature
-
-    @staticmethod
-    def _extract_label_from_path(file_path: str) -> int:
-        """
-        Extracts the class label from the file path based on the directory structure.
-
-        Args:
-            file_path (str): Path to the audio file.
-
-        Returns:
-            int: The extracted class label.
-        """
-        label_from_filename = file_path.split('/')[-2].split('_')[0]
-        return int(label_from_filename)
 
     def _segment_and_normalize(self, segment: numpy.ndarray) -> numpy.ndarray:
         """
