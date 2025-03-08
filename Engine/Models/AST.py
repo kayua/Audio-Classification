@@ -10,44 +10,27 @@ __credits__ = ['unknown']
 
 
 try:
-    import os
+
     import sys
-    import glob
-    import numpy
-
-    import logging
-    import librosa
-    import argparse
     import tensorflow
-
-    from tqdm import tqdm
-
-    from sklearn.utils import resample
     from tensorflow.keras import models
-
     from tensorflow.keras.layers import Add
-    from tensorflow.keras.layers import Layer
-    from tensorflow.keras.layers import Dense
-    from tensorflow.keras.layers import Input
-    from tensorflow.keras.layers import Conv1D
-    from tensorflow.keras.layers import Flatten
-    from tensorflow.keras.layers import Dropout
-
-    from tensorflow.keras.layers import Embedding
     from tensorflow.keras.layers import Concatenate
-
-    from tensorflow.keras.layers import TimeDistributed
-    from sklearn.model_selection import StratifiedKFold
-    from sklearn.model_selection import train_test_split
-
+    from tensorflow.keras.layers import Conv1D
+    from tensorflow.keras.layers import Dense
+    from tensorflow.keras.layers import Dropout
+    from tensorflow.keras.layers import Embedding
+    from tensorflow.keras.layers import Flatten
+    from tensorflow.keras.layers import GlobalAveragePooling1D
+    from tensorflow.keras.layers import Input
+    from tensorflow.keras.layers import Layer
     from tensorflow.keras.layers import LayerNormalization
     from tensorflow.keras.layers import MultiHeadAttention
+    from tensorflow.keras.layers import TimeDistributed
+
     from Engine.Layers.CLSTokenLayer import CLSTokenLayer
-
-    from tensorflow.keras.layers import GlobalAveragePooling1D
-    from Engine.Evaluation.MetricsCalculator import MetricsCalculator
-
     from Engine.Layers.PositionalEmbeddingsLayer import PositionalEmbeddingsLayer
+
 
 except ImportError as error:
     print(error)
@@ -56,6 +39,7 @@ except ImportError as error:
     print("  pip3 install -r requirements.txt ")
     print()
     sys.exit(-1)
+
 
 
 class AudioSpectrogramTransformer:

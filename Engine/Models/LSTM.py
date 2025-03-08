@@ -10,27 +10,23 @@ __credits__ = ['unknown']
 
 
 try:
-    import os
     import sys
-    import glob
-    import numpy
-    import librosa
-    import argparse
+
     import tensorflow
 
-    from tqdm import tqdm
-    from sklearn.utils import resample
     from tensorflow.keras import Model
-    from tensorflow.keras.layers import Dense
+
     from tensorflow.keras.layers import Input
     from tensorflow.keras.layers import LSTM
+    from tensorflow.keras.layers import Dense
+
     from tensorflow.keras.layers import Dropout
+
     from tensorflow.keras.layers import Bidirectional
-    from sklearn.model_selection import StratifiedKFold
-    from sklearn.model_selection import train_test_split
-    from Engine.Models.Process.EvaluationProcess import EvaluationProcess
     from tensorflow.keras.layers import GlobalAveragePooling1D
-    from Engine.Evaluation.MetricsCalculator import MetricsCalculator
+
+    from Engine.Models.Process.EvaluationProcess import EvaluationProcess
+
 
 except ImportError as error:
     print(error)

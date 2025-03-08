@@ -10,44 +10,38 @@ __credits__ = ['unknown']
 
 
 try:
-    import os
     import sys
-    import glob
-    import numpy
-    import librosa
-    import logging
     import tensorflow
-
-    from tqdm import tqdm
-
-    from sklearn.utils import resample
 
     from tensorflow.keras import Model
 
     from tensorflow.keras.layers import Dense
     from tensorflow.keras.layers import Input
     from tensorflow.keras.layers import Layer
+
     from tensorflow.keras.layers import Dropout
     from tensorflow.keras.layers import Flatten
     from tensorflow.keras.layers import Reshape
+
     from tensorflow.keras.layers import Concatenate
+
+    from Engine.Layers.ConformerBlock import ConformerBlock
+    from Engine.Layers.TransposeLayer import TransposeLayer
+
     from tensorflow.keras.layers import GlobalAveragePooling1D
 
-    from sklearn.model_selection import StratifiedKFold
-    from sklearn.model_selection import train_test_split
-    from Engine.Layers.TransposeLayer import TransposeLayer
-    from Engine.Layers.ConformerBlock import ConformerBlock
-    from Engine.Evaluation.MetricsCalculator import MetricsCalculator
     from Engine.Models.Process.EvaluationProcess import EvaluationProcess
+
     from Engine.Layers.ConvolutionalSubsampling import ConvolutionalSubsampling
 
+
 except ImportError as error:
-    print(error)
-    print("1. Install requirements:")
-    print("  pip3 install --upgrade pip")
-    print("  pip3 install -r requirements.txt ")
-    print()
-    sys.exit(-1)
+     print(error)
+     print("1. Install requirements:")
+     print("  pip3 install --upgrade pip")
+     print("  pip3 install -r requirements.txt ")
+     print()
+     sys.exit(-1)
 
 
 class Conformer(EvaluationProcess):

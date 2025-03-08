@@ -7,8 +7,9 @@ class ComparativeMetricsPlotter:
     """
     A class to plot comparative metrics for multiple models.
 
-    This class allows for plotting a comparative bar chart of multiple metrics (e.g., Accuracy, Precision, Recall, F1)
-    for different models, including standard deviation error bars.
+    This class allows for plotting a comparative bar chart of multiple metrics
+    (e.g., Accuracy, Precision, Recall, F1) for different models, including
+    standard deviation error bars.
 
     Parameters:
     ----------
@@ -21,7 +22,7 @@ class ComparativeMetricsPlotter:
 
     Example:
     -------
-        >>> # python3
+        >>> # python
         ...     metrics_data = [
         ...     {
         ...     'model_name': 'Model A',
