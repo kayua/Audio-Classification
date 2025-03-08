@@ -31,7 +31,7 @@ try:
     from tensorflow.keras.layers import Bidirectional
     from sklearn.model_selection import StratifiedKFold
     from sklearn.model_selection import train_test_split
-
+    from Engine.Models.Process.RawProcess import RawProcess
     from tensorflow.keras.layers import GlobalAveragePooling1D
     from Engine.Evaluation.MetricsCalculator import MetricsCalculator
 
@@ -47,7 +47,7 @@ except ImportError as error:
 DEFAULT_LIST_DENSE_NEURONS = [128, 129]
 
 
-class DenseModel:
+class DenseModel(RawProcess):
     """
     @DenseModel
 
@@ -104,15 +104,10 @@ class DenseModel:
 
     """
 
-    def __init__(self,
-                 number_classes: int,
-                 last_layer_activation: str,
-                 loss_function: str,
-                 optimizer_function: str,
-                 dropout_rate: float,
-                 intermediary_layer_activation: str,
-                 input_dimension: tuple,
-                 list_lstm_cells=None):
+    def __init__(self, number_classes: int, last_layer_activation: str, loss_function: str, optimizer_function: str,
+                 dropout_rate: float, intermediary_layer_activation: str, input_dimension: tuple, size_batch: int,
+                 number_splits: int, number_epochs: int, window_size_factor: int, decibel_scale_factor: int,
+                 hop_length: int, overlap: int, sample_rate: int, file_extension: str, list_lstm_cells=None):
         """
         Initialize the DenseModel class.
 
@@ -129,6 +124,9 @@ class DenseModel:
         """
 
         # If list_lstm_cells is not provided, use the default list of dense neurons.
+        super().__init__(size_batch, number_splits, number_epochs, optimizer_function, window_size_factor,
+                         decibel_scale_factor, hop_length, overlap, sample_rate, file_extension)
+
         if list_lstm_cells is None:
             list_lstm_cells = DEFAULT_LIST_DENSE_NEURONS
 
