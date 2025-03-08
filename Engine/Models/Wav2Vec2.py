@@ -8,50 +8,39 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+
 try:
-    import os
+
     import sys
-    import glob
-    import numpy
-
-    import librosa
     import logging
-    import argparse
     import tensorflow
-
-    from tqdm import tqdm
 
     from tensorflow.keras import Model
 
     from tensorflow.keras.layers import Add
+
     from tensorflow.keras.layers import Dense
     from tensorflow.keras.layers import Input
     from tensorflow.keras.layers import Conv1D
     from tensorflow.keras.layers import Lambda
-    from tensorflow.keras.layers import Reshape
-    from tensorflow.keras.layers import Flatten
 
     from tensorflow.keras.layers import Dropout
+    from tensorflow.keras.layers import Flatten
+    from tensorflow.keras.layers import Reshape
+
     from tensorflow.keras.layers import Embedding
     from tensorflow.keras.layers import Activation
+    from Engine.Layers.MaskLayer import MaskCreator
 
     from tensorflow.keras.layers import TimeDistributed
-    from tensorflow.keras.layers import MultiHeadAttention
     from tensorflow.keras.layers import LayerNormalization
-    from tensorflow.keras.layers import GlobalAveragePooling1D
-
-    from Engine.Layers.MaskLayer import MaskCreator
-    from Engine.Models.Process.EvaluationProcess import EvaluationProcess
-
+    from tensorflow.keras.layers import MultiHeadAttention
     from Engine.Loss.ContrastiveLoss import ContrastiveLoss
+
+    from tensorflow.keras.layers import GlobalAveragePooling1D
     from Engine.Layers.QuantizerLayerMLP import QuantizationLayer
 
-    from sklearn.model_selection import StratifiedKFold
-    from sklearn.model_selection import train_test_split
-
-    from sklearn.utils import resample
-
-    from Engine.Evaluation.MetricsCalculator import MetricsCalculator
+    from Engine.Models.Process.EvaluationProcess import EvaluationProcess
 
 except ImportError as error:
     print(error)
@@ -61,7 +50,7 @@ except ImportError as error:
     print()
     sys.exit(-1)
 
-DEFAULT_LIST_FILTERS_ENCODER = [8, 16, 32]
+
 
 
 class AudioWav2Vec2(MaskCreator, EvaluationProcess):
@@ -153,8 +142,7 @@ class AudioWav2Vec2(MaskCreator, EvaluationProcess):
         """
 
         super().__init__()
-        if list_filters_encoder is None:
-            list_filters_encoder = DEFAULT_LIST_FILTERS_ENCODER  # Default filters if not provided
+
 
         # Initialize model parameters
         self.neural_network_model = None
