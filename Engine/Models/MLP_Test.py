@@ -1,5 +1,5 @@
 import unittest
-import tensorflow as tf
+import tensorflow
 
 from Engine.Models.MLP import DenseModel
 
@@ -50,7 +50,7 @@ class TestDenseModel(unittest.TestCase):
         self.assertIsNotNone(self.model.neural_network_model, "The model should be built.")
         # The model should have at least one Dense layer and one Dropout layer
         self.assertGreater(len(self.model.neural_network_model.layers), 0, "The model should have layers.")
-        self.assertTrue(isinstance(self.model.neural_network_model, tf.keras.Model), "The model should be a Keras Model.")
+        self.assertTrue(isinstance(self.model.neural_network_model, tensorflow.keras.Model), "The model should be a Keras Model.")
 
     def test_compile_and_train(self):
         """
@@ -60,13 +60,13 @@ class TestDenseModel(unittest.TestCase):
         self.model.build_model()
 
         # Generate fake training data for testing purposes
-        X_train = tf.random.normal((100, 28, 28, 1))  # 100 samples with input shape (28, 28, 1)
-        y_train = tf.random.uniform((100,), minval=0, maxval=10, dtype=tf.int32)  # 100 labels for 10 classes
+        X_train = tensorflow.random.normal((100, 28, 28, 1))  # 100 samples with input shape (28, 28, 1)
+        y_train = tensorflow.random.uniform((100,), minval=0, maxval=10, dtype=tensorflow.int32)  # 100 labels for 10 classes
 
         # Train the model and verify the result
         try:
             history = self.model.compile_and_train(X_train, y_train, epochs=1, batch_size=32)
-            self.assertIsInstance(history, tf.keras.callbacks.History,
+            self.assertIsInstance(history, tensorflow.keras.callbacks.History,
                                   "The training history should be returned as an instance"
                                   " of tf.keras.callbacks.History.")
             self.assertTrue('accuracy' in history.history, "The training history should contain 'accuracy'.")

@@ -8,6 +8,7 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+from Engine.Layers.MaskLayer import MaskCreator
 
 try:
     import os
@@ -62,7 +63,7 @@ except ImportError as error:
 DEFAULT_LIST_FILTERS_ENCODER = [8, 16, 32]
 
 
-class AudioWav2Vec2:
+class AudioWav2Vec2(MaskCreator):
     """
     @AudioWav2Vec2
         AudioWav2Vec2 is a class that implements a deep learning model based on the Wav2Vec2
@@ -211,7 +212,7 @@ class AudioWav2Vec2:
                                             activation=self.intermediary_layer_activation))(flatten_flow)
 
         # Create causal mask for the transformer attention
-        causal_mask = create_mask(128)
+        causal_mask = self.create_mask(128)
 
         # Transformer block with multi-head attention
         transformer_attention = MultiHeadAttention(num_heads=self.number_heads,

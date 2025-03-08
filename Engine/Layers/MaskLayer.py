@@ -12,7 +12,7 @@ class MaskCreator:
     """
 
     @staticmethod
-    def create(seq_len: int) -> tensorflow.Tensor:
+    def create_mask(seq_len: int) -> tensorflow.Tensor:
         """
         Creates a lower triangular mask for causal attention.
 

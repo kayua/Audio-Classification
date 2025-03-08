@@ -1,6 +1,6 @@
 import unittest
 import numpy
-import tensorflow as tf
+import tensorflow
 from tensorflow.keras import backend as K
 
 from Engine.Models.AST import AudioSpectrogramTransformer
@@ -101,7 +101,7 @@ class TestAudioSpectrogramTransformerModel(unittest.TestCase):
                 batch_size=2,
                 validation_data=(X_val, y_val)
             )
-            self.assertIsInstance(history, tf.keras.callbacks.History)
+            self.assertIsInstance(history, tensorflow.keras.callbacks.History)
         except Exception as e:
             self.fail(f"Model training failed with exception: {e}")
 
