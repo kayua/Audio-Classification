@@ -42,69 +42,136 @@ except ImportError as error:
 
 DEFAULT_LIST_LSTM_CELLS = [128, 129]
 
-class AudioLSTM(MetricsCalculator):
 
+class AudioLSTM:
+    """
+    AudioLSTM is a class implementing a deep learning model based on Long Short-Term
+    Memory (LSTM) networks for audio classification tasks. The model utilizes multiple
+    LSTM layers followed by a dense layer for classification.
+    This type of architecture is particularly suited for tasks involving sequential data,
+    such as speech recognition, audio event detection, and other time-series classification tasks.
+
+    The model consists of:
+        - LSTM layers to capture temporal dependencies in the audio data.
+        - Dropout layers for regularization to prevent overfitting.
+        - A final dense layer with softmax (or other) activation for classification.
+
+    Reference:
+        Hochreiter, S., & Schmidhuber, J. (1997). Long Short-Term Memory.
+        *Neural Computation, 9*(8), 1735–1780. https://doi.org/10.1162/neco.1997.9.8.1735
+
+    Attributes:
+        @neural_network_model (tensorflow.keras.Model): The Keras model representing the LSTM network.
+        @list_lstm_cells (list[int]): List of the number of cells in each LSTM layer.
+        @loss_function (str): The loss function used during model training (e.g., 'categorical_crossentropy').
+        @optimizer_function (str): The optimizer used for model training (e.g., 'adam').
+        @recurrent_activation (str): The activation function for the recurrent state (e.g., 'sigmoid').
+        @intermediary_layer_activation (str): Activation function used in the intermediary layers (e.g., 'tanh').
+        @input_dimension (tuple): The shape of the input data (e.g., (128, 80) for Mel spectrograms).
+        @number_classes (int): The number of output classes for classification.
+        @dropout_rate (float): The dropout rate used for regularization.
+        @last_layer_activation (str): The activation function used in the output layer (e.g., 'softmax').
+        @model_name (str): The name of the model (default is "LSTM").
+
+    Example:
+        >>> # Instantiate the model
+        ...     model = AudioLSTM(
+        ...     number_classes=10,  # Number of output classes (e.g., 10 for classification)
+        ...     last_layer_activation='softmax',  # Activation function for the output layer (e.g., 'softmax')
+        ...     loss_function='categorical_crossentropy',  # Loss function for training (e.g., 'categorical_crossentropy')
+        ...     optimizer_function='adam',  # Optimizer for training (e.g., 'adam')
+        ...     dropout_rate=0.2,  # Dropout rate for regularization
+        ...     intermediary_layer_activation='tanh',  # Activation function for intermediary layers (e.g., 'tanh')
+        ...     recurrent_activation='sigmoid',  # Activation function for the recurrent state (e.g., 'sigmoid')
+        ...     input_dimension=(128, 80),  # Input dimension for the model (e.g., Mel spectrogram)
+        ...     list_lstm_cells=[64, 128]  # List of LSTM cell sizes for each LSTM layer
+        ...     )
+        ...     # Build the model
+        ...     model.build_model()
+        ...     # Compile and train the model
+        ...     training_history = model.compile_and_train(
+        ...     train_data=X_train,  # Input training data
+        ...     train_labels=y_train,  # Training labels
+        ...     epochs=10,  # Number of epochs for training
+        ...     batch_size=32,  # Batch size for training
+        ...     validation_data=(X_val, y_val)  # Optional validation data
+        ...     )
+        >>>
+
+    """
 
     def __init__(self,
                  number_classes: int,
                  last_layer_activation: str,
-                 size_batch: int,
-                 number_splits: int,
-                 number_epochs: int,
                  loss_function: str,
                  optimizer_function: str,
-                 window_size_factor: int,
-                 decibel_scale_factor: int,
-                 hop_length: int,
-                 overlap: int,
-                 sample_rate: int,
                  dropout_rate: float,
-                 file_extension: str,
                  intermediary_layer_activation: str,
                  recurrent_activation: str,
                  input_dimension: tuple,
                  list_lstm_cells=None):
+        """
+        Initialize the AudioLSTM model with specified hyperparameters.
+
+        Args:
+            @number_classes (int): The number of output classes for classification tasks.
+            @last_layer_activation (str): The activation function for the output layer (e.g., 'softmax').
+            @loss_function (str): The loss function used for training the model (e.g., 'categorical_crossentropy').
+            @optimizer_function (str): The optimizer used for training the model (e.g., 'adam').
+            @dropout_rate (float): The dropout rate for regularization.
+            @intermediary_layer_activation (str): The activation function for intermediary layers (e.g., 'tanh').
+            @recurrent_activation (str): The activation function for the recurrent state (e.g., 'sigmoid').
+            @input_dimension (tuple): The input dimension for the model (e.g., (128, 80) for Mel spectrograms).
+            @list_lstm_cells (list[int], optional): A list of the number of cells for each LSTM layer.
+        """
 
         if list_lstm_cells is None:
-            list_lstm_cells = DEFAULT_LIST_LSTM_CELLS
+            list_lstm_cells = DEFAULT_LIST_LSTM_CELLS  # Default LSTM cells if not provided
 
-        self.model_name = "LSTM"
+        # Initialize model parameters
         self.neural_network_model = None
-        self.size_batch = size_batch
-        self.list_lstm_cells = list_lstm_cells
-        self.number_splits = number_splits
-        self.number_epochs = number_epochs
-        self.loss_function = loss_function
-        self.optimizer_function = optimizer_function
-        self.window_size_factor = window_size_factor
-        self.decibel_scale_factor = decibel_scale_factor
-        self.hop_length = hop_length
-        self.recurrent_activation = recurrent_activation
-        self.intermediary_layer_activation = intermediary_layer_activation
-        self.overlap = overlap
-        self.window_size = self.hop_length * self.window_size_factor
-        self.sample_rate = sample_rate
-        self.file_extension = file_extension
-        self.input_dimension = input_dimension
-        self.number_classes = number_classes
-        self.dropout_rate = dropout_rate
-        self.last_layer_activation = last_layer_activation
-        self.model_name = "LSTM"
+        self.list_lstm_cells = list_lstm_cells  # Number of cells in each LSTM layer
+        self.loss_function = loss_function  # Loss function for training
+        self.optimizer_function = optimizer_function  # Optimizer function
+        self.recurrent_activation = recurrent_activation  # Recurrent activation function
+        self.intermediary_layer_activation = intermediary_layer_activation  # Activation function for intermediary layers
+        self.input_dimension = input_dimension  # Input data shape
+        self.number_classes = number_classes  # Number of output classes for classification
+        self.dropout_rate = dropout_rate  # Dropout rate for regularization
+        self.last_layer_activation = last_layer_activation  # Activation for the output layer
+        self.model_name = "LSTM"  # Model name
 
     def build_model(self) -> None:
+        """
+        Build the LSTM model architecture using Keras.
 
+        The model consists of the following components:
+            - Multiple LSTM layers to capture temporal dependencies.
+            - Dropout layers for regularization.
+            - A dense layer with softmax (or other) activation for classification.
+
+        The model is designed for audio classification tasks where sequential dependencies need to be captured.
+        """
+
+        # Input layer
         inputs = Input(shape=self.input_dimension)
 
         neural_network_flow = inputs
 
-        for i, cells in enumerate(self.list_lstm_cells):
+        # Apply LSTM layers with specified cells and activation functions
+        for _, cells in enumerate(self.list_lstm_cells):
             neural_network_flow = LSTM(cells, activation=self.intermediary_layer_activation,
                                        recurrent_activation=self.recurrent_activation,
                                        return_sequences=True)(neural_network_flow)
             neural_network_flow = Dropout(self.dropout_rate)(neural_network_flow)
 
+        # Global average pooling after LSTM layers
         neural_network_flow = GlobalAveragePooling1D()(neural_network_flow)
+
+        # Final dense layer for classification
         neural_network_flow = Dense(self.number_classes, activation=self.last_layer_activation)(neural_network_flow)
+
+        # Create the model
         self.neural_network_model = Model(inputs=inputs, outputs=neural_network_flow)
 
     def compile_and_train(self,
@@ -112,113 +179,26 @@ class AudioLSTM(MetricsCalculator):
                           train_labels: tensorflow.Tensor,
                           epochs: int, batch_size: int,
                           validation_data: tuple = None) -> tensorflow.keras.callbacks.History:
+        """
+        Compiles and trains the neural network model using the specified training data and configuration.
 
+        Args:
+            train_data (tensorflow.Tensor): The input training data.
+            train_labels (tensorflow.Tensor): The corresponding labels for the training data.
+            epochs (int): Number of training epochs.
+            batch_size (int): Size of the batches for each training step.
+            validation_data (tuple, optional): A tuple containing validation data and labels.
+
+        Returns:
+            tensorflow.keras.callbacks.History: The history object containing training metrics and performance.
+        """
+
+        # Compile the model with the specified loss function and optimizer
         self.neural_network_model.compile(optimizer=self.optimizer_function, loss=self.loss_function,
                                           metrics=['accuracy'])
 
+        # Train the model
         training_history = self.neural_network_model.fit(train_data, train_labels, epochs=epochs,
                                                          batch_size=batch_size,
                                                          validation_data=validation_data)
         return training_history
-
-
-    def train(self, dataset_directory, number_epochs, batch_size, number_splits,
-              loss, sample_rate, overlap, number_classes, arguments) -> tuple:
-
-        self.number_epochs = number_epochs or self.number_epochs
-        self.number_splits = number_splits or self.number_splits
-        self.size_batch = batch_size or self.size_batch
-        self.loss_function = loss or self.loss_function
-        self.sample_rate = sample_rate or self.sample_rate
-        self.overlap = overlap or self.overlap
-        self.number_classes = number_classes or self.number_classes
-
-        self.list_lstm_cells = arguments.lstm_list_lstm_cells
-        self.window_size_factor = arguments.lstm_window_size_factor
-        self.decibel_scale_factor = arguments.lstm_decibel_scale_factor
-        self.hop_length = arguments.lstm_hop_length
-        self.recurrent_activation = arguments.lstm_recurrent_activation
-        self.intermediary_layer_activation = arguments.lstm_intermediary_layer_activation
-        self.overlap =  arguments.lstm_overlap
-        self.window_size = self.hop_length * self.window_size_factor
-        self.number_classes = number_classes
-        self.dropout_rate = arguments.lstm_dropout_rate
-        self.last_layer_activation = arguments.lstm_last_layer_activation
-        self.model_name = "LSTM"
-
-        history_model = None
-        features, labels = self.load_data(dataset_directory)
-        metrics_list, confusion_matriz_list = [], []
-        labels = numpy.array(labels).astype(float)
-
-        # Split data into train/val and test sets
-        features_train_val, features_test, labels_train_val, labels_test = train_test_split(
-            features, labels, test_size=0.2, stratify=labels, random_state=42
-        )
-
-        # Balance training/validation set
-        features_train_val, labels_train_val = balance_classes(features_train_val, labels_train_val)
-
-        # Stratified k-fold cross-validation on the training/validation set
-        instance_k_fold = StratifiedKFold(n_splits=self.number_splits, shuffle=True, random_state=42)
-        list_history_model = []
-        probabilities_list = []
-        real_labels_list = []
-
-        print("STARTING TRAINING MODEL: {}".format(self.model_name))
-        for train_indexes, val_indexes in instance_k_fold.split(features_train_val, labels_train_val):
-            features_train, features_val = features_train_val[train_indexes], features_train_val[val_indexes]
-            labels_train, labels_val = labels_train_val[train_indexes], labels_train_val[val_indexes]
-
-            # Balance the training set for this fold
-            features_train, labels_train = balance_classes(features_train, labels_train)
-
-            self.build_model()
-            self.neural_network_model.summary()
-
-            history_model = self.compile_and_train(features_train, labels_train, epochs=self.number_epochs,
-                                                   batch_size=self.size_batch,
-                                                   validation_data=(features_val, labels_val))
-
-            model_predictions = self.neural_network_model.predict(features_val)
-            predicted_labels = numpy.argmax(model_predictions, axis=1)
-
-            probabilities_list.append(model_predictions)
-            real_labels_list.append(labels_val)
-
-            # Calculate and store the metrics for this fold
-            metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_val, predicted_labels)
-            metrics_list.append(metrics)
-            confusion_matriz_list.append(confusion_matrix)
-
-        # Calculate mean metrics across all folds
-        mean_metrics = {
-            'model_name': self.model_name,
-            'Acc.': {'value': numpy.mean([metric['Accuracy'] for metric in metrics_list]),
-                     'std': numpy.std([metric['Accuracy'] for metric in metrics_list])},
-            'Prec.': {'value': numpy.mean([metric['Precision'] for metric in metrics_list]),
-                      'std': numpy.std([metric['Precision'] for metric in metrics_list])},
-            'Rec.': {'value': numpy.mean([metric['Recall'] for metric in metrics_list]),
-                     'std': numpy.std([metric['Recall'] for metric in metrics_list])},
-            'F1.': {'value': numpy.mean([metric['F1-Score'] for metric in metrics_list]),
-                    'std': numpy.std([metric['F1-Score'] for metric in metrics_list])},
-        }
-
-        probabilities_predicted = {
-            'model_name': self.model_name,
-            'predicted': numpy.concatenate(probabilities_list),
-            'ground_truth': numpy.concatenate(real_labels_list)
-        }
-
-        confusion_matrix_array = numpy.array(confusion_matriz_list)
-        mean_confusion_matrix = numpy.mean(confusion_matrix_array, axis=0)
-        mean_confusion_matrix = numpy.round(mean_confusion_matrix).astype(numpy.int32).tolist()
-
-        mean_confusion_matrices = {
-            "confusion_matrix": mean_confusion_matrix,
-            "class_names": ['Class {}'.format(i) for i in range(self.number_classes)],
-            "title": self.model_name
-        }
-
-        return (mean_metrics, {"Name": self.model_name, "History": history_model.history}, mean_confusion_matrices,
-                probabilities_predicted)
