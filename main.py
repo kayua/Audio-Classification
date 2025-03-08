@@ -96,24 +96,7 @@ class EvaluationModels:
     @staticmethod
     def train_and_collect_metrics(model_class, dataset_directory, number_epochs, batch_size, number_splits, loss,
                                   sample_rate, overlap, number_classes, arguments):
-        """
-        Trains the model and collects relevant metrics, history, confusion matrices, and ROC curve data.
 
-        Args:
-            model_class (class): The class of the model to be instantiated and trained.
-            dataset_directory (str): Directory where the dataset is located.
-            number_epochs (int): Number of training epochs.
-            batch_size (int): Size of the training batches.
-            number_splits (int): Number of data splits for cross-validation.
-            loss (str): The loss function used during training.
-            sample_rate (int): Sample rate of the data.
-            overlap (float): Overlap rate between splits.
-            number_classes (int): Number of target classes.
-            arguments (dict): Additional arguments for the training process.
-
-        Returns:
-            tuple: Contains metrics, history, confusion matrices, and ROC curve data.
-        """
         logging.info(f"Starting training for model {model_class.__name__}.")
 
         try:
@@ -254,94 +237,6 @@ class EvaluationModels:
         finally:
             logging.info("Execution of 'GeneratePDF.py' completed.")
 
-
-def get_arguments():
-
-    parser = argparse.ArgumentParser(description="Model evaluation with metrics and confusion matrices.")
-
-    parser.add_argument("--dataset_directory", type=str,
-                        default=DEFAULT_DATASET_DIRECTORY, help="Directory containing the dataset.")
-
-    parser.add_argument("--number_epochs", type=int,
-                        default=DEFAULT_NUMBER_EPOCHS, help="Number of training epochs.")
-
-    parser.add_argument("--batch_size", type=int,
-                        default=DEFAULT_BATCH_SIZE, help="Size of the batches for training.")
-
-    parser.add_argument("--number_splits", type=int,
-                        default=DEFAULT_NUMBER_SPLITS, help="Number of splits for cross-validation.")
-
-    parser.add_argument("--loss", type=str,
-                        default=DEFAULT_LOSS, help="Loss function to use during training.")
-
-    parser.add_argument("--sample_rate", type=int,
-                        default=DEFAULT_SAMPLE_RATE, help="Sample rate of the audio files.")
-
-    parser.add_argument("--overlap", type=int,
-                        default=DEFAULT_OVERLAP, help="Overlap for the audio segments.")
-
-    parser.add_argument("--number_classes", type=int,
-                        default=DEFAULT_NUMBER_CLASSES, help="Number of classes in the dataset.")
-
-    parser.add_argument("--output_directory", type=str,
-                        default=DEFAULT_OUTPUT_DIRECTORY, help="Directory to save output files.")
-
-    parser.add_argument("--plot_width", type=float,
-                        default=DEFAULT_PLOT_WIDTH, help="Width of the plots.")
-
-    parser.add_argument("--plot_height", type=float,
-                        default=DEFAULT_PLOT_HEIGHT, help="Height of the plots.")
-
-    parser.add_argument("--plot_bar_width", type=float,
-                        default=DEFAULT_PLOT_BAR_WIDTH, help="Width of the bars in the bar plots.")
-
-    parser.add_argument("--plot_cap_size", type=float,
-                        default=DEFAULT_PLOT_CAP_SIZE, help="Capsize of the error bars in the bar plots.")
-
-    parser.add_argument("--verbosity", type=int,
-                        help='Verbosity (Default {})'.format(DEFAULT_VERBOSITY), default=DEFAULT_VERBOSITY)
-
-    parser =  get_audio_ast_args(parser)
-    parser = get_conformer_models_args(parser)
-    parser = get_lstm_model_args(parser)
-    parser =  get_MLP_model_args(parser)
-    parser = get_residual_model_args(parser)
-    parser = get_wav_to_vec_args(parser)
-
-    arguments = parser.parse_args()
-
-    return arguments
-
-def show_all_settings(arguments):
-    """
-    Logs all settings and command-line arguments after parsing.
-    Displays the command used to run the script along with the
-    corresponding values for each argument.
-    """
-
-    # Log the command used to execute the script
-    logging.info("Command:\n\t{0}\n".format(" ".join([x for x in sys.argv])))
-    logging.info("Settings:")
-    # Calculate the maximum length of argument names for formatting
-    lengths = [len(x) for x in vars(arguments).keys()]
-    max_length = max(lengths)
-
-    # Log each argument and its value
-    for keys, values in sorted(vars(arguments).items()):
-
-        # Start with a tab for indentation
-        settings_parser = "\t"
-
-        # Left-justify the argument name for better readability
-        settings_parser += keys.ljust(max_length, " ")
-
-        # Append the value of the argument
-        settings_parser += " : {}".format(values)
-
-        # Log the formatted argument and value
-        logging.info(settings_parser)
-
-    logging.info("")  # Log a newline for spacing
 
 
 # Main entry point of the program

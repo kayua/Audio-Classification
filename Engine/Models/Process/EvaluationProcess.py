@@ -8,31 +8,20 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-from Engine.Processing.SpectrogramFeature import SpectrogramFeature
 
 try:
-    import os
     import sys
-    import glob
     import numpy
-    import librosa
-    import argparse
-    import tensorflow
 
-    from tqdm import tqdm
-    from sklearn.utils import resample
-    from tensorflow.keras import Model
-    from tensorflow.keras.layers import Dense
-    from tensorflow.keras.layers import Input
-    from tensorflow.keras.layers import LSTM
-    from tensorflow.keras.layers import Dropout
-    from tensorflow.keras.layers import Bidirectional
     from sklearn.model_selection import StratifiedKFold
     from sklearn.model_selection import train_test_split
-    from tensorflow.keras.layers import GlobalAveragePooling1D
-    from Engine.Evaluation.MetricsCalculator import MetricsCalculator
+
     from Engine.Processing.RawFeature import RawDataLoader
     from Engine.Processing.ClassBalance import ClassBalancer
+
+    from Engine.Evaluation.MetricsCalculator import MetricsCalculator
+    from Engine.Processing.SpectrogramFeature import SpectrogramFeature
+
 
 except ImportError as error:
     print(error)
