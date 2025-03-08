@@ -31,7 +31,7 @@ try:
     from tensorflow.keras.layers import MaxPooling2D
     from sklearn.model_selection import StratifiedKFold
     from sklearn.model_selection import train_test_split
-
+    from Engine.Models.Process.EvaluationProcess import EvaluationProcess
     from Engine.Evaluation.MetricsCalculator import MetricsCalculator
 
 except ImportError as error:
@@ -43,10 +43,9 @@ except ImportError as error:
     print()
     sys.exit(-1)
 
-DEFAULT_FILTERS_PER_BLOCK = [16, 32, 64, 96]
 
 
-class ResidualModel:
+class ResidualModel(EvaluationProcess):
     """
     @ResidualModel
         ResidualModel is a class that implements a residual convolutional neural
@@ -114,18 +113,12 @@ class ResidualModel:
         @model_name (str): The name of the model (default is "ResidualModel").
     """
 
-    def __init__(self,
-                 input_dimension: tuple[int, int, int],
-                 convolutional_padding: str,
-                 intermediary_activation: str,
-                 last_layer_activation: str,
-                 number_classes: int,
-                 size_convolutional_filters: tuple[int, int],
-                 size_pooling: tuple[int, int],
-                 filters_per_block: list[int],
-                 loss_function: str,
-                 optimizer_function: str,
-                 dropout_rate: float):
+    def __init__(self, input_dimension: tuple[int, int, int], convolutional_padding: str, intermediary_activation: str,
+                 last_layer_activation: str, number_classes: int, size_convolutional_filters: tuple[int, int],
+                 size_pooling: tuple[int, int], filters_per_block: list[int], loss_function: str,
+                 optimizer_function: str, dropout_rate: float, size_batch: int, number_splits: int, number_epochs: int,
+                 window_size_factor: int, decibel_scale_factor: int, hop_length: int, overlap: int, sample_rate: int,
+                 file_extension: str):
         """
         Initialize the ResidualModel class.
 
@@ -143,10 +136,10 @@ class ResidualModel:
             @dropout_rate (float): The dropout rate for regularization.
         """
 
-        if filters_per_block is None:
-            filters_per_block = DEFAULT_FILTERS_PER_BLOCK  # Default value if no filters are provided
-
         # Initialize model parameters
+        super().__init__(size_batch, number_splits, number_epochs, optimizer_function, window_size_factor,
+                         decibel_scale_factor, hop_length, overlap, sample_rate, file_extension)
+
         self.neural_network_model = None  # Placeholder for the Keras model
         self.loss_function = loss_function  # Loss function used during training
         self.size_pooling = size_pooling  # Pooling size for down-sampling

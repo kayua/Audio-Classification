@@ -42,7 +42,7 @@ except ImportError as error:
 
 
 
-class RawProcess(MetricsCalculator, ClassBalancer, RawDataLoader):
+class EvaluationProcess(MetricsCalculator, ClassBalancer, RawDataLoader):
     """
     RawProcess class encapsulates the full workflow of loading, preprocessing,
     training, evaluating, and aggregating metrics for a machine learning model.
@@ -170,15 +170,13 @@ class RawProcess(MetricsCalculator, ClassBalancer, RawDataLoader):
 
         return history_model, model_predictions, predicted_labels
 
-    def calculate_fold_metrics(self, predicted_labels, labels_val, model_predictions):
+    def calculate_fold_metrics(self, predicted_labels, labels_val):
         """
         Calculates performance metrics and confusion matrix for a single fold.
 
         Args:
             predicted_labels (numpy.ndarray): The predicted labels for the fold.
             labels_val (numpy.ndarray): The actual labels for the fold.
-            model_predictions (numpy.ndarray): The predicted probabilities for the fold.
-
         Returns:
             tuple: A tuple containing the calculated metrics and confusion matrix.
         """
@@ -276,7 +274,7 @@ class RawProcess(MetricsCalculator, ClassBalancer, RawDataLoader):
                                                                                  features_test)
 
             # Calculate metrics and confusion matrix for the fold
-            metrics, confusion_matrix = self.calculate_fold_metrics(predicted_labels, labels_val, model_predictions)
+            metrics, confusion_matrix = self.calculate_fold_metrics(predicted_labels, labels_val)
             metrics_list.append(metrics)
             confusion_matriz_list.append(confusion_matrix)
 

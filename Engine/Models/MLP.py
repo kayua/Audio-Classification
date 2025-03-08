@@ -31,7 +31,7 @@ try:
     from tensorflow.keras.layers import Bidirectional
     from sklearn.model_selection import StratifiedKFold
     from sklearn.model_selection import train_test_split
-    from Engine.Models.Process.RawProcess import RawProcess
+    from Engine.Models.Process.EvaluationProcess import EvaluationProcess
     from tensorflow.keras.layers import GlobalAveragePooling1D
     from Engine.Evaluation.MetricsCalculator import MetricsCalculator
 
@@ -45,7 +45,7 @@ except ImportError as error:
 
 
 
-class DenseModel(RawProcess):
+class DenseModel(EvaluationProcess):
     """
     @DenseModel
 
