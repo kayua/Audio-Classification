@@ -1,4 +1,5 @@
 import logging
+import matplotlib.pyplot as plt
 
 
 class LossPlotter:
@@ -41,10 +42,10 @@ class LossPlotter:
         ...     plotter = LossPlotter(
         ...     history_dict_list,
         ...     path_output,
-        ...     figsize=(12, 8),
+        ...     figure_size=(12, 8),
         ...     training_loss_color="blue",
         ...     validation_loss_color="orange",
-        ...     title_fontsize=18,
+        ...     title_font_size=18,
         ...     line_style_training="-.",
         ...     line_style_validation=":",
         ...     line_width=3
@@ -55,9 +56,9 @@ class LossPlotter:
         >>>
     """
 
-    def __init__(self, history_dict_list, path_output, figsize=(10, 6), training_loss_color="blue",
-                 validation_loss_color="orange", title_fontsize=16, axis_fontsize=12,
-                 legend_fontsize=10, xlabel="Epochs", ylabel="Loss", title="Loss Graph",
+    def __init__(self, history_dict_list, path_output, figure_size=(10, 6), training_loss_color="blue",
+                 validation_loss_color="orange", title_font_size=16, axis_font_size=12,
+                 legend_font_size=10, x_label="Epochs", y_label="Loss", title="Loss Graph",
                  grid=True, line_style_training='-', line_style_validation='--', line_width=2):
         """
         Initializes the LossPlotter instance with the list of model histories and the output path
@@ -68,14 +69,14 @@ class LossPlotter:
             @history_dict_list (list): A list of dictionaries where each dictionary contains the 'Name'
                                       of a model and the 'History' dictionary with loss values.
             @path_output (str): The directory path where the loss plot images should be saved.
-            @figsize (tuple): The size of the plot figure (width, height). Default is (10, 6).
+            @figure_size (tuple): The size of the plot figure (width, height). Default is (10, 6).
             @training_loss_color (str): The color of the training loss curve. Default is "blue".
             @validation_loss_color (str): The color of the validation loss curve. Default is "orange".
-            @title_fontsize (int): Font size of the plot title. Default is 16.
-            @axis_fontsize (int): Font size for the axis labels (x and y). Default is 12.
-            @legend_fontsize (int): Font size of the legend. Default is 10.
-            @xlabel (str): Label for the x-axis (epochs). Default is "Epochs".
-            @ylabel (str): Label for the y-axis (loss). Default is "Loss".
+            @title_font_size (int): Font size of the plot title. Default is 16.
+            @axis_font_size (int): Font size for the axis labels (x and y). Default is 12.
+            @legend_font_size (int): Font size of the legend. Default is 10.
+            @x_label (str): Label for the x-axis (epochs). Default is "Epochs".
+            @y_label (str): Label for the y-axis (loss). Default is "Loss".
             @title (str): Title of the plot. Default is "Loss Graph".
             @grid (bool): If True, enables grid lines on the plot. Default is True.
             @line_style_training (str): Line style for the training loss curve. Default is "-".
@@ -84,14 +85,14 @@ class LossPlotter:
         """
         self.history_dict_list = history_dict_list
         self.path_output = path_output
-        self.figsize = figsize
+        self.figure_size = figure_size
         self.training_loss_color = training_loss_color
         self.validation_loss_color = validation_loss_color
-        self.title_fontsize = title_fontsize
-        self.axis_fontsize = axis_fontsize
-        self.legend_fontsize = legend_fontsize
-        self.xlabel = xlabel
-        self.ylabel = ylabel
+        self.title_font_size = title_font_size
+        self.axis_font_size = axis_font_size
+        self.legend_font_size = legend_font_size
+        self.x_label = x_label
+        self.y_label = y_label
         self.title = title
         self.grid = grid
         self.line_style_training = line_style_training
@@ -110,6 +111,7 @@ class LossPlotter:
 
         # Iterate over each model's history dictionary
         for history_dict in self.history_dict_list:
+
             try:
                 model_name = history_dict['Name']
                 history = history_dict['History']
@@ -132,6 +134,7 @@ class LossPlotter:
 
             except KeyError as e:
                 logging.error(f"KeyError in model '{model_name}': {e}")
+
             except Exception as e:
                 logging.error(f"An error occurred while processing model '{model_name}': {e}")
                 raise
@@ -142,7 +145,7 @@ class LossPlotter:
         """
         Creates the plot figure with the specified customization options (e.g., figure size and grid).
         """
-        plt.figure(figsize=self.figsize)
+        plt.figure(figsize=self.figure_size)
 
         # Add grid if enabled
         if self.grid:
@@ -166,10 +169,10 @@ class LossPlotter:
                      linestyle=self.line_style_validation, linewidth=self.line_width)
 
         # Add title, labels, and legend
-        plt.title(f'{self.title} - {model_name}', fontsize=self.title_fontsize)
-        plt.xlabel(self.xlabel, fontsize=self.axis_fontsize)
-        plt.ylabel(self.ylabel, fontsize=self.axis_fontsize)
-        plt.legend(fontsize=self.legend_fontsize)
+        plt.title(f'{self.title} - {model_name}', fontsize=self.title_font_size)
+        plt.xlabel(self.x_label, fontsize=self.axis_font_size)
+        plt.ylabel(self.y_label, fontsize=self.axis_font_size)
+        plt.legend(fontsize=self.legend_font_size)
 
     def _save_plot(self, model_name):
         """
