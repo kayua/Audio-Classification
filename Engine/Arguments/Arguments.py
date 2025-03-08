@@ -8,6 +8,7 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+
 try:
     import sys
 
@@ -22,6 +23,13 @@ try:
 
     from Engine.Arguments.ArgumentsResidual import add_residual_arguments
     from Engine.Arguments.ArgumentsConformer import add_conformer_arguments
+
+    from Engine.Arguments.ArgumentsROCPlotter import add_roc_plotter_arguments
+    from Engine.Arguments.ArgumentsLossPlotter import add_loss_plotter_arguments
+
+    from Engine.Arguments.ArgumentsConfusionMatrix import add_confusion_matrix_arguments
+
+    from Engine.Arguments.ArgumentsComparativeMetrics import add_comparative_metrics_plotter_arguments
 
 except ImportError as error:
     print(error)
@@ -134,7 +142,10 @@ class Arguments:
         self.arguments = add_mlp_arguments(self.arguments)
         self.arguments = add_residual_arguments(self.arguments)
         self.arguments = add_wav_to_vec_arguments(self.arguments)
-
+        self.arguments = add_comparative_metrics_plotter_arguments(self.arguments)
+        self.arguments = add_confusion_matrix_arguments(self.arguments)
+        self.arguments = add_loss_plotter_arguments(self.arguments)
+        self.arguments = add_roc_plotter_arguments(self.arguments)
         # Parse the combined set of arguments
         self.arguments = self.arguments.parse_args()
 

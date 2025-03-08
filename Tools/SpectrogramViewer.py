@@ -11,8 +11,8 @@ __credits__ = ['unknown']
 
 try:
     import sys
-
     import numpy
+
     import librosa
 
     import librosa.display
