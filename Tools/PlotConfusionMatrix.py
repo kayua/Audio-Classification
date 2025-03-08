@@ -13,6 +13,7 @@ class ConfusionMatrixPlotter:
     multiple customization options like figure size, colormap, font sizes, axis tick label rotation,
     color bar options, annotation format, and the option to display or save the plot.
 
+
     Example:
     -------
         >>> # python
