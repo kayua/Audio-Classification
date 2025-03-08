@@ -18,8 +18,10 @@ try:
 
     from tqdm import tqdm
     import librosa.display
+
     from tensorflow.keras import Model
     from sklearn.utils import resample
+
     from tensorflow.keras.layers import Conv2D
     from tensorflow.keras.layers import Flatten
     from tensorflow.keras.layers import Dense
@@ -44,61 +46,147 @@ except ImportError as error:
 DEFAULT_FILTERS_PER_BLOCK = [16, 32, 64, 96]
 
 
-class ResidualModel(MetricsCalculator):
+class ResidualModel:
+    """
+    ResidualModel is a class that implements a residual convolutional neural
+    network (CNN) for classification tasks.
+
+    This model architecture incorporates residual blocks, which are used to combat the
+    vanishing gradient problem in deep neural networks by allowing gradients to flow more
+    easily through the layers. The network consists of convolutional layers, max pooling,
+    dropout regularization, and dense layers, optimized for classification problems.
+    Residual connections are added to improve performance, especially for deeper architectures.
+
+    The ResidualModel can be customized with various hyperparameters, including the number
+    of convolutional filters, size of filters, size of pooling layers, dropout rate, and
+    activation functions. The model is typically used for image classification tasks but
+    can be adapted for other types of input data.
+
+    Reference for Residual Convolutional Neural Networks:
+        Paim, K. O., Rohweder, R., Recamonde-Mendoza, M., Mansilha, R. B., & Cordeiro, W. (2024).
+        Acoustic identification of Ae. aegypti mosquitoes using smartphone apps and residual
+        convolutional neural networks. *Biomedical Signal Processing and Control,
+        95, 106342. https://doi.org/10.1016/j.bspc.2024.106342
+
+    Example:
+        >>> # Instantiate the model
+        ...     model = ResidualModel(
+        ...     input_dimension=(128, 128, 3),  # Input shape of the image (e.g., 128x128 RGB image)
+        ...     convolutional_padding='same',  # Padding type for convolution layers
+        ...     intermediary_activation='relu',  # Activation function for intermediary layers
+        ...     last_layer_activation='softmax',  # Activation function for output layer (e.g., 'softmax' for multi-class classification)
+        ...     number_classes=10,  # Number of output classes (e.g., 10 for multi-class classification)
+        ...     size_convolutional_filters=(3, 3),  # Size of convolutional filters (e.g., 3x3)
+        ...     size_pooling=(2, 2),  # Size of max-pooling filters (e.g., 2x2)
+        ...     filters_per_block=[32, 64, 128],  # Number of filters per block
+        ...     loss_function='categorical_crossentropy',  # Loss function for multi-class classification
+        ...     optimizer_function='adam',  # Optimizer used for training
+        ...     dropout_rate=0.2  # Dropout rate to prevent overfitting
+        ...     )
+        ...
+        ...     # Build the model
+        ...     model.build_model()
+        ...
+        ...     # Compile and train the model
+        ...     training_history = model.compile_and_train(
+        ...     train_data=X_train,  # Input training data
+        ...     train_labels=y_train,  # Training labels
+        ...     epochs=10,  # Number of epochs for training
+        ...     batch_size=32,  # Batch size for training
+        ...     validation_data=(X_val, y_val)  # Optional validation data
+        ...     )
+        >>>
+
+    Attributes:
+        @neural_network_model (tensorflow.keras.Model): The Keras model representing the residual CNN.
+        @filters_per_block (list[int]): List containing the number of filters in each residual block.
+        @input_shape (tuple): The shape of the input data (e.g., (128, 128, 3) for RGB images).
+        @size_convolutional_filters (tuple): The size of the convolutional filters (e.g., (3, 3)).
+        @size_pooling (tuple): The size of the max-pooling filters (e.g., (2, 2)).
+        @loss_function (str): The loss function used during model training (e.g., 'categorical_crossentropy').
+        @optimizer_function (str): The optimizer function used during model training (e.g., 'adam').
+        @dropout_rate (float): The dropout rate used for regularization.
+        @number_classes (int): The number of output classes for classification (e.g., 10 for multi-class classification).
+        @last_layer_activation (str): Activation function for the output layer (e.g., 'softmax').
+        @convolutional_padding (str): Padding strategy for convolution layers (e.g., 'same').
+        @intermediary_activation (str): Activation function used in intermediary layers (e.g., 'relu').
+        @model_name (str): The name of the model (default is "ResidualModel").
+    """
 
     def __init__(self,
-                 sample_rate: int,
-                 hop_length: int,
-                 window_size_factor: int,
-                 number_filters_spectrogram: int,
-                 number_layers: int,
                  input_dimension: tuple[int, int, int],
-                 overlap: int,
                  convolutional_padding: str,
                  intermediary_activation: str,
                  last_layer_activation: str,
                  number_classes: int,
                  size_convolutional_filters: tuple[int, int],
                  size_pooling: tuple[int, int],
-                 window_size_fft: int,
-                 decibel_scale_factor: int,
                  filters_per_block: list[int],
-                 size_batch: int,
-                 number_splits: int,
-                 number_epochs: int,
                  loss_function: str,
                  optimizer_function: str,
-                 dropout_rate: float,
-                 file_extension: str):
+                 dropout_rate: float):
+        """
+        Initialize the ResidualModel class.
 
+        Args:
+            @input_dimension (tuple): The shape of the input data (e.g., (128, 128, 3) for RGB images).
+            @convolutional_padding (str): Padding strategy for convolution layers (e.g., 'same' or 'valid').
+            @intermediary_activation (str): Activation function used in intermediary layers (e.g., 'relu').
+            @last_layer_activation (str): Activation function for the output layer (e.g., 'softmax').
+            @number_classes (int): The number of output classes for classification.
+            @size_convolutional_filters (tuple): The size of the convolutional filters (e.g., (3, 3)).
+            @size_pooling (tuple): The size of the pooling filters (e.g., (2, 2)).
+            @filters_per_block (list[int]): A list containing the number of filters for each residual block.
+            @loss_function (str): The loss function used during model training (e.g., 'categorical_crossentropy').
+            @optimizer_function (str): The optimizer function used during model training (e.g., 'adam').
+            @dropout_rate (float): The dropout rate for regularization.
+        """
 
         if filters_per_block is None:
-            filters_per_block = DEFAULT_FILTERS_PER_BLOCK
+            filters_per_block = DEFAULT_FILTERS_PER_BLOCK  # Default value if no filters are provided
 
-        self.neural_network_model = None
-        self.loss_function = loss_function
-        self.size_pooling = size_pooling
-        self.filters_per_block = filters_per_block
-        self.input_shape = input_dimension
-        self.optimizer_function = optimizer_function
-        self.dropout_rate = dropout_rate
-        self.size_convolutional_filters = size_convolutional_filters
-        self.number_classes = number_classes
-        self.last_layer_activation = last_layer_activation
-        self.convolutional_padding = convolutional_padding
-        self.intermediary_activation = intermediary_activation
-        self.model_name = "ResidualModel"
+        # Initialize model parameters
+        self.neural_network_model = None  # Placeholder for the Keras model
+        self.loss_function = loss_function  # Loss function used during training
+        self.size_pooling = size_pooling  # Pooling size for down-sampling
+        self.filters_per_block = filters_per_block  # Number of filters in each block
+        self.input_shape = input_dimension  # Shape of the input data
+        self.optimizer_function = optimizer_function  # Optimizer used for training
+        self.dropout_rate = dropout_rate  # Dropout rate for regularization
+        self.size_convolutional_filters = size_convolutional_filters  # Size of convolutional filters
+        self.number_classes = number_classes  # Number of output classes
+        self.last_layer_activation = last_layer_activation  # Activation function for the output layer
+        self.convolutional_padding = convolutional_padding  # Padding type for convolution layers
+        self.intermediary_activation = intermediary_activation  # Activation for intermediary layers
+        self.model_name = "ResidualModel"  # Name of the model
 
     def build_model(self):
+        """
+        Build the model architecture using Keras Functional API.
 
+        This method defines the structure of the residual convolutional network, incorporating
+        residual connections to improve training performance. The model consists of:
+            - Convolutional layers with specified padding and activation.
+            - Residual connections that allow the output of each layer to be added to the input.
+            - Max pooling for down-sampling.
+            - Dropout layers for regularization.
+            - Final dense layer for classification.
+
+        The network architecture is as follows:
+            1. Input layer: Accepts the input data with the specified shape.
+            2. Residual blocks: A sequence of convolutional layers, followed by a residual connection and max-pooling.
+            3. Final dense layer: The output layer with the specified number of classes and activation function.
+        """
+
+        # Create input layer with the shape of the input data.
         inputs = Input(shape=self.input_shape)
-        neural_network_flow = inputs
+        neural_network_flow = inputs  # Initialize the flow of data through the network
 
+        # Add residual blocks.
         for number_filters in self.filters_per_block:
+            residual_flow = neural_network_flow  # Save the input for the residual connection
 
-            residual_flow = neural_network_flow
-
-
+            # Add two convolutional layers followed by activation.
             neural_network_flow = Conv2D(number_filters, self.size_convolutional_filters,
                                          activation=self.intermediary_activation,
                                          padding=self.convolutional_padding)(neural_network_flow)
@@ -106,28 +194,50 @@ class ResidualModel(MetricsCalculator):
                                          activation=self.intermediary_activation,
                                          padding=self.convolutional_padding)(neural_network_flow)
 
-
+            # Add the residual connection (skip connection).
             neural_network_flow = Concatenate()([neural_network_flow, residual_flow])
 
+            # Apply max pooling and dropout after each residual block.
             neural_network_flow = MaxPooling2D(self.size_pooling)(neural_network_flow)
-
             neural_network_flow = Dropout(self.dropout_rate)(neural_network_flow)
 
+        # Flatten the output before passing it to the dense layer.
         neural_network_flow = Flatten()(neural_network_flow)
+
+        # Add the output layer with the specified number of classes.
         neural_network_flow = Dense(self.number_classes,
                                     activation=self.last_layer_activation)(neural_network_flow)
 
+        # Create the Keras model with the defined input and output layers.
         self.neural_network_model = Model(inputs=inputs, outputs=neural_network_flow, name=self.model_name)
-
 
     def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,
                           batch_size: int, validation_data: tuple = None) -> tensorflow.keras.callbacks.History:
+        """
+        Compile and train the model.
 
+        This method compiles the model with the specified optimizer and loss function,
+        and trains the model using the provided training data.
+
+        Args:
+            @train_data (tensorflow.Tensor): The input data for training (e.g., images).
+            @train_labels (tensorflow.Tensor): The target labels for training.
+            @epochs (int): The number of epochs for training.
+            @batch_size (int): The batch size for training.
+            @validation_data (tuple, optional): A tuple of validation data (input, labels). Default is None.
+
+        Returns:
+            tensorflow.keras.callbacks.History: The training history, containing information about the training process.
+        """
+
+        # Compile the model with the specified loss function, optimizer, and metrics.
         self.neural_network_model.compile(optimizer=self.optimizer_function, loss=self.loss_function,
                                           metrics=['accuracy'])
 
+        # Train the model with the provided data, labels, and validation data (if available).
         training_history = self.neural_network_model.fit(train_data, train_labels, epochs=epochs,
                                                          batch_size=batch_size,
                                                          validation_data=validation_data)
-        return training_history
 
+        # Return the training history object.
+        return training_history

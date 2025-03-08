@@ -22,9 +22,9 @@ try:
     from tensorflow.keras import Model
     from sklearn.utils import resample
 
+    from tensorflow.keras.layers import LSTM
     from tensorflow.keras.layers import Dense
     from tensorflow.keras.layers import Input
-    from tensorflow.keras.layers import LSTM
     from tensorflow.keras.layers import Flatten
     from tensorflow.keras.layers import Dropout
 
