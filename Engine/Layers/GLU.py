@@ -95,8 +95,7 @@ class GLU(Layer):
 
         Parameters
         ----------
-        neural_network_flow : tensorflow.Tensor
-            Input tensor with shape (..., 2d). The last dimension must be even.
+            neural_network_flow : tensorflow.Tensor Input tensor with shape (..., 2d). The last dimension must be even.
 
         Returns
         -------

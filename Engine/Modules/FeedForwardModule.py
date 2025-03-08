@@ -35,29 +35,39 @@ class FeedForwardModule(Layer):
     """
     Feed-Forward Neural Network Module with Dense Layers and Dropout.
 
-    This module consists of two dense layers with an activation function and dropout applied between them.
-    The goal of this module is to process data through a fully connected network with regularization techniques,
-    making it suitable for tasks like classification, regression, and feature transformation in deep learning architectures.
+    This module consists of two dense layers with an activation function and
+    dropout applied between them. The goal of this module is to process data
+    through a fully connected network with regularization techniques, making
+    it suitable for tasks like classification, regression, and feature
+    transformation in deep learning architectures.
 
-    The first dense layer increases the dimensionality of the input (projection), and the second dense layer reduces
-    it back to the original embedding dimension.
+    The first dense layer increases the dimensionality of the input (projection),
+    and the second dense layer reduces it back to the original embedding dimension.
 
     Args:
-        embedding_dimension (int): The dimensionality of the output embeddings (final output size). Default is 64.
-        dropout_rate (float): The dropout rate to apply after each dense layer to prevent overfitting. Default is 0.1.
-        activation_function (function): The activation function to apply to the first dense layer. Default is Swish.
-        factor_projection (int): The factor by which to increase the dimensionality in the first dense layer. Default is 4.
+        @embedding_dimension (int): The dimensionality of the output embeddings
+         (final output size). Default is 64.
+        @dropout_rate (float): The dropout rate to apply after each dense layer
+         to prevent overfitting. Default is 0.1.
+        @activation_function (function): The activation function to apply to the
+         first dense layer. Default is Swish.
+        @factor_projection (int): The factor by which to increase the dimensionality
+         in the first dense layer. Default is 4.
         **kwargs: Additional keyword arguments passed to the base Layer class.
 
     Attributes:
-        embedding_dimension (int): Dimensionality of the output embeddings.
-        dropout_rate (float): Dropout rate applied after each dense layer.
-        activation_function (function): Activation function used in the first dense layer.
-        factor_projection (int): Factor by which the dimensionality is increased in the first dense layer.
-        first_dense_layer (Dense): The first dense layer, applying the activation function and dimensionality projection.
-        dropout1 (Dropout): Dropout layer applied after the first dense layer.
-        second_dense_layer (Dense): The second dense layer, reducing the dimensionality to the original embedding dimension.
-        dropout2 (Dropout): Dropout layer applied after the second dense layer.
+        @embedding_dimension (int): Dimensionality of the output embeddings.
+        @dropout_rate (float): Dropout rate applied after each dense layer.
+        @activation_function (function): Activation function used in the first
+         dense layer.
+        @factor_projection (int): Factor by which the dimensionality is increased in
+         the first dense layer.
+        @first_dense_layer (Dense): The first dense layer, applying the activation
+         function and dimensionality projection.
+        @dropout1 (Dropout): Dropout layer applied after the first dense layer.
+        @second_dense_layer (Dense): The second dense layer, reducing the dimensionality
+         to the original embedding dimension.
+        @dropout2 (Dropout): Dropout layer applied after the second dense layer.
 
     Example
     -------
@@ -72,7 +82,7 @@ class FeedForwardModule(Layer):
 
     Output:
     -------
-    Output tensor shape: (32, 100, 64)
+        Output tensor shape: (32, 100, 64)
     """
 
     def __init__(self,
@@ -85,12 +95,12 @@ class FeedForwardModule(Layer):
         Initializes the Feed-Forward Module with specified parameters.
 
         Args:
-            embedding_dimension (int, optional): Dimensionality of the output embeddings. Default is 64.
-            dropout_rate (float, optional): Dropout rate applied after each dense layer. Default is 0.1.
-            activation_function (function, optional): Activation function used in the first
-            dense layer. Default is tensorflow.nn.swish.
-            factor_projection (int, optional): Factor by which the dimensionality is increased
-            in the first dense layer. Default is 4.
+            @embedding_dimension (int, optional): Dimensionality of the output embeddings.
+            @dropout_rate (float, optional): Dropout rate applied after each dense layer.
+            @activation_function (function, optional): Activation function used in the first
+            @dense layer. Default is tensorflow.nn.swish.
+            @factor_projection (int, optional): Factor by which the dimensionality is increased
+            @in the first dense layer. Default is 4.
             **kwargs: Additional arguments passed to the base `Layer` class.
         """
         # Calling the parent class (Layer) constructor to initialize the base layer
@@ -116,13 +126,16 @@ class FeedForwardModule(Layer):
 
     def call(self, neural_network_flow):
         """
-        Applies the feed-forward operations: dense layer, dropout, another dense layer, and dropout.
+        Applies the feed-forward operations: dense layer, dropout, another dense
+         layer, and dropout.
 
         Args:
-            neural_network_flow (Tensor): Input tensor to be processed through the dense layers and dropout.
+            neural_network_flow (Tensor): Input tensor to be processed through
+             the dense layers and dropout.
 
         Returns:
-            Tensor: Output tensor after applying the first dense layer, dropout, second dense layer, and dropout.
+            Tensor: Output tensor after applying the first dense layer, dropout,
+             second dense layer, and dropout.
         """
 
         # Apply the first dense layer to the input tensor (projection and activation)

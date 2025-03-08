@@ -61,11 +61,15 @@ class TransformerDecoder(Layer):
         @feedforward_dimension (int): The dimensionality of the feedforward network's hidden layer.
         @dropout_rate (float): The dropout rate applied after attention and feedforward layers.
         @first_mult_head_attention (MultiHeadAttention): The first multi-head self-attention layer.
-        @second_mult_head_attention (MultiHeadAttention): The second multi-head attention layer for attending to encoder output.
+        @second_mult_head_attention (MultiHeadAttention): The second multi-head attention layer
+         for attending to encoder output.
         @feedforward (Sequential): A sequential model consisting of two Dense layers.
-        @first_layer_normalization (LayerNormalization): The first layer normalization applied after the first attention layer.
-        @second_layer_normalization (LayerNormalization): The second layer normalization applied after the second attention layer.
-        @third_layer_normalization (LayerNormalization): The third layer normalization applied after the feedforward layer.
+        @first_layer_normalization (LayerNormalization): The first layer normalization applied
+        after the first attention layer.
+        @second_layer_normalization (LayerNormalization): The second layer normalization applied
+         after the second attention layer.
+        @third_layer_normalization (LayerNormalization): The third layer normalization applied
+         after the feedforward layer.
         @first_dropout (Dropout): The dropout layer applied after the first attention output.
         @second_dropout (Dropout): The dropout layer applied after the second attention output.
         @third_dropout (Dropout): The dropout layer applied after the feedforward output.

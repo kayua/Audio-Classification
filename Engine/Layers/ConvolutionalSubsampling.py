@@ -34,26 +34,24 @@ class ConvolutionalSubsampling(Layer):
     """
     A class for performing convolutional subsampling on 1D input data.
 
-    This layer applies a 1D convolution operation to the input data, which can be useful for downsampling
-    or feature extraction in various deep learning models.
+    This layer applies a 1D convolution operation to the input data, which
+    can be useful for downsampling or feature extraction in various deep
+    learning models.
 
     Attributes
     ----------
-    number_filters : int
-        Number of filters in the convolutional layer.
-    kernel_size : int
-        Size of the convolutional kernel.
-    convolutional_padding : str
-        Padding method for the convolutional operation. Can be 'valid' or 'same'.
-    convolutional_stride : int
-        Stride length for the convolutional operation.
-    convolutional_sub_sampling : Conv1D
-        The Conv1D layer used for convolutional subsampling.
+        @number_filters : int Number of filters in the convolutional layer.
+        @kernel_size : int Size of the convolutional kernel.
+        @convolutional_padding : str Padding method for the convolutional
+         operation. Can be 'valid' or 'same'.
+        @convolutional_stride : int Stride length for the convolutional operation.
+        @convolutional_sub_sampling : Conv1D The Conv1D layer used for convolutional
+         subsampling.
 
     Methods
     -------
-    call(neural_network_flow: tf.Tensor) -> tf.Tensor
-        Applies the convolutional subsampling to the input tensor and returns the output tensor.
+        call(neural_network_flow: tf.Tensor) -> tf.Tensor
+            Applies the convolutional subsampling to the input tensor and returns the output tensor.
     """
 
     def __init__(self,
@@ -67,14 +65,10 @@ class ConvolutionalSubsampling(Layer):
 
         Parameters
         ----------
-        number_filters : int, optional
-            Number of filters in the convolutional layer (default is 32).
-        kernel_size : int, optional
-            Size of the convolutional kernel (default is 3).
-        convolutional_padding : str, optional
-            Padding method for the convolutional operation (default is 'same').
-        convolutional_stride : int, optional
-            Stride length for the convolutional operation (default is 2).
+        @number_filters : int, optional Number of filters in the convolutional layer (default is 32).
+        @kernel_size : int, optional Size of the convolutional kernel (default is 3).
+        @convolutional_padding : str, optional Padding method for the convolutional operation (default is 'same').
+        @convolutional_stride : int, optional Stride length for the convolutional operation (default is 2).
         **kwargs
             Additional keyword arguments for the Layer superclass.
         """

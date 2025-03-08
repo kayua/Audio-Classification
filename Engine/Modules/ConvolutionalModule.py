@@ -39,45 +39,53 @@ DEFAULT_CONVOLUTIONAL_PADDING = "same"
 
 class ConvolutionalModule(Layer):
     """
-    A convolutional module that applies a series of transformations to a 1D tensor,
-    including point-wise convolutions, depth-wise convolutions, activations, batch normalization,
-    and dropout. This module is designed to capture complex features in sequential data.
+    A convolutional module that applies a series of transformations to a 1D
+    tensor, including point-wise convolutions, depth-wise convolutions,
+    activations, batch normalization, and dropout. This module is designed
+    to capture complex features in sequential data.
 
     The module consists of the following transformations:
-        1. **Point-wise Convolution**: A 1x1 convolution (also known as point-wise convolution),
-             used to adjust the number of filters.
-        2. **GLU Activation**: Gated Linear Units (GLU) to introduce a non-linearity, improving the
-             network's ability to model complex patterns.
-        3. **Depth-wise Convolution**: A depth-wise separable convolution that applies a convolutional
-             kernel to each input channel independently.
-        4. **Batch Normalization**: Normalizes activations across the batch to improve training speed
-             and stability.
-        5. **Swish Activation**: A smooth non-linear activation function that can improve performance
-             over ReLU.
-        6. **Dropout**: Applied to prevent overfitting during training by randomly setting a fraction
-             of the input units to zero.
-        7. **Residual Connection**: The input is added to the output of the module, helping to
-             mitigate the vanishing gradient problem.
+        1. **Point-wise Convolution**: A 1x1 convolution (also known as point-wise
+         convolution), used to adjust the number of filters.
+        2. **GLU Activation**: Gated Linear Units (GLU) to introduce a non-linearity,
+         improving the network's ability to model complex patterns.
+        3. **Depth-wise Convolution**: A depth-wise separable convolution that applies
+         a convolutional kernel to each input channel independently.
+        4. **Batch Normalization**: Normalizes activations across the batch to improve
+         training speed and stability.
+        5. **Swish Activation**: A smooth non-linear activation function that can
+         improve performance over ReLU.
+        6. **Dropout**: Applied to prevent overfitting during training by randomly
+         setting a fraction of the input units to zero.
+        7. **Residual Connection**: The input is added to the output of the module,
+         helping to mitigate the vanishing gradient problem.
 
     Args:
-        @number_filters (int): The number of filters for the convolutional layers. Default is 64.
-        @size_kernel (int): The size of the kernel for the depth-wise convolution. Default is 3.
-        @dropout_decay (float): The dropout rate for the dropout layer. Default is 0.5.
-        @convolutional_padding (str): Padding type for the convolutional layers ('same' or 'valid').
-        Default is 'same'.
+        @number_filters (int): The number of filters for the convolutional layers.
+         Default is 64.
+        @size_kernel (int): The size of the kernel for the depth-wise convolution.
+         Default is 3.
+        @dropout_decay (float): The dropout rate for the dropout layer.
+         Default is 0.5.
+        @convolutional_padding (str): Padding type for the convolutional layers
+         ('same' or 'valid'). Default is 'same'.
         **kwargs: Additional keyword arguments passed to the base Layer class.
 
     Attributes:
         @convolutional_padding (str): Padding type for the convolutional layers.
-        @layer_normalization (LayerNormalization): Layer normalization to stabilize the learning process.
-        @first_point_wise_convolutional (Conv1D): Point-wise convolution (1x1 convolution) applied
-        to the input tensor.
-        @glu_activation (GLU): Gated Linear Unit activation applied after the first point-wise convolution.
-        @depth_wise_convolutional (DepthwiseConv1D): Depth-wise convolution applied to the tensor.
-        @batch_normalization (BatchNormalization): Batch normalization applied to the activations.
+        @layer_normalization (LayerNormalization): Layer normalization to stabilize
+         the learning process.
+        @first_point_wise_convolutional (Conv1D): Point-wise convolution (1x1 convolution)
+         applied to the input tensor.
+        @glu_activation (GLU): Gated Linear Unit activation applied after the first
+         point-wise convolution.
+        @depth_wise_convolutional (DepthwiseConv1D): Depth-wise convolution applied
+         to the tensor.
+        @batch_normalization (BatchNormalization): Batch normalization applied to
+         the activations.
         @swish_activation (Activation): Swish activation applied after batch normalization.
-        @second_point_wise_convolutional (Conv1D): Another point-wise convolution applied to the output
-        of the depth-wise convolution.
+        @second_point_wise_convolutional (Conv1D): Another point-wise convolution applied
+         to the output of the depth-wise convolution.
         @dropout (Dropout): Dropout layer applied to prevent overfitting.
 
     Example
@@ -107,15 +115,11 @@ class ConvolutionalModule(Layer):
 
         Parameters
         ----------
-        number_filters : int
-            Number of filters for the convolutional layers.
-        size_kernel : int
-            Size of the kernel for the depth-wise convolutional layer.
-        dropout_decay : float
-            Dropout rate for the dropout layer.
-        convolutional_padding : str
-            Padding type for the convolutional layers.
-        **kwargs : Additional keyword arguments.
+            number_filters : int Number of filters for the convolutional layers.
+            size_kernel : int Size of the kernel for the depth-wise convolutional layer.
+            dropout_decay : float Dropout rate for the dropout layer.
+            convolutional_padding : str Padding type for the convolutional layers.
+            **kwargs : Additional keyword arguments.
         """
         # Calling the parent class (Layer) constructor to initialize the base layer
         super(ConvolutionalModule, self).__init__(**kwargs)
@@ -154,13 +158,13 @@ class ConvolutionalModule(Layer):
 
         Parameters
         ----------
-        neural_network_flow : tf.Tensor
-            Input tensor to be processed by the convolutional module.
+            neural_network_flow : tf.Tensor
+                Input tensor to be processed by the convolutional module.
 
         Returns
         -------
-        tf.Tensor
-            Output tensor after applying the convolutional transformations.
+            tf.Tensor
+                Output tensor after applying the convolutional transformations.
         """
         # Storing the original input for applying the residual connection later
         residual_flow = neural_network_flow

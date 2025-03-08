@@ -88,7 +88,7 @@ class AudioWav2Vec2:
         >>> # Instantiate the model
         ...     model = AudioWav2Vec2(
         ...     number_classes=10,  # Number of output classes (e.g., 10 for classification)
-        ...     last_layer_activation='softmax',  # Activation function for the output layer (e.g., 'softmax' for multi-class classification)
+        ...     last_layer_activation='softmax',  # Activation function for the output layer (e.g., 'softmax')
         ...     loss_function='categorical_crossentropy',  # Loss function for training (e.g., 'categorical_crossentropy')
         ...     optimizer_function='adam',  # Optimizer for training (e.g., 'adam')
         ...     quantization_units=4,  # Number of quantization units

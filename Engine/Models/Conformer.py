@@ -35,7 +35,7 @@ try:
 
     from sklearn.model_selection import StratifiedKFold
     from sklearn.model_selection import train_test_split
-
+    from Engine.Layers.TransposeLayer import TransposeLayer
     from Engine.Layers.ConformerBlock import ConformerBlock
     from Engine.Evaluation.MetricsCalculator import MetricsCalculator
     from Engine.Layers.ConvolutionalSubsampling import ConvolutionalSubsampling
@@ -69,19 +69,19 @@ class Conformer:
         *arXiv preprint arXiv:2005.08100*. https://arxiv.org/abs/2005.08100
 
     Attributes:
-        neural_network_model (tensorflow.keras.Model): The Keras model representing the Conformer network.
-        loss_function (str): The loss function used during model training (e.g., 'categorical_crossentropy').
-        optimizer_function (str): The optimizer function (e.g., 'adam').
-        number_filters_spectrogram (int): The number of filters used in the spectrogram extraction.
-        input_dimension (tuple): The input dimension for the model (e.g., (128, 80) for Mel spectrogram).
-        number_conformer_blocks (int): The number of Conformer blocks in the model.
-        embedding_dimension (int): The dimensionality of the embedding layer.
-        number_heads (int): The number of attention heads in the multi-head attention mechanism.
-        number_classes (int): The number of output classes for classification.
-        kernel_size (tuple): The kernel size for the convolutional layers.
-        dropout_rate (float): The dropout rate for regularization.
-        last_layer_activation (str): The activation function for the output layer (e.g., 'softmax').
-        model_name (str): The name of the model (default is "Conformer").
+        @neural_network_model (tensorflow.keras.Model): The Keras model representing the Conformer network.
+        @loss_function (str): The loss function used during model training (e.g., 'categorical_crossentropy').
+        @optimizer_function (str): The optimizer function (e.g., 'adam').
+        @number_filters_spectrogram (int): The number of filters used in the spectrogram extraction.
+        @input_dimension (tuple): The input dimension for the model (e.g., (128, 80) for Mel spectrogram).
+        @number_conformer_blocks (int): The number of Conformer blocks in the model.
+        @embedding_dimension (int): The dimensionality of the embedding layer.
+        @number_heads (int): The number of attention heads in the multi-head attention mechanism.
+        @number_classes (int): The number of output classes for classification.
+        @kernel_size (tuple): The kernel size for the convolutional layers.
+        @dropout_rate (float): The dropout rate for regularization.
+        @last_layer_activation (str): The activation function for the output layer (e.g., 'softmax').
+        @model_name (str): The name of the model (default is "Conformer").
 
     Example:
         >>> # Instantiate the Conformer model
