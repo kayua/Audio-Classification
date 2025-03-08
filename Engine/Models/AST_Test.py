@@ -1,5 +1,5 @@
-import unittest
 import numpy
+import unittest
 import tensorflow
 from tensorflow.keras import backend as K
 
