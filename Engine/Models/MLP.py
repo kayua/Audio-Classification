@@ -25,16 +25,13 @@ try:
     from tensorflow.keras.layers import Flatten
 
     from tensorflow.keras.layers import Bidirectional
+
     from tensorflow.keras.layers import GlobalAveragePooling1D
 
     from Engine.Models.Process.EvaluationProcess import EvaluationProcess
 
 except ImportError as error:
     print(error)
-    print("1. Install requirements:")
-    print("  pip3 install --upgrade pip")
-    print("  pip3 install -r requirements.txt ")
-    print()
     sys.exit(-1)
 
 

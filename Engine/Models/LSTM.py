@@ -16,13 +16,14 @@ try:
 
     from tensorflow.keras import Model
 
-    from tensorflow.keras.layers import Input
     from tensorflow.keras.layers import LSTM
     from tensorflow.keras.layers import Dense
+    from tensorflow.keras.layers import Input
 
     from tensorflow.keras.layers import Dropout
 
     from tensorflow.keras.layers import Bidirectional
+
     from tensorflow.keras.layers import GlobalAveragePooling1D
 
     from Engine.Models.Process.EvaluationProcess import EvaluationProcess
@@ -30,10 +31,6 @@ try:
 
 except ImportError as error:
     print(error)
-    print("1. Install requirements:")
-    print("  pip3 install --upgrade pip")
-    print("  pip3 install -r requirements.txt ")
-    print()
     sys.exit(-1)
 
 

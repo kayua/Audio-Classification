@@ -17,10 +17,6 @@ try:
 
 except ImportError as error:
     print(error)
-    print("1. Install requirements:")
-    print("  pip3 install --upgrade pip")
-    print("  pip3 install -r requirements.txt ")
-    print()
     sys.exit(-1)
 
 class LinearProjection:
