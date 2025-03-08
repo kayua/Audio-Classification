@@ -8,6 +8,8 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+from Engine.Processing.SpectrogramFeature import SpectrogramFeature
+
 try:
     import os
     import sys
@@ -42,7 +44,10 @@ except ImportError as error:
 
 
 
-class EvaluationProcess(MetricsCalculator, ClassBalancer, RawDataLoader):
+class EvaluationProcess(MetricsCalculator,
+                        ClassBalancer,
+                        RawDataLoader,
+                        SpectrogramFeature):
     """
     RawProcess class encapsulates the full workflow of loading, preprocessing,
     training, evaluating, and aggregating metrics for a machine learning model.
@@ -109,7 +114,7 @@ class EvaluationProcess(MetricsCalculator, ClassBalancer, RawDataLoader):
                 (features_train_val, features_test, labels_train_val, labels_test)
         """
         # Loading data from the provided directory and preprocessing
-        features, labels = self.load_data(dataset_directory)
+        features, labels = self.load_data_raw_format(dataset_directory)
         labels = numpy.array(labels).astype(float)  # Convert labels to float
 
         # Splitting data into training/validation and test sets (80-20 split)

@@ -54,7 +54,7 @@ class RawDataLoader(WindowGenerator):
         ...     )
         ...
         ...     # Load data from the specified directory
-        ...     features, labels = data_loader.load_data(sub_directories="path_to_audio_data")
+        ...     features, labels = data_loader.load_data_patcher_spectrogram_format(sub_directories="path_to_audio_data")
         ...
         ...     # features: numpy array of spectrograms (processed audio data)
         ...     # labels: numpy array of labels corresponding to each spectrogram
@@ -88,7 +88,7 @@ class RawDataLoader(WindowGenerator):
         self.window_size_factor = window_size_factor
         self.file_extension = file_extension
 
-    def load_data(self, sub_directories: str = None, file_extension: str = None) -> tuple:
+    def load_data_raw_format(self, sub_directories: str = None, file_extension: str = None) -> tuple:
         """
         Loads the audio data from the specified subdirectories, processes the audio files
         into feature, and returns the features and their corresponding labels.

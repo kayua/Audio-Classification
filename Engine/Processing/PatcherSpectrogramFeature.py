@@ -6,98 +6,17 @@ import librosa
 from tqdm import tqdm
 
 from Engine.Processing.WindowGenerator import WindowGenerator
+from Engine.Transformations.SpectrogramPatcher import SpectrogramPatcher
 
 
-class SpectrogramFeature(WindowGenerator):
-    """
-    A class for generating spectrogram features from audio signals for machine
-    learning tasks.
-
-    This class processes audio data and extracts Mel spectrograms as features,
-    which can be used for tasks like classification or recognition. It includes
-    methods for loading audio data, generating spectrograms, and preparing data
-     for model training.
-
-    Attributes:
-        @sample_rate (int): The sample rate at which to load audio files.
-        @window_size (int): The window size used for segmenting the audio signal.
-        @overlap (int): The amount of overlap between adjacent windows.
-        @number_filters_spectrogram (int): The number of Mel filters to use in the spectrogram.
-        @window_size_fft (int): The window size for the Fast Fourier Transform (FFT).
-        @hop_length (int): The hop length for computing the spectrogram.
-        @decibel_scale_factor (int): The scale factor for decibel normalization of
-        the spectrogram.
-
-    Methods:
-        @load_data(sub_directories: str, file_extension: str, stack_segments: bool) -> tuple:
-            Loads and processes the audio files from the specified directories,
-             then extracts and normalizes spectrogram features.
-
-        @get_class_paths(sub_directories: str) -> list:
-            Retrieves the paths of all subdirectories representing the different
-            classes (categories).
-
-        @process_files(class_paths: list, file_extension: str) -> tuple:
-            Processes all files within the class directories, extracts their features,
-            and associates them with their labels.
-
-        @load_audio_and_extract_label(file_name: str) -> tuple:
-            Loads the audio signal from a file and extracts the label based on the
-            directory structure.
-
-        @extract_spectrogram(signal: numpy.ndarray) -> list:
-            Extracts Mel spectrograms from the audio signal.
-
-        @generate_mel_spectrogram(signal_window: numpy.ndarray) -> numpy.ndarray:
-            Generates the Mel spectrogram from a given audio window.
-
-        @prepare_output(list_spectrogram: list, labels: list, stack_segments: bool) -> tuple:
-            Prepares the spectrogram features and labels, reshaping them for model input.
-            Optionally stacks the segments.
-
-    Example:
-    >>> # Initialize the SpectrogramFeature instance
-    ...     spectrogram_feature = SpectrogramFeature(
-    ...     sample_rate=22050,               # Standard sample rate for audio
-    ...     window_size=1024,                # Size of the sliding window for segmenting audio
-    ...     overlap=512,                     # Overlap between consecutive windows
-    ...     number_filters_spectrogram=40,   # Number of Mel filters for spectrogram
-    ...     window_size_fft=2048,            # Window size for FFT
-    ...     hop_length=512,                  # Hop length for spectrogram calculation
-    ...     decibel_scale_factor=80         # Factor to scale decibel values
-    ...     )
-    ...
-    ...     # Load and process the data from a directory containing audio files
-    ...     features, labels = spectrogram_feature.load_data_patcher_spectrogram_format(
-    ...     sub_directories="path_to_audio_data",  # Directory with subdirectories representing classes
-    ...     file_extension=".wav",                # Extension of the audio files
-    ...     stack_segments=False                  # Whether to stack segments (optional)
-    ...     )
-    ...
-    ...     # features: Spectrogram data as a numpy array
-    ...     # labels: Corresponding class labels as a numpy array
-    ...     print(f"Loaded {len(features)} spectrograms and {len(labels)} labels.")
-    >>>
-    """
+class PatcherSpectrogramFeature(SpectrogramPatcher, WindowGenerator):
 
     def __init__(self, sample_rate: int, window_size: int, overlap: int, number_filters_spectrogram: int,
-                 window_size_fft: int, hop_length: int, decibel_scale_factor: int):
-        """
-        Initializes the SpectrogramFeature class.
-
-        Args:
-            sample_rate (int): The sample rate to load audio files.
-            window_size (int): The window size for segmenting the audio signal.
-            overlap (int): The overlap between consecutive windows.
-            number_filters_spectrogram (int): The number of Mel filters in the spectrogram.
-            window_size_fft (int): The FFT window size.
-            hop_length (int): The hop length for computing the spectrogram.
-            decibel_scale_factor (int): The decibel scale factor for normalization.
-        """
+                 window_size_fft: int, hop_length: int, decibel_scale_factor: int, patch_size: tuple[int, int]):
 
         # Store all the parameters as attributes
-        super().__init__(window_size, overlap)
-
+        super().__init__(patch_size)
+        self.audio_duration = None
         self.sample_rate = sample_rate
         self.window_size = window_size
         self.overlap = overlap
@@ -106,20 +25,9 @@ class SpectrogramFeature(WindowGenerator):
         self.hop_length = hop_length
         self.decibel_scale_factor = decibel_scale_factor
 
-    def load_data_spectrogram_format(self, sub_directories: str, file_extension: str = "*.wav", stack_segments=False) -> tuple:
-        """
-        Loads and processes audio files, extracts Mel spectrogram features, and prepares data for training.
+    def load_data_patcher_spectrogram_format(self, sub_directories: str, file_extension: str = "*.wav",
+                                             stack_segments=False) -> tuple:
 
-        Args:
-            sub_directories (str): The path to the parent directory containing class subdirectories.
-            file_extension (str, optional): The file extension to look for in the directory (default is "*.wav").
-            stack_segments (bool, optional): Whether to stack the spectrogram segments (default is False).
-
-        Returns:
-            tuple: A tuple containing:
-                - numpy.ndarray: The spectrogram features as a numpy array.
-                - numpy.ndarray: The labels corresponding to the spectrograms.
-        """
         logging.info("Starting to load data...")
 
         # If no extension is provided, use default "*.wav"
@@ -208,6 +116,17 @@ class SpectrogramFeature(WindowGenerator):
         # Extract the label based on the directory structure
         signal_label = os.path.basename(os.path.dirname(file_name)).split('_')[0]
 
+        # Calculate the maximum length of the signal based on the desired duration
+        max_length = int(self.sample_rate * self.audio_duration)
+
+        # Pad the signal if it's shorter than the required length
+        if len(raw_signal) < max_length:
+            padding = max_length - len(raw_signal)
+            raw_signal = numpy.pad(raw_signal, (0, padding), 'constant')
+
+        # Truncate the signal to the maximum length
+        raw_signal = raw_signal[:max_length]
+
         return raw_signal, signal_label
 
 
@@ -249,7 +168,10 @@ class SpectrogramFeature(WindowGenerator):
             hop_length=self.hop_length
         )
         # Convert to dB and normalize
-        return (librosa.power_to_db(melody_spectrogram, ref=numpy.max) / self.decibel_scale_factor) + 1
+        spectrogram_decibel_scale =\
+            (librosa.power_to_db(melody_spectrogram, ref=numpy.max) / self.decibel_scale_factor) + 1
+
+        return self.split_into_patches(spectrogram_decibel_scale)
 
 
 

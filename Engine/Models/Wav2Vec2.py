@@ -8,8 +8,6 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-from Engine.Layers.MaskLayer import MaskCreator
-
 try:
     import os
     import sys
@@ -42,6 +40,9 @@ try:
     from tensorflow.keras.layers import LayerNormalization
     from tensorflow.keras.layers import GlobalAveragePooling1D
 
+    from Engine.Layers.MaskLayer import MaskCreator
+    from Engine.Models.Process.EvaluationProcess import EvaluationProcess
+
     from Engine.Loss.ContrastiveLoss import ContrastiveLoss
     from Engine.Layers.QuantizerLayerMLP import QuantizationLayer
 
@@ -63,7 +64,7 @@ except ImportError as error:
 DEFAULT_LIST_FILTERS_ENCODER = [8, 16, 32]
 
 
-class AudioWav2Vec2(MaskCreator):
+class AudioWav2Vec2(MaskCreator, EvaluationProcess):
     """
     @AudioWav2Vec2
         AudioWav2Vec2 is a class that implements a deep learning model based on the Wav2Vec2
@@ -130,19 +131,9 @@ class AudioWav2Vec2(MaskCreator):
         @model_name (str): The name of the model (default is "Wav2Vec2").
     """
 
-    def __init__(self,
-                 number_classes: int,
-                 last_layer_activation: str,
-                 loss_function: str,
-                 optimizer_function: str,
-                 quantization_units: int,
-                 key_dimension: int,
-                 dropout_rate: float,
-                 intermediary_layer_activation: str,
-                 input_dimension: tuple,
-                 number_heads: int,
-                 kernel_size: int,
-                 list_filters_encoder=None):
+    def __init__(self, number_classes: int, last_layer_activation: str, loss_function: str, optimizer_function: str,
+                 quantization_units: int, key_dimension: int, dropout_rate: float, intermediary_layer_activation: str,
+                 input_dimension: tuple, number_heads: int, kernel_size: int, list_filters_encoder=None):
         """
         Initialize the AudioWav2Vec2 model with specified hyperparameters.
 
@@ -161,6 +152,7 @@ class AudioWav2Vec2(MaskCreator):
             @list_filters_encoder (list[int], optional): A list of the number of filters for each convolutional encoder block.
         """
 
+        super().__init__()
         if list_filters_encoder is None:
             list_filters_encoder = DEFAULT_LIST_FILTERS_ENCODER  # Default filters if not provided
 

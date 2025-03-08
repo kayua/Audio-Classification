@@ -38,6 +38,7 @@ try:
     from Engine.Layers.TransposeLayer import TransposeLayer
     from Engine.Layers.ConformerBlock import ConformerBlock
     from Engine.Evaluation.MetricsCalculator import MetricsCalculator
+    from Engine.Models.Process.EvaluationProcess import EvaluationProcess
     from Engine.Layers.ConvolutionalSubsampling import ConvolutionalSubsampling
 
 except ImportError as error:
@@ -49,7 +50,7 @@ except ImportError as error:
     sys.exit(-1)
 
 
-class Conformer:
+class Conformer(EvaluationProcess):
     """
     @Conformer
 
@@ -112,18 +113,11 @@ class Conformer:
         >>>
     """
 
-    def __init__(self,
-                 number_conformer_blocks: int,
-                 embedding_dimension: int,
-                 number_heads: int,
-                 size_kernel: tuple,
-                 number_classes: int,
-                 last_layer_activation: str,
-                 loss_function: str,
-                 optimizer_function: str,
-                 number_filters_spectrogram: int,
-                 dropout_rate: float,
-                 input_dimension: tuple):
+    def __init__(self, number_conformer_blocks: int, embedding_dimension: int, number_heads: int, size_kernel: tuple,
+                 number_classes: int, last_layer_activation: str, loss_function: str, optimizer_function: str,
+                 number_filters_spectrogram: int, dropout_rate: float, input_dimension: tuple, size_batch: int,
+                 number_splits: int, number_epochs: int, window_size_factor: int, decibel_scale_factor: int,
+                 hop_length: int, overlap: int, sample_rate: int, file_extension: str):
         """
         Initialize the Conformer model with the specified hyperparameters.
 
@@ -141,6 +135,8 @@ class Conformer:
             @input_dimension (tuple): The shape of the input data.
         """
 
+        super().__init__(size_batch, number_splits, number_epochs, optimizer_function, window_size_factor,
+                         decibel_scale_factor, hop_length, overlap, sample_rate, file_extension)
         self.neural_network_model = None
         self.loss_function = loss_function
         self.optimizer_function = optimizer_function
