@@ -1,7 +1,25 @@
-import numpy
-import logging
-import matplotlib.pyplot as plt
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
 
+__author__ = 'unknown'
+__email__ = 'unknown@unknown.com.br'
+__version__ = '{1}.{0}.{0}'
+__initial_data__ = '2024/07/17'
+__last_update__ = '2024/07/17'
+__credits__ = ['unknown']
+
+
+try:
+    import sys
+
+    import numpy
+    import logging
+
+    import matplotlib.pyplot as plt
+
+except ImportError as error:
+    print(error)
+    sys.exit(-1)
 
 class ComparativeMetricsPlotter:
     """

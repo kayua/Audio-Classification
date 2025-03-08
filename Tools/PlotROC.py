@@ -1,12 +1,29 @@
-import numpy
-import logging
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
 
-import matplotlib.pyplot as plt
-from sklearn.metrics import auc
+__author__ = 'unknown'
+__email__ = 'unknown@unknown.com.br'
+__version__ = '{1}.{0}.{0}'
+__initial_data__ = '2024/07/17'
+__last_update__ = '2024/07/17'
+__credits__ = ['unknown']
 
-from sklearn.metrics import roc_curve
-from sklearn.preprocessing import label_binarize
 
+try:
+    import sys
+    import numpy
+    import logging
+
+    import matplotlib.pyplot as plt
+    from sklearn.metrics import auc
+
+    from sklearn.metrics import roc_curve
+
+    from sklearn.preprocessing import label_binarize
+
+except ImportError as error:
+    print(error)
+    sys.exit(-1)
 
 class ROCPlotter:
     """
