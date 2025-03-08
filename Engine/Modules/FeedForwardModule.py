@@ -13,8 +13,8 @@ try:
     import tensorflow
 
     from tensorflow.keras.layers import Layer
-    from tensorflow.keras.layers import Dropout
     from tensorflow.keras.layers import Dense
+    from tensorflow.keras.layers import Dropout
 
 except ImportError as error:
     print(error)

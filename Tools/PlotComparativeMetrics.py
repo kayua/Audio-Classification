@@ -1,5 +1,5 @@
+import numpy
 import logging
-import numpy as np
 import matplotlib.pyplot as plt
 
 
@@ -217,7 +217,7 @@ class ComparativeMetricsPlotter:
 
             # Create figure
             figure_plot, axis_plot = self._create_figure()
-            positions = np.arange(number_metrics)
+            positions = numpy.arange(number_metrics)
 
             # Plot bars for each metric
             for metric_id, metric_name in enumerate(list_metrics):

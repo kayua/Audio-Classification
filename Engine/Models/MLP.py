@@ -11,7 +11,6 @@ __credits__ = ['unknown']
 
 try:
     import sys
-
     import tensorflow
 
     from tensorflow.keras import Model

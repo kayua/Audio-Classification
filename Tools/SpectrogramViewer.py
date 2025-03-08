@@ -1,7 +1,8 @@
+import numpy
 import librosa
 import librosa.display
 import matplotlib.pyplot as plt
-import numpy as np
+
 
 DEFAULT_SAMPLE_RATE = 8000
 DEFAULT_MAX_FREQUENCY = 4000
@@ -23,13 +24,14 @@ class AudioSpectrogramViewer:
         Initialize with the path to the WAV audio file and optional parameters.
 
         Parameters:
-        - audio_file (str): Path to the WAV audio file.
-        - sr (int, optional): Sampling rate of the audio file (default is 8000).
-        - fmax (int, optional): Maximum frequency to display in the spectrogram (default is 4000 Hz).
-        - figsize (tuple, optional): Size of the figure (width, height) in inches (default is (10, 6)).
-        - colormap (str, optional): Colormap to use for the spectrogram plot (default is 'viridis').
-        - title (str or None, optional): Title of the spectrogram plot (default is None).
-        - save_path (str, optional): Path to save the spectrogram image (default is 'spectrogram.png').
+        -----------
+            @audio_file (str): Path to the WAV audio file.
+            @sr (int, optional): Sampling rate of the audio file (default is 8000).
+            @fmax (int, optional): Maximum frequency to display in the spectrogram (default is 4000 Hz).
+            @figsize (tuple, optional): Size of the figure (width, height) in inches (default is (10, 6)).
+            @colormap (str, optional): Colormap to use for the spectrogram plot (default is 'viridis').
+            @title (str or None, optional): Title of the spectrogram plot (default is None).
+            @save_path (str, optional): Path to save the spectrogram image (default is 'spectrogram.png').
         """
         self.audio_file = audio_file
         self.sample_rate = sample_rate
@@ -50,7 +52,7 @@ class AudioSpectrogramViewer:
         spectrogram = librosa.stft(signal)
 
         # Convert magnitude spectrogram to decibels (dB)
-        spectrogram_decibel_scale = librosa.amplitude_to_db(np.abs(spectrogram), ref=np.max)
+        spectrogram_decibel_scale = librosa.amplitude_to_db(numpy.abs(spectrogram), ref=numpy.max)
 
         # Create a figure and plot the spectrogram
         plt.figure(figsize=self.figure_size)

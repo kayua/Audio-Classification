@@ -12,6 +12,7 @@ __credits__ = ['unknown']
 try:
 
     import sys
+
     import logging
     import tensorflow
 
@@ -33,6 +34,7 @@ try:
     from Engine.Layers.MaskLayer import MaskCreator
 
     from tensorflow.keras.layers import TimeDistributed
+
     from tensorflow.keras.layers import LayerNormalization
     from tensorflow.keras.layers import MultiHeadAttention
     from Engine.Loss.ContrastiveLoss import ContrastiveLoss

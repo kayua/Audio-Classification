@@ -1,12 +1,37 @@
-import glob
-import logging
-import os
-import numpy
-import librosa
-from tqdm import tqdm
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
 
-from Engine.Processing.PathTools import PathTools
-from Engine.Processing.WindowGenerator import WindowGenerator
+__author__ = 'unknown'
+__email__ = 'unknown@unknown.com.br'
+__version__ = '{1}.{0}.{0}'
+__initial_data__ = '2024/07/17'
+__last_update__ = '2024/07/17'
+__credits__ = ['unknown']
+
+
+try:
+    import os
+    import sys
+
+    import glob
+    import numpy
+
+    import logging
+    import librosa
+
+    from tqdm import tqdm
+
+    from Engine.Processing.PathTools import PathTools
+    from Engine.Processing.WindowGenerator import WindowGenerator
+
+except ImportError as error:
+    print(error)
+    print("1. Install requirements:")
+    print("  pip3 install --upgrade pip")
+    print("  pip3 install -r requirements.txt ")
+    print()
+    sys.exit(-1)
+
 
 
 class SpectrogramFeature(WindowGenerator, PathTools):

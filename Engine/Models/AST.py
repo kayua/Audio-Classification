@@ -12,25 +12,31 @@ __credits__ = ['unknown']
 try:
 
     import sys
+
     import tensorflow
+
     from tensorflow.keras import models
+
     from tensorflow.keras.layers import Add
-    from tensorflow.keras.layers import Concatenate
-    from tensorflow.keras.layers import Conv1D
-    from tensorflow.keras.layers import Dense
-    from tensorflow.keras.layers import Dropout
-    from tensorflow.keras.layers import Embedding
-    from tensorflow.keras.layers import Flatten
-    from tensorflow.keras.layers import GlobalAveragePooling1D
     from tensorflow.keras.layers import Input
     from tensorflow.keras.layers import Layer
-    from tensorflow.keras.layers import LayerNormalization
-    from tensorflow.keras.layers import MultiHeadAttention
+    from tensorflow.keras.layers import Dense
+
+    from tensorflow.keras.layers import Conv1D
+    from tensorflow.keras.layers import Dropout
+    from tensorflow.keras.layers import Flatten
+
+    from tensorflow.keras.layers import Embedding
+    from tensorflow.keras.layers import Concatenate
     from tensorflow.keras.layers import TimeDistributed
 
     from Engine.Layers.CLSTokenLayer import CLSTokenLayer
-    from Engine.Layers.PositionalEmbeddingsLayer import PositionalEmbeddingsLayer
+    from tensorflow.keras.layers import LayerNormalization
+    from tensorflow.keras.layers import MultiHeadAttention
 
+    from tensorflow.keras.layers import GlobalAveragePooling1D
+
+    from Engine.Layers.PositionalEmbeddingsLayer import PositionalEmbeddingsLayer
 
 except ImportError as error:
     print(error)

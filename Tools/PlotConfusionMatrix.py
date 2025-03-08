@@ -1,7 +1,7 @@
+import numpy
 import logging
-import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
+import seaborn
 
 
 class ConfusionMatrixPlotter:
@@ -116,7 +116,7 @@ class ConfusionMatrixPlotter:
             The title for the confusion matrix plot.
         """
         # Convert confusion matrix to a NumPy array for easy manipulation
-        confusion_matrix = np.array(confusion_matrix_dict["confusion_matrix"])
+        confusion_matrix = numpy.array(confusion_matrix_dict["confusion_matrix"])
         # Get class names
         class_names = confusion_matrix_dict["class_names"]
         # Get plot title (if not provided, default to "Confusion Matrix")
@@ -144,7 +144,7 @@ class ConfusionMatrixPlotter:
         plt.figure(figsize=self.figure_size)
 
         # Create the heatmap using seaborn's heatmap function
-        ax = sns.heatmap(
+        ax = seaborn.heatmap(
             confusion_matrix,
             annot=True,  # Annotate each cell with its value
             fmt=self.fmt,  # Format of the annotation (integer or float)

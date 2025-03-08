@@ -1,7 +1,10 @@
+import numpy
 import logging
-import numpy as np
+
 import matplotlib.pyplot as plt
-from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import auc
+
+from sklearn.metrics import roc_curve
 from sklearn.preprocessing import label_binarize
 
 
@@ -127,7 +130,7 @@ class ROCPlotter:
         array
             The binarized ground truth labels.
         """
-        y_true_bin = label_binarize(y_true, classes=np.arange(number_classes))
+        y_true_bin = label_binarize(y_true, classes=numpy.arange(number_classes))
         return y_true_bin
 
     @staticmethod
