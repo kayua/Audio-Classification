@@ -64,20 +64,21 @@ DEFAULT_LIST_FILTERS_ENCODER = [8, 16, 32]
 
 class AudioWav2Vec2:
     """
-    AudioWav2Vec2 is a class that implements a deep learning model based on the Wav2Vec2
-    architecture for audio feature extraction and classification tasks. This model
-    utilizes a convolutional encoder followed by transformer-based attention layers,
-    with quantization layers applied for feature compression.
-    The architecture is particularly suited for speech recognition or other audio-related tasks.
+    @AudioWav2Vec2
+        AudioWav2Vec2 is a class that implements a deep learning model based on the Wav2Vec2
+        architecture for audio feature extraction and classification tasks. This model
+        utilizes a convolutional encoder followed by transformer-based attention layers,
+        with quantization layers applied for feature compression.
+        The architecture is particularly suited for speech recognition or other audio-related tasks.
 
-    The model consists of:
-        - Convolutional layers for feature extraction from audio waveforms.
-        - Transformer blocks with multi-head attention to capture long-range dependencies.
-        - Quantization layers to compress the feature representations.
-        - Dense layers for the final classification.
+        The model consists of:
+            - Convolutional layers for feature extraction from audio waveforms.
+            - Transformer blocks with multi-head attention to capture long-range dependencies.
+            - Quantization layers to compress the feature representations.
+            - Dense layers for the final classification.
 
-    This model also supports Contrastive Loss during the pre-training phase to learn useful
-    feature representations from unlabelled data before fine-tuning with supervised learning.
+        This model also supports Contrastive Loss during the pre-training phase to learn useful
+        feature representations from unlabelled data before fine-tuning with supervised learning.
 
     Reference:
         Baevski, A., Zhou, Y., & Mohamed, A. R. (2020). Wav2Vec 2.0: A Framework for Self-Supervised

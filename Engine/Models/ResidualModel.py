@@ -48,19 +48,20 @@ DEFAULT_FILTERS_PER_BLOCK = [16, 32, 64, 96]
 
 class ResidualModel:
     """
-    ResidualModel is a class that implements a residual convolutional neural
-    network (CNN) for classification tasks.
+    @ResidualModel
+        ResidualModel is a class that implements a residual convolutional neural
+        network (CNN) for classification tasks.
 
-    This model architecture incorporates residual blocks, which are used to combat the
-    vanishing gradient problem in deep neural networks by allowing gradients to flow more
-    easily through the layers. The network consists of convolutional layers, max pooling,
-    dropout regularization, and dense layers, optimized for classification problems.
-    Residual connections are added to improve performance, especially for deeper architectures.
+        This model architecture incorporates residual blocks, which are used to combat the
+        vanishing gradient problem in deep neural networks by allowing gradients to flow more
+        easily through the layers. The network consists of convolutional layers, max pooling,
+        dropout regularization, and dense layers, optimized for classification problems.
+        Residual connections are added to improve performance, especially for deeper architectures.
 
-    The ResidualModel can be customized with various hyperparameters, including the number
-    of convolutional filters, size of filters, size of pooling layers, dropout rate, and
-    activation functions. The model is typically used for image classification tasks but
-    can be adapted for other types of input data.
+        The ResidualModel can be customized with various hyperparameters, including the number
+        of convolutional filters, size of filters, size of pooling layers, dropout rate, and
+        activation functions. The model is typically used for image classification tasks but
+        can be adapted for other types of input data.
 
     Reference for Residual Convolutional Neural Networks:
         Paim, K. O., Rohweder, R., Recamonde-Mendoza, M., Mansilha, R. B., & Cordeiro, W. (2024).
@@ -74,7 +75,7 @@ class ResidualModel:
         ...     input_dimension=(128, 128, 3),  # Input shape of the image (e.g., 128x128 RGB image)
         ...     convolutional_padding='same',  # Padding type for convolution layers
         ...     intermediary_activation='relu',  # Activation function for intermediary layers
-        ...     last_layer_activation='softmax',  # Activation function for output layer (e.g., 'softmax' for multi-class classification)
+        ...     last_layer_activation='softmax',  # Activation function for output layer (e.g., 'softmax')
         ...     number_classes=10,  # Number of output classes (e.g., 10 for multi-class classification)
         ...     size_convolutional_filters=(3, 3),  # Size of convolutional filters (e.g., 3x3)
         ...     size_pooling=(2, 2),  # Size of max-pooling filters (e.g., 2x2)

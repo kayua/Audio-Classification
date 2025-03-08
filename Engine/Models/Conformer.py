@@ -51,12 +51,14 @@ except ImportError as error:
 
 class Conformer:
     """
-    Conformer is a deep learning model designed for sequential tasks, such as speech
-    recognition or audio classification. It integrates the Convolutional Neural
-    Network (CNN) and Transformer architectures, leveraging their respective
-    strengths in capturing both local and global dependencies in sequential data.
+    @Conformer
 
-    The Conformer model consists of:
+        Conformer is a deep learning model designed for sequential tasks, such as speech
+        recognition or audio classification. It integrates the Convolutional Neural
+        Network (CNN) and Transformer architectures, leveraging their respective
+        strengths in capturing both local and global dependencies in sequential data.
+
+        The Conformer model consists of:
         - Convolutional subsampling layer for feature extraction.
         - Transformer blocks with multi-head attention for capturing long-range dependencies.
         - A final dense layer for classification.

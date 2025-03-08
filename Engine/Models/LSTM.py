@@ -45,16 +45,18 @@ DEFAULT_LIST_LSTM_CELLS = [128, 129]
 
 class AudioLSTM:
     """
-    AudioLSTM is a class implementing a deep learning model based on Long Short-Term
-    Memory (LSTM) networks for audio classification tasks. The model utilizes multiple
-    LSTM layers followed by a dense layer for classification.
-    This type of architecture is particularly suited for tasks involving sequential data,
-    such as speech recognition, audio event detection, and other time-series classification tasks.
+    @AudioLSTM
 
-    The model consists of:
-        - LSTM layers to capture temporal dependencies in the audio data.
-        - Dropout layers for regularization to prevent overfitting.
-        - A final dense layer with softmax (or other) activation for classification.
+        AudioLSTM is a class implementing a deep learning model based on Long Short-Term
+        Memory (LSTM) networks for audio classification tasks. The model utilizes multiple
+        LSTM layers followed by a dense layer for classification.
+        This type of architecture is particularly suited for tasks involving sequential data,
+        such as speech recognition, audio event detection, and other time-series classification tasks.
+
+        The model consists of:
+            - LSTM layers to capture temporal dependencies in the audio data.
+            - Dropout layers for regularization to prevent overfitting.
+            - A final dense layer with softmax (or other) activation for classification.
 
     Reference:
         Hochreiter, S., & Schmidhuber, J. (1997). Long Short-Term Memory.

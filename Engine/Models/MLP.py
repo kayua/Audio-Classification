@@ -49,21 +49,23 @@ DEFAULT_LIST_DENSE_NEURONS = [128, 129]
 
 class DenseModel:
     """
-    DenseModel is a class representing a simple Multi-Layer Perceptron (MLP) architecture.
+    @DenseModel
 
-    This class allows for the creation, compilation, and training of an MLP model, a class
-    of neural networks where each layer is fully connected to the next one. MLPs are commonly
-    used for supervised learning tasks such as classification and regression.
+        DenseModel is a class representing a simple Multi-Layer Perceptron (MLP) architecture.
+        This class allows for the creation, compilation, and training of an MLP model, a class
+        of neural networks where each layer is fully connected to the next one. MLPs are commonly
+        used for supervised learning tasks such as classification and regression.
 
-    The model includes:
-        - Flexible architecture with adjustable number of neurons in each hidden layer.
-        - Dropout regularization for preventing overfitting.
-        - Customizable activation functions for both hidden and output layers.
-        - Choice of loss function and optimizer for model training.
-        - Option to use LSTM layers for sequence data processing (default is dense layers).
+        The model includes:
+            - Flexible architecture with adjustable number of neurons in each hidden layer.
+            - Dropout regularization for preventing overfitting.
+            - Customizable activation functions for both hidden and output layers.
+            - Choice of loss function and optimizer for model training.
+            - Option to use LSTM layers for sequence data processing (default is dense layers).
 
-     Reference for Multi-Layer Perceptron (MLP):
-    "A Comprehensive Review on Multi-Layer Perceptrons" (IEEE, 2015) (https://ieeexplore.ieee.org/document/7267240)
+     Reference:
+        "A Comprehensive Review on Multi-Layer Perceptrons" (IEEE, 2015)
+         (https://ieeexplore.ieee.org/document/7267240)
 
     Attributes:
         @neural_network_model (tensorflow.keras.Model): The Keras model representing the neural network.

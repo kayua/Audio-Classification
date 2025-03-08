@@ -58,7 +58,68 @@ except ImportError as error:
     sys.exit(-1)
 
 
-class AudioAST(MetricsCalculator):
+class AudioSpectrogramTransformer:
+    """
+    @AudioSpectrogramTransformer
+
+        The Audio Spectrogram Transformer (AST) is a deep learning model designed for
+        audio classification tasks. It leverages a transformer architecture, similar
+        to the one used in natural language processing, and applies it to spectrograms
+        of audio data. The model is composed of a transformer encoder, followed by
+        a feedforward network and a classification layer.
+
+    Reference:
+        Gong, Y., Xu, M., Li, J., Liu, Z., & Xu, B. (2021). AST: Audio Spectrogram Transformer.
+        *arXiv preprint arXiv:2104.01778*. https://arxiv.org/abs/2104.01778
+
+    Attributes:
+        @neural_network_model (tensorflow.keras.Model): The Keras model representing the AST network.
+        @head_size (int): The size of the attention heads in multi-head attention layers.
+        @number_heads (int): The number of attention heads in the multi-head attention mechanism.
+        @number_blocks (int): The number of transformer blocks in the model.
+        @number_classes (int): The number of output classes for classification.
+        @patch_size (tuple): The size of each spectrogram patch.
+        @dropout (float): The dropout rate for regularization.
+        @optimizer_function (str): The optimizer function used during training (e.g., 'adam').
+        @loss_function (str): The loss function used during training (e.g., 'categorical_crossentropy').
+        @normalization_epsilon (float): The epsilon value used for layer normalization.
+        @last_activation_layer (str): The activation function for the last layer (e.g., 'softmax').
+        @projection_dimension (int): The dimension for the linear projection layer.
+        @intermediary_activation (str): The activation function used in intermediary layers (e.g., 'relu').
+        @number_filters_spectrogram (int): The number of filters used in the spectrogram extraction.
+        @model_name (str): The name of the model (default is "AST").
+
+    Example:
+        >>> # Instantiate the AudioSpectrogramTransformer model
+        ...     model = AudioSpectrogramTransformer(
+        ...     projection_dimension=512,  # Projection dimension for transformer
+        ...     head_size=64,  # Head size for multi-head attention
+        ...     num_heads=8,  # Number of attention heads
+        ...     number_blocks=12,  # Number of transformer blocks
+        ...     number_classes=10,  # Number of output classes
+        ...     patch_size=(32, 32),  # Spectrogram patch size
+        ...     dropout=0.1,  # Dropout rate for regularization
+        ...     intermediary_activation='relu',  # Activation function for intermediate layers
+        ...     loss_function='categorical_crossentropy',  # Loss function for training
+        ...     last_activation_layer='softmax',  # Activation function for the last layer
+        ...     optimizer_function='adam',  # Optimizer function
+        ...     normalization_epsilon=1e-6,  # Epsilon for layer normalization
+        ...     number_filters_spectrogram=64  # Number of filters in the spectrogram
+        ...     )
+        ...     # Build the model
+        ...     model.build_model(number_patches=10)
+        ...
+        ...     # Compile and train the model
+        ...     training_history = model.compile_and_train(
+        ...     train_data=X_train,  # Training data
+        ...     train_labels=y_train,  # Training labels
+        ...     epochs=10,  # Number of epochs for training
+        ...     batch_size=32,  # Batch size
+        ...     validation_data=(X_val, y_val)  # Optional validation data
+        ...     )
+        >>>
+
+    """
 
     def __init__(self,
                  projection_dimension: int,
@@ -66,41 +127,45 @@ class AudioAST(MetricsCalculator):
                  num_heads: int,
                  number_blocks: int,
                  number_classes: int,
-                 sample_rate: int,
-                 hop_length: int,
-                 size_fft: int,
                  patch_size: tuple,
-                 overlap: int,
-                 number_epochs: int,
-                 size_batch: int,
                  dropout: float,
                  intermediary_activation: str,
                  loss_function: str,
                  last_activation_layer: str,
                  optimizer_function: str,
-                 number_splits: int,
                  normalization_epsilon: float,
-                 audio_duration: int,
-                 decibel_scale_factor,
-                 window_size_fft,
-                 window_size_factor,
-                 number_filters_spectrogram,
-                 file_extension):
+                 number_filters_spectrogram):
+        """
+        Initialize the AudioSpectrogramTransformer model with the specified hyperparameters.
 
+        Args:
+            @projection_dimension (int): The projection dimension for each input patch.
+            @head_size (int): The size of each attention head in the multi-head attention mechanism.
+            @num_heads (int): The number of attention heads in the multi-head attention layer.
+            @number_blocks (int): The number of transformer blocks (layers) in the encoder.
+            @number_classes (int): The number of output classes for the classification task.
+            @patch_size (tuple): The size of the input spectrogram patches, defined by the
+             (time, frequency) dimensions.
+            @dropout (float): The dropout rate to be applied for regularization during training.
+            @intermediary_activation (str): The activation function to be used in the intermediate
+             layers, typically 'relu' or 'gelu'.
+            @loss_function (str): The loss function to use for training, such as 'categorical_crossentropy'
+             for multi-class classification.
+            @last_activation_layer (str): The activation function for the final output layer,
+             commonly 'softmax' for classification.
+            @optimizer_function (str): The optimizer function to be used, such as 'adam' or 'sgd'.
+            @normalization_epsilon (float): A small constant added for numerical stability in
+             layer normalization.
+            @number_filters_spectrogram (int): The number of filters to apply for feature extraction
+             from the spectrogram before the transformer.
 
+        """
         self.neural_network_model = None
         self.head_size = head_size
         self.number_heads = num_heads
         self.number_blocks = number_blocks
         self.number_classes = number_classes
-        self.sample_rate = sample_rate
-        self.hop_length = hop_length
-        self.size_fft = size_fft
         self.patch_size = patch_size
-        self.overlap = overlap
-        self.number_epochs = number_epochs
-        self.number_splits = number_splits
-        self.size_batch = size_batch
         self.dropout = dropout
         self.optimizer_function = optimizer_function
         self.loss_function = loss_function
@@ -108,39 +173,17 @@ class AudioAST(MetricsCalculator):
         self.last_activation_layer = last_activation_layer
         self.projection_dimension = projection_dimension
         self.intermediary_activation = intermediary_activation
-        self.audio_duration = audio_duration
-        self.model_name = "AST"
-        self.sound_file_format = file_extension
-        self.decibel_scale_factor = decibel_scale_factor
-        self.window_size_fft = window_size_fft
-        self.window_size_factor = window_size_factor
-        self.window_size = hop_length * (self.window_size_factor - 1)
         self.number_filters_spectrogram = number_filters_spectrogram
-
-    def load_audio(self, filename: str) -> tuple:
-
-        # Load the audio file with the specified sample rate
-        signal, sample_rate = librosa.load(filename, sr=self.sample_rate)
-
-        # Calculate the maximum length of the signal based on the desired duration
-        max_length = int(self.sample_rate * self.audio_duration)
-
-        # Pad the signal if it's shorter than the required length
-        if len(signal) < max_length:
-            padding = max_length - len(signal)
-            signal = numpy.pad(signal, (0, padding), 'constant')
-
-        # Truncate the signal to the maximum length
-        signal = signal[:max_length]
-
-        # Return the processed signal and the sample rate
-        return signal, sample_rate
+        self.model_name = "AST"
 
     def transformer_encoder(self, inputs: tensorflow.Tensor) -> tensorflow.Tensor:
+        """
+        The transformer encoder applies a series of transformer blocks (multi-head attention and feedforward layers)
+        on the input tensor.
+        """
 
         # Iterate over the number of transformer blocks
         for _ in range(self.number_blocks):
-
             # Apply layer normalization to the input tensor
             neural_model_flow = LayerNormalization(epsilon=self.normalization_epsilon)(inputs)
 
@@ -163,8 +206,6 @@ class AudioAST(MetricsCalculator):
 
             # Apply dropout for regularization
             neural_model_flow = Dropout(self.dropout)(neural_model_flow)
-            # Apply a convolutional layer with kernel size of 1 for dimensionality reduction
-            # neural_model_flow = Conv1D(filters=inputs.shape[-1], kernel_size=1)(neural_model_flow)
 
             # Add the input tensor to the output of the MLP layer (residual connection)
             inputs = Add()([neural_model_flow, inputs])
@@ -172,6 +213,12 @@ class AudioAST(MetricsCalculator):
         return inputs
 
     def build_model(self, number_patches: int) -> tensorflow.keras.models.Model:
+        """
+        Builds the AST model consisting of a transformer encoder and a classification head.
+
+        Args:
+            number_patches (int): The number of patches in the input spectrogram.
+        """
 
         # Define the input layer with shape (number_patches, projection_dimension)
         inputs = Input(shape=(number_patches, self.patch_size[0], self.patch_size[1]))
@@ -206,211 +253,132 @@ class AudioAST(MetricsCalculator):
 
     def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,
                           batch_size: int, validation_data: tuple = None) -> tensorflow.keras.callbacks.History:
+        """
+        Compiles and trains the AST model using the specified training data and configuration.
 
+        Args:
+            train_data (tensorflow.Tensor): The input training data.
+            train_labels (tensorflow.Tensor): The corresponding labels for the training data.
+            epochs (int): Number of training epochs.
+            batch_size (int): Size of the batches for each training step.
+            validation_data (tuple, optional): A tuple containing validation data and labels.
+
+        Returns:
+            tensorflow.keras.callbacks.History: The history object containing training metrics and performance.
+        """
+
+        # Compile the model with the specified optimizer, loss function, and metrics
         self.neural_network_model.compile(optimizer=self.optimizer_function, loss=self.loss_function,
                                           metrics=['accuracy'])
 
+        # Train the model
         training_history = self.neural_network_model.fit(train_data, train_labels, epochs=epochs,
                                                          batch_size=batch_size,
                                                          validation_data=validation_data)
         return training_history
 
-    def load_data(self, data_dir: str) -> tuple:
 
-        file_paths, labels = [], []
+    @property
+    def head_size(self):
+        return self._head_size
 
-        # Iterate over each class directory in the given data directory
-        for class_dir in os.listdir(data_dir):
-            class_path = os.path.join(data_dir, class_dir)
+    @head_size.setter
+    def head_size(self, head_size: int):
+        self._head_size = head_size
 
-            # Check if the path is a directory
-            if os.path.isdir(class_path):
+    @property
+    def number_heads(self):
+        return self._number_heads
 
-                # Convert the directory name to an integer label
-                class_label = int(class_dir)
+    @number_heads.setter
+    def number_heads(self, num_heads: int):
+        self._number_heads = num_heads
 
-                # Get all audio files matching the sound file format within the class directory
-                class_files = glob.glob(os.path.join(class_path, self.sound_file_format))
+    @property
+    def number_blocks(self):
+        return self._number_blocks
 
-                # Extend the file_paths list with the found files
-                file_paths.extend(class_files)
+    @number_blocks.setter
+    def number_blocks(self, number_blocks: int):
+        self._number_blocks = number_blocks
 
-                # Extend the labels list with the corresponding class label
-                labels.extend([class_label] * len(class_files))
+    @property
+    def number_classes(self):
+        return self._number_classes
 
-        # Return the list of file paths and corresponding labels
-        return file_paths, labels
+    @number_classes.setter
+    def number_classes(self, number_classes: int):
+        self._number_classes = number_classes
 
-    def load_dataset(self, sub_directories: str = None, file_extension: str = None) -> tuple:
+    @property
+    def patch_size(self):
+        return self._patch_size
 
-        logging.info("Starting to load the dataset...")
-        list_spectrogram, list_labels, list_class_path = [], [], []
-        file_extension = file_extension or self.sound_file_format
+    @patch_size.setter
+    def patch_size(self, patch_size: tuple):
+        self._patch_size = patch_size
 
-        # Check if the directory exists
-        if not os.path.exists(sub_directories):
-            logging.error(f"Directory '{sub_directories}' does not exist.")
-            return None, None
+    @property
+    def dropout(self):
+        return self._dropout
 
-        # Collect all class directories
-        logging.info(f"Reading subdirectories in '{sub_directories}'...")
-        for class_dir in os.listdir(sub_directories):
-            class_path = os.path.join(sub_directories, class_dir)
-            if os.path.isdir(class_path):
-                list_class_path.append(class_path)
+    @dropout.setter
+    def dropout(self, dropout: float):
+        self._dropout = dropout
 
-        logging.info(f"Found {len(list_class_path)} class directories.")
+    @property
+    def optimizer_function(self):
+        return self._optimizer_function
 
-        # Process each audio file in subdirectories
-        for sub_directory in list_class_path:
-            logging.info(f"Processing class directory: {sub_directory}...")
+    @optimizer_function.setter
+    def optimizer_function(self, optimizer_function: str):
+        self._optimizer_function = optimizer_function
 
-            for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
-                try:
-                    signal, _ = librosa.load(file_name, sr=self.sample_rate)
-                    label = file_name.split('/')[-2].split('_')[0]
+    @property
+    def loss_function(self):
+        return self._loss_function
 
-                    for (start, end) in self.windows(signal, self.window_size, self.overlap):
-                        if len(signal[start:end]) == self.window_size:
-                            signal_window = signal[start:end]
+    @loss_function.setter
+    def loss_function(self, loss_function: str):
+        self._loss_function = loss_function
 
-                            # Generate mel spectrogram
-                            spectrogram = librosa.feature.melspectrogram(
-                                y=signal_window,
-                                n_mels=self.number_filters_spectrogram,
-                                sr=self.sample_rate,
-                                n_fft=self.window_size_fft,
-                                hop_length=self.hop_length
-                            )
+    @property
+    def normalization_epsilon(self):
+        return self._normalization_epsilon
 
-                            # Convert spectrogram to decibels
-                            spectrogram_decibel_scale = librosa.power_to_db(spectrogram, ref=numpy.max)
-                            spectrogram_decibel_scale = (spectrogram_decibel_scale / self.decibel_scale_factor) + 1
+    @normalization_epsilon.setter
+    def normalization_epsilon(self, normalization_epsilon: float):
+        self._normalization_epsilon = normalization_epsilon
 
-                            # Split spectrogram into patches
-                            spectrogram_decibel_scale = self.split_spectrogram_into_patches(spectrogram_decibel_scale)
+    @property
+    def last_activation_layer(self):
+        return self._last_activation_layer
 
-                            # Append spectrogram and label
-                            list_spectrogram.append(spectrogram_decibel_scale)
-                            list_labels.append(label)
+    @last_activation_layer.setter
+    def last_activation_layer(self, last_activation_layer: str):
+        self._last_activation_layer = last_activation_layer
 
-                except Exception as e:
-                    logging.error(f"Error processing file '{file_name}': {e}")
+    @property
+    def projection_dimension(self):
+        return self._projection_dimension
 
-        # Convert lists to arrays
-        array_features = numpy.array(list_spectrogram)
-        array_labels = numpy.array(list_labels, dtype=numpy.int32)
+    @projection_dimension.setter
+    def projection_dimension(self, projection_dimension: int):
+        self._projection_dimension = projection_dimension
 
-        logging.info(f"Loaded {len(array_features)} spectrogram features.")
-        logging.info("Dataset loading complete.")
+    @property
+    def intermediary_activation(self):
+        return self._intermediary_activation
 
-        return numpy.array(array_features, dtype=numpy.float32), array_labels
+    @intermediary_activation.setter
+    def intermediary_activation(self, intermediary_activation: str):
+        self._intermediary_activation = intermediary_activation
 
+    @property
+    def number_filters_spectrogram(self):
+        return self._number_filters_spectrogram
 
-    def train(self, dataset_directory, number_epochs, batch_size, number_splits, loss, sample_rate, overlap,
-              number_classes, arguments) -> tuple:
-
-        # Use default values if not provided
-        self.number_epochs = number_epochs or self.number_epochs
-        self.number_splits = number_splits or self.number_splits
-        self.size_batch = batch_size or self.size_batch
-        self.loss_function = loss or self.loss_function
-        self.sample_rate = sample_rate or self.sample_rate
-        self.overlap = overlap or self.overlap
-        self.number_classes = number_classes or self.number_classes
-
-        self.head_size = arguments.ast_head_size
-        self.number_heads = arguments.ast_number_heads
-        self.number_blocks = arguments.ast_number_blocks
-        self.hop_length = arguments.ast_hop_length
-        self.size_fft = arguments.ast_size_fft
-        self.patch_size = arguments.ast_patch_size
-        self.overlap = arguments.ast_overlap
-        self.dropout = arguments.ast_dropout
-        self.normalization_epsilon = arguments.ast_normalization_epsilon
-        self.last_activation_layer = arguments.ast_last_activation_layer
-        self.projection_dimension = arguments.ast_projection_dimension
-        self.intermediary_activation = arguments.ast_intermediary_activation
-        self.decibel_scale_factor = arguments.ast_decibel_scale_factor
-        self.window_size_fft = arguments.ast_window_size_fft
-        self.window_size_factor = arguments.ast_window_size_factor
-        self.window_size = arguments.ast_hop_length * (arguments.ast_window_size_factor - 1)
-        self.number_filters_spectrogram = arguments.ast_number_filters_spectrogram
-
-        history_model = None
-        features, labels = self.load_dataset(dataset_directory)
-        number_patches = features.shape[1]
-        metrics_list, confusion_matriz_list = [], []
-        labels = numpy.array(labels).astype(float)
-
-        # Split data into train/val and test sets
-        features_train_val, features_test, labels_train_val, labels_test = train_test_split(
-            features, labels, test_size=0.2, stratify=labels, random_state=42
-        )
-
-        # Balance training/validation set
-        features_train_val, labels_train_val = balance_classes(features_train_val, labels_train_val)
-
-        # Stratified k-fold cross-validation on the training/validation set
-        instance_k_fold = StratifiedKFold(n_splits=self.number_splits, shuffle=True, random_state=42)
-        probabilities_list = []
-        real_labels_list = []
-
-
-        for train_indexes, val_indexes in instance_k_fold.split(features_train_val, labels_train_val):
-
-            features_train, features_val = features_train_val[train_indexes], features_train_val[val_indexes]
-            labels_train, labels_val = labels_train_val[train_indexes], labels_train_val[val_indexes]
-
-            # Balance the training set for this fold
-            features_train, labels_train = balance_classes(features_train, labels_train)
-
-            self.build_model(number_patches)
-            self.neural_network_model.summary()
-
-            history_model = self.compile_and_train(features_train, labels_train, epochs=self.number_epochs,
-                                                   batch_size=self.size_batch,
-                                                   validation_data=(features_val, labels_val))
-
-            model_predictions = self.neural_network_model.predict(features_val)
-            predicted_labels = numpy.argmax(model_predictions, axis=1)
-
-            probabilities_list.append(model_predictions)
-            real_labels_list.append(labels_val)
-
-            # Calculate and store the metrics for this fold
-            metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_val, predicted_labels)
-            metrics_list.append(metrics)
-            confusion_matriz_list.append(confusion_matrix)
-
-        # Calculate mean metrics across all folds
-        mean_metrics = {
-            'model_name': self.model_name,
-            'Acc.': {'value': numpy.mean([metric['Accuracy'] for metric in metrics_list]),
-                     'std': numpy.std([metric['Accuracy'] for metric in metrics_list])},
-            'Prec.': {'value': numpy.mean([metric['Precision'] for metric in metrics_list]),
-                      'std': numpy.std([metric['Precision'] for metric in metrics_list])},
-            'Rec.': {'value': numpy.mean([metric['Recall'] for metric in metrics_list]),
-                     'std': numpy.std([metric['Recall'] for metric in metrics_list])},
-            'F1.': {'value': numpy.mean([metric['F1-Score'] for metric in metrics_list]),
-                    'std': numpy.std([metric['F1-Score'] for metric in metrics_list])},
-        }
-
-        probabilities_predicted = {
-            'model_name': self.model_name,
-            'predicted': numpy.concatenate(probabilities_list),
-            'ground_truth': numpy.concatenate(real_labels_list)
-        }
-
-        confusion_matrix_array = numpy.array(confusion_matriz_list)
-        mean_confusion_matrix = numpy.mean(confusion_matrix_array, axis=0)
-        mean_confusion_matrix = numpy.round(mean_confusion_matrix).astype(numpy.int32).tolist()
-
-        mean_confusion_matrices = {
-            "confusion_matrix": mean_confusion_matrix,
-            "class_names": ['Class {}'.format(i) for i in range(self.number_classes)],
-            "title": self.model_name
-        }
-        return (mean_metrics, {"Name": self.model_name, "History": history_model.history}, mean_confusion_matrices,
-                probabilities_predicted)
+    @number_filters_spectrogram.setter
+    def number_filters_spectrogram(self, number_filters_spectrogram: int):
+        self._number_filters_spectrogram = number_filters_spectrogram
 
