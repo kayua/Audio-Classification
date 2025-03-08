@@ -13,10 +13,32 @@ class ConfusionMatrixPlotter:
     multiple customization options like figure size, colormap, font sizes, axis tick label rotation,
     color bar options, annotation format, and the option to display or save the plot.
 
+    Arguments:
+    ---------
+        @fig_size : tuple, optional
+            Size of the figure (default is (5, 5)).
+        @cmap : str, optional
+            Colormap for the confusion matrix (default is 'Blues').
+        @annot_font_size : int, optional
+            Font size for the annotations (default is 10).
+        @label_font_size : int, optional
+            Font size for the axis labels (default is 12).
+        @title_font_size : int, optional
+            Font size for the plot title (default is 14).
+        @show_plot : bool, optional
+            Whether to display the plot interactively (default is False).
+        @colorbar : bool, optional
+            Whether to display the color bar (default is True).
+        @annot_kws : dict, optional
+            Additional keyword arguments for annotations (default is None).
+        @fmt : str, optional
+            Format for annotations (default is 'd', for integers).
+        @rotation : int, optional
+            Rotation angle for x and y axis labels (default is 45).
 
     Example:
     -------
-        >>> # python
+        >>> # python3
         ...     cm_plotter = ConfusionMatrixPlotter()
         ...     cm_list = [
         ...     {
@@ -70,8 +92,7 @@ class ConfusionMatrixPlotter:
         self.title_font_size = title_font_size  # Font size for plot title
         self.show_plot = show_plot  # Whether to show the plot interactively
         self.colorbar = colorbar  # Whether to display the color bar
-        self.annot_kws = annot_kws if annot_kws is not None else {
-            "size": self.annot_font_size}  # Annotation keyword arguments
+        self.annot_kws = annot_kws if annot_kws is not None else {"size": self.annot_font_size}  # Annotation keyword
         self.fmt = fmt  # Format string for annotations (e.g., integers or floating point)
         self.rotation = rotation  # Rotation for axis labels (default is 45 degrees)
 
