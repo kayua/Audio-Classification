@@ -8,7 +8,6 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-
 try:
     import os
     import sys
@@ -30,6 +29,7 @@ try:
     from sklearn.model_selection import train_test_split
     from tensorflow.keras.layers import GlobalAveragePooling1D
     from Engine.Evaluation.MetricsCalculator import MetricsCalculator
+    from Engine.Processing.RawFeature import RawDataLoader
     from Engine.Processing.ClassBalance import ClassBalancer
 
 except ImportError as error:
@@ -42,7 +42,7 @@ except ImportError as error:
 
 
 
-class RawProcess(MetricsCalculator, ClassBalancer):
+class RawProcess(MetricsCalculator, ClassBalancer, RawDataLoader):
     """
     RawProcess class encapsulates the full workflow of loading, preprocessing,
     training, evaluating, and aggregating metrics for a machine learning model.
@@ -64,16 +64,8 @@ class RawProcess(MetricsCalculator, ClassBalancer):
         file_extension (str): The file extension for the dataset (e.g., ".wav" for audio files).
     """
 
-    def __init__(self,
-                 size_batch: int,
-                 number_splits: int,
-                 number_epochs: int,
-                 optimizer_function: str,
-                 window_size_factor: int,
-                 decibel_scale_factor: int,
-                 hop_length: int,
-                 overlap: int,
-                 sample_rate: int,
+    def __init__(self, size_batch: int, number_splits: int, number_epochs: int, optimizer_function: str,
+                 window_size_factor: int, decibel_scale_factor: int, hop_length: int, overlap: int, sample_rate: int,
                  file_extension: str):
         """
         Initializes the RawProcess class with all the necessary parameters for training and data
@@ -92,6 +84,7 @@ class RawProcess(MetricsCalculator, ClassBalancer):
             file_extension (str): The file extension for the dataset.
         """
         # Assigning provided parameters to instance variables
+        super().__init__()
         self.size_batch = size_batch
         self.number_splits = number_splits
         self.number_epochs = number_epochs
