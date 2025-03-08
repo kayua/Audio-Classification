@@ -1,8 +1,9 @@
 import unittest
-import numpy as np
-import tensorflow as tf
+import numpy
+import tensorflow
 from tensorflow.keras import backend as K
-from your_module import Conformer  # Assuming Conformer is imported from the module
+
+from Engine.Models.Conformer import Conformer
 
 
 class TestConformerModel(unittest.TestCase):
@@ -76,10 +77,10 @@ class TestConformerModel(unittest.TestCase):
         Test that the model can be compiled and trained with dummy data.
         """
         # Create dummy data
-        X_train = np.random.rand(10, 128, 80).astype(np.float32)
-        y_train = np.random.randint(0, 10, size=(10, 1)).astype(np.int32)
-        X_val = np.random.rand(5, 128, 80).astype(np.float32)
-        y_val = np.random.randint(0, 10, size=(5, 1)).astype(np.int32)
+        X_train = numpy.random.rand(10, 128, 80).astype(numpy.float32)
+        y_train = numpy.random.randint(0, 10, size=(10, 1)).astype(numpy.int32)
+        X_val = numpy.random.rand(5, 128, 80).astype(numpy.float32)
+        y_val = numpy.random.randint(0, 10, size=(5, 1)).astype(numpy.int32)
 
         self.model.build_model()
         self.model.compile_model()
@@ -92,7 +93,7 @@ class TestConformerModel(unittest.TestCase):
                 batch_size=2,
                 validation_data=(X_val, y_val)
             )
-            self.assertIsInstance(history, tf.keras.callbacks.History)
+            self.assertIsInstance(history, tensorflow.keras.callbacks.History)
         except Exception as e:
             self.fail(f"Model training failed with exception: {e}")
 
