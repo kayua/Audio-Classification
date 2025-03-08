@@ -242,3 +242,107 @@ class ResidualModel:
 
         # Return the training history object.
         return training_history
+
+    @property
+    def neural_network_model(self):
+        return self._neural_network_model
+
+    @neural_network_model.setter
+    def neural_network_model(self, value):
+        self._neural_network_model = value
+
+    @property
+    def loss_function(self):
+        return self._loss_function
+
+    @loss_function.setter
+    def loss_function(self, value):
+        self._loss_function = value
+
+    @property
+    def size_pooling(self):
+        return self._size_pooling
+
+    @size_pooling.setter
+    def size_pooling(self, value):
+        self._size_pooling = value
+
+    @property
+    def filters_per_block(self):
+        return self._filters_per_block
+
+    @filters_per_block.setter
+    def filters_per_block(self, value):
+        self._filters_per_block = value
+
+    @property
+    def input_shape(self):
+        return self._input_shape
+
+    @input_shape.setter
+    def input_shape(self, value):
+        self._input_shape = value
+
+    @property
+    def optimizer_function(self):
+        return self._optimizer_function
+
+    @optimizer_function.setter
+    def optimizer_function(self, value):
+        self._optimizer_function = value
+
+    @property
+    def dropout_rate(self):
+        return self._dropout_rate
+
+    @dropout_rate.setter
+    def dropout_rate(self, value):
+        self._dropout_rate = value
+
+    @property
+    def size_convolutional_filters(self):
+        return self._size_convolutional_filters
+
+    @size_convolutional_filters.setter
+    def size_convolutional_filters(self, value):
+        self._size_convolutional_filters = value
+
+    @property
+    def number_classes(self):
+        return self._number_classes
+
+    @number_classes.setter
+    def number_classes(self, value):
+        self._number_classes = value
+
+    @property
+    def last_layer_activation(self):
+        return self._last_layer_activation
+
+    @last_layer_activation.setter
+    def last_layer_activation(self, value):
+        self._last_layer_activation = value
+
+    @property
+    def convolutional_padding(self):
+        return self._convolutional_padding
+
+    @convolutional_padding.setter
+    def convolutional_padding(self, value):
+        self._convolutional_padding = value
+
+    @property
+    def intermediary_activation(self):
+        return self._intermediary_activation
+
+    @intermediary_activation.setter
+    def intermediary_activation(self, value):
+        self._intermediary_activation = value
+
+    @property
+    def model_name(self):
+        return self._model_name
+
+    @model_name.setter
+    def model_name(self, value):
+        self._model_name = value
