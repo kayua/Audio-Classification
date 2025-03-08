@@ -293,3 +293,115 @@ class AudioWav2Vec2:
         logging.info("Training completed successfully.")
 
         return training_history
+
+    @property
+    def neural_network_model(self):
+        return self._neural_network_model
+
+    @neural_network_model.setter
+    def neural_network_model(self, value):
+        self._neural_network_model = value
+
+    @property
+    def list_filters_encoder(self):
+        return self._list_filters_encoder
+
+    @list_filters_encoder.setter
+    def list_filters_encoder(self, value):
+        self._list_filters_encoder = value
+
+    @property
+    def loss_function(self):
+        return self._loss_function
+
+    @loss_function.setter
+    def loss_function(self, value):
+        self._loss_function = value
+
+    @property
+    def optimizer_function(self):
+        return self._optimizer_function
+
+    @optimizer_function.setter
+    def optimizer_function(self, value):
+        self._optimizer_function = value
+
+    @property
+    def kernel_size(self):
+        return self._kernel_size
+
+    @kernel_size.setter
+    def kernel_size(self, value):
+        self._kernel_size = value
+
+    @property
+    def quantization_units(self):
+        return self._quantization_units
+
+    @quantization_units.setter
+    def quantization_units(self, value):
+        self._quantization_units = value
+
+    @property
+    def key_dimension(self):
+        return self._key_dimension
+
+    @key_dimension.setter
+    def key_dimension(self, value):
+        self._key_dimension = value
+
+    @property
+    def intermediary_layer_activation(self):
+        return self._intermediary_layer_activation
+
+    @intermediary_layer_activation.setter
+    def intermediary_layer_activation(self, value):
+        self._intermediary_layer_activation = value
+
+    @property
+    def number_heads(self):
+        return self._number_heads
+
+    @number_heads.setter
+    def number_heads(self, value):
+        self._number_heads = value
+
+    @property
+    def input_dimension(self):
+        return self._input_dimension
+
+    @input_dimension.setter
+    def input_dimension(self, value):
+        self._input_dimension = value
+
+    @property
+    def number_classes(self):
+        return self._number_classes
+
+    @number_classes.setter
+    def number_classes(self, value):
+        self._number_classes = value
+
+    @property
+    def dropout_rate(self):
+        return self._dropout_rate
+
+    @dropout_rate.setter
+    def dropout_rate(self, value):
+        self._dropout_rate = value
+
+    @property
+    def last_layer_activation(self):
+        return self._last_layer_activation
+
+    @last_layer_activation.setter
+    def last_layer_activation(self, value):
+        self._last_layer_activation = value
+
+    @property
+    def model_name(self):
+        return self._model_name
+
+    @model_name.setter
+    def model_name(self, value):
+        self._model_name = value

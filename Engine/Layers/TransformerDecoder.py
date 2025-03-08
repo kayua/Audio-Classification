@@ -41,9 +41,9 @@ class TransformerDecoder(Layer):
 
     The decoder takes both the current input sequence (decoder input) and the output from the encoder
     as inputs. It performs two types of attention:
-    1. **Self-attention**: Attention over the decoder's own input sequence.
-    2. **Encoder-decoder attention**: Attention over the encoder's output, allowing the decoder
-       to focus on relevant parts of the encoder's context.
+        1. **Self-attention**: Attention over the decoder's own input sequence.
+        2. **Encoder-decoder attention**: Attention over the encoder's output, allowing the decoder
+             to focus on relevant parts of the encoder's context.
 
     Reference:
         Vaswani et al., "Attention is All You Need" (2017). The Transformer architecture introduced
