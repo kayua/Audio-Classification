@@ -10,10 +10,12 @@ __credits__ = ['unknown']
 
 try:
     import sys
+
     import tensorflow
 
     from tensorflow.keras.layers import Layer
     from tensorflow.keras.layers import Dense
+
     from tensorflow.keras.layers import Dropout
 
     from tensorflow.keras.layers import MultiHeadAttention
@@ -21,10 +23,6 @@ try:
 
 except ImportError as error:
     print(error)
-    print("1. Install requirements:")
-    print("  pip3 install --upgrade pip")
-    print("  pip3 install -r requirements.txt ")
-    print()
     sys.exit(-1)
 
 

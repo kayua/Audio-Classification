@@ -10,6 +10,7 @@ __credits__ = ['unknown']
 
 try:
     import sys
+
     import tensorflow
 
     from tensorflow.keras.layers import Layer
@@ -19,14 +20,11 @@ try:
     from Engine.Modules.FeedForwardModule import FeedForwardModule
 
     from Engine.Modules.ConvolutionalModule import ConvolutionalModule
+
     from Engine.Modules.MultiheadSelfAttentionModule import MultiHeadSelfAttentionModule
 
 except ImportError as error:
     print(error)
-    print("1. Install requirements:")
-    print("  pip3 install --upgrade pip")
-    print("  pip3 install -r requirements.txt ")
-    print()
     sys.exit(-1)
 
 # Default configuration values

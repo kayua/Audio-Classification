@@ -11,10 +11,12 @@ __credits__ = ['unknown']
 try:
     import sys
     import json
+
     import numpy
     import psutil
     import logging
     import platform
+
     import subprocess
     import tensorflow
 
@@ -22,15 +24,6 @@ try:
 
 except ImportError as error:
     print(error)
-    print()
-    print("1. (optional) Setup a virtual environment: ")
-    print("  python3 -m venv ~/Python3venv/DeepOceanAI ")
-    print("  source ~/Python3venv/DeepOceanAI/bin/activate ")
-    print()
-    print("2. Install requirements:")
-    print("  pip3 install --upgrade pip")
-    print("  pip3 install -r requirements.txt ")
-    print()
     sys.exit(-1)
 
 

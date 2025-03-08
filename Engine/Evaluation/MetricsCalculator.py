@@ -15,6 +15,7 @@ try:
     from typing import Dict
     from typing import Tuple
     from typing import Union
+
     from typing import Optional
 
     from sklearn.metrics import accuracy_score
@@ -26,10 +27,6 @@ try:
 
 except ImportError as error:
     print(error)
-    print("1. Install requirements:")
-    print("  pip3 install --upgrade pip")
-    print("  pip3 install -r requirements.txt ")
-    print()
     sys.exit(-1)
 
 

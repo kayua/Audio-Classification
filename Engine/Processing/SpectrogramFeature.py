@@ -22,6 +22,7 @@ try:
     from tqdm import tqdm
 
     from Engine.Processing.PathTools import PathTools
+
     from Engine.Processing.WindowGenerator import WindowGenerator
 
 except ImportError as error:

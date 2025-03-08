@@ -10,6 +10,7 @@ __credits__ = ['unknown']
 
 try:
     import sys
+
     import tensorflow
 
     from tensorflow.keras.layers import Conv2D
@@ -17,10 +18,6 @@ try:
 
 except ImportError as error:
     print(error)
-    print("1. Install requirements:")
-    print("  pip3 install --upgrade pip")
-    print("  pip3 install -r requirements.txt ")
-    print()
     sys.exit(-1)
 
 # Default values for convolutional parameters

@@ -15,6 +15,7 @@ try:
     import glob
 
     import logging
+
     from tqdm import tqdm
 
 except ImportError as error:

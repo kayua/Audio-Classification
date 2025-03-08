@@ -11,6 +11,7 @@ __credits__ = ['unknown']
 
 try:
     import sys
+
     import unittest
     import tensorflow
 

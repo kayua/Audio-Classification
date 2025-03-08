@@ -13,10 +13,12 @@ try:
     import os
     import sys
     import numpy
+
     import logging
     import librosa
 
     from Engine.Processing.PathTools import PathTools
+
     from Engine.Processing.WindowGenerator import WindowGenerator
 
 except ImportError as error:
