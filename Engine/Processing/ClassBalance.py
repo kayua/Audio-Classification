@@ -13,7 +13,7 @@ class ClassBalancer:
     """
 
     @staticmethod
-    def balance(features: numpy.ndarray, labels: numpy.ndarray) -> tuple[numpy.ndarray, numpy.ndarray]:
+    def balance_class(features: numpy.ndarray, labels: numpy.ndarray) -> tuple[numpy.ndarray, numpy.ndarray]:
         """
         Balances dataset classes by oversampling minority classes so that all classes
         have the same number of samples as the majority class.
@@ -38,7 +38,7 @@ class ClassBalancer:
             raise ValueError("Features and labels must have the same length.")
 
         unique_classes = numpy.unique(labels)
-        max_samples = max([sum(labels == c) for c in unique_classes])
+        max_samples = max([sum(labels == class_index) for class_index in unique_classes])
 
         balanced_features = []
         balanced_labels = []

@@ -28,6 +28,7 @@ try:
     from tensorflow.keras.layers import Bidirectional
     from sklearn.model_selection import StratifiedKFold
     from sklearn.model_selection import train_test_split
+    from Engine.Models.Process.RawProcess import RawProcess
     from tensorflow.keras.layers import GlobalAveragePooling1D
     from Engine.Evaluation.MetricsCalculator import MetricsCalculator
 
@@ -43,7 +44,7 @@ except ImportError as error:
 DEFAULT_LIST_LSTM_CELLS = [128, 129]
 
 
-class AudioLSTM:
+class AudioLSTM(RawProcess):
     """
     @AudioLSTM
 
@@ -102,16 +103,11 @@ class AudioLSTM:
 
     """
 
-    def __init__(self,
-                 number_classes: int,
-                 last_layer_activation: str,
-                 loss_function: str,
-                 optimizer_function: str,
-                 dropout_rate: float,
-                 intermediary_layer_activation: str,
-                 recurrent_activation: str,
-                 input_dimension: tuple,
-                 list_lstm_cells=None):
+    def __init__(self, number_classes: int, last_layer_activation: str, loss_function: str, optimizer_function: str,
+                 dropout_rate: float, intermediary_layer_activation: str, recurrent_activation: str,
+                 input_dimension: tuple, size_batch: int, number_splits: int, number_epochs: int,
+                 window_size_factor: int, decibel_scale_factor: int, hop_length: int, overlap: int, sample_rate: int,
+                 file_extension: str, list_lstm_cells=None):
         """
         Initialize the AudioLSTM model with specified hyperparameters.
 
@@ -126,6 +122,9 @@ class AudioLSTM:
             @input_dimension (tuple): The input dimension for the model (e.g., (128, 80) for Mel spectrograms).
             @list_lstm_cells (list[int], optional): A list of the number of cells for each LSTM layer.
         """
+
+        super().__init__(size_batch, number_splits, number_epochs, optimizer_function, window_size_factor,
+                         decibel_scale_factor, hop_length, overlap, sample_rate, file_extension)
 
         if list_lstm_cells is None:
             list_lstm_cells = DEFAULT_LIST_LSTM_CELLS  # Default LSTM cells if not provided
