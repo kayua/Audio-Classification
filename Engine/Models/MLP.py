@@ -122,7 +122,8 @@ class DenseModel:
             @dropout_rate (float): The rate at which dropout will be applied to hidden layers.
             @intermediary_layer_activation (str): The activation function used in intermediary layers (e.g., 'relu').
             @input_dimension (tuple): The shape of the input data (e.g., (28, 28, 1) for MNIST).
-            @list_lstm_cells (list, optional): A list representing the number of neurons in each LSTM layer. Default is None.
+            @list_lstm_cells (list, optional): A list representing the number of neurons in each
+            LSTM layer. Default is None.
         """
 
         # If list_lstm_cells is not provided, use the default list of dense neurons.

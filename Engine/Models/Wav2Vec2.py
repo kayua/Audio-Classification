@@ -14,6 +14,7 @@ try:
     import sys
     import glob
     import numpy
+
     import librosa
     import logging
     import argparse
@@ -30,6 +31,7 @@ try:
     from tensorflow.keras.layers import Lambda
     from tensorflow.keras.layers import Reshape
     from tensorflow.keras.layers import Flatten
+
     from tensorflow.keras.layers import Dropout
     from tensorflow.keras.layers import Embedding
     from tensorflow.keras.layers import Activation
@@ -60,107 +62,181 @@ except ImportError as error:
 DEFAULT_LIST_FILTERS_ENCODER = [8, 16, 32]
 
 
-class AudioWav2Vec2(MetricsCalculator):
+class AudioWav2Vec2:
+    """
+    AudioWav2Vec2 is a class that implements a deep learning model based on the Wav2Vec2
+    architecture for audio feature extraction and classification tasks. This model
+    utilizes a convolutional encoder followed by transformer-based attention layers,
+    with quantization layers applied for feature compression.
+    The architecture is particularly suited for speech recognition or other audio-related tasks.
+
+    The model consists of:
+        - Convolutional layers for feature extraction from audio waveforms.
+        - Transformer blocks with multi-head attention to capture long-range dependencies.
+        - Quantization layers to compress the feature representations.
+        - Dense layers for the final classification.
+
+    This model also supports Contrastive Loss during the pre-training phase to learn useful
+    feature representations from unlabelled data before fine-tuning with supervised learning.
+
+    Reference:
+        Baevski, A., Zhou, Y., & Mohamed, A. R. (2020). Wav2Vec 2.0: A Framework for Self-Supervised
+        Learning of Speech Representations. *Proceedings of NeurIPS 2020*. https://arxiv.org/abs/2006.11477
+
+    Example:
+        >>> # Instantiate the model
+        ...     model = AudioWav2Vec2(
+        ...     number_classes=10,  # Number of output classes (e.g., 10 for classification)
+        ...     last_layer_activation='softmax',  # Activation function for the output layer (e.g., 'softmax' for multi-class classification)
+        ...     loss_function='categorical_crossentropy',  # Loss function for training (e.g., 'categorical_crossentropy')
+        ...     optimizer_function='adam',  # Optimizer for training (e.g., 'adam')
+        ...     quantization_units=4,  # Number of quantization units
+        ...     key_dimension=64,  # Key dimension for the transformer attention
+        ...     dropout_rate=0.2,  # Dropout rate for regularization
+        ...     intermediary_layer_activation='relu',  # Activation function for intermediary layers (e.g., 'relu')
+        ...     input_dimension=(128, 80),  # Input dimension for the model (e.g., Mel spectrogram)
+        ...     number_heads=8,  # Number of attention heads in the transformer
+        ...     kernel_size=3,  # Kernel size for the convolutional layers
+        ...     list_filters_encoder=[64, 128, 256]  # List of filters for the convolutional encoder
+        ...     )
+        ... # Build the model
+        ...     model.build_model()
+        ...     # Compile and train the model
+        ...     training_history = model.compile_and_train(
+        ...     train_data=X_train,  # Input training data
+        ...     train_labels=y_train,  # Training labels
+        ...     epochs=10,  # Number of epochs for training
+        ...     batch_size=32,  # Batch size for training
+        ...     validation_data=(X_val, y_val)  # Optional validation data
+        ...     )
+        >>>
+
+    Attributes:
+        @neural_network_model (tensorflow.keras.Model): The Keras model representing the Wav2Vec2 network.
+        @list_filters_encoder (list[int]): List of filter sizes for the convolutional encoder layers.
+        @loss_function (str): The loss function used during model training (e.g., 'categorical_crossentropy').
+        @optimizer_function (str): The optimizer used for model training (e.g., 'adam').
+        @kernel_size (int): The kernel size for the convolutional layers (e.g., 3 for 3x3 kernels).
+        @quantization_units (int): The number of quantization units in the quantization layer.
+        @key_dimension (int): The key dimension for the multi-head attention in the transformer.
+        @intermediary_layer_activation (str): Activation function used in the intermediary layers (e.g., 'relu').
+        @number_heads (int): The number of attention heads in the transformer block.
+        @input_dimension (tuple): The shape of the input data (e.g., (128, 80) for Mel spectrograms).
+        @number_classes (int): The number of output classes for classification.
+        @dropout_rate (float): The dropout rate used for regularization.
+        @last_layer_activation (str): The activation function used in the output layer (e.g., 'softmax').
+        @model_name (str): The name of the model (default is "Wav2Vec2").
+    """
 
     def __init__(self,
                  number_classes: int,
                  last_layer_activation: str,
-                 size_batch: int,
-                 number_splits: int,
-                 number_epochs: int,
                  loss_function: str,
                  optimizer_function: str,
-                 window_size_factor: int,
-                 decibel_scale_factor: int,
-                 hop_length: int,
-                 overlap: int,
                  quantization_units: int,
-                 sample_rate: int,
                  key_dimension: int,
                  dropout_rate: float,
-                 file_extension: str,
                  intermediary_layer_activation: str,
                  input_dimension: tuple,
                  number_heads: int,
                  kernel_size: int,
-                 projection_mlp_dimension: int,
-                 context_dimension: int,
                  list_filters_encoder=None):
+        """
+        Initialize the AudioWav2Vec2 model with specified hyperparameters.
+
+        Args:
+            @number_classes (int): The number of output classes for classification tasks.
+            @last_layer_activation (str): The activation function for the output layer (e.g., 'softmax').
+            @loss_function (str): The loss function used for training the model (e.g., 'categorical_crossentropy').
+            @optimizer_function (str): The optimizer used for training the model (e.g., 'adam').
+            @quantization_units (int): The number of quantization units.
+            @key_dimension (int): The key dimension for the transformer attention.
+            @dropout_rate (float): The dropout rate for regularization.
+            @intermediary_layer_activation (str): The activation function for intermediary layers (e.g., 'relu').
+            @input_dimension (tuple): The input dimension for the model (e.g., (128, 80) for Mel spectrograms).
+            @number_heads (int): The number of attention heads in the transformer block.
+            @kernel_size (int): The kernel size for the convolutional layers.
+            @list_filters_encoder (list[int], optional): A list of the number of filters for each convolutional encoder block.
+        """
 
         if list_filters_encoder is None:
-            list_filters_encoder = DEFAULT_LIST_FILTERS_ENCODER
+            list_filters_encoder = DEFAULT_LIST_FILTERS_ENCODER  # Default filters if not provided
 
-        self.model_name = "Wav2Vec2"
+        # Initialize model parameters
         self.neural_network_model = None
-
-        self.size_batch = size_batch
-        self.contex_dimension = context_dimension
-        self.list_filters_encoder = list_filters_encoder
-        self.projection_mlp_dimension = projection_mlp_dimension
-        self.number_splits = number_splits
-        self.number_epochs = number_epochs
-        self.loss_function = loss_function
-        self.optimizer_function = optimizer_function
-        self.window_size_factor = window_size_factor
-        self.decibel_scale_factor = decibel_scale_factor
-        self.hop_length = hop_length
-        self.kernel_size = kernel_size
-        self.quantization_units = quantization_units
-        self.key_dimension = key_dimension
-        self.intermediary_layer_activation = intermediary_layer_activation
-        self.overlap = overlap
-        self.number_heads = number_heads
-        self.window_size = self.hop_length * self.window_size_factor
-        self.sample_rate = sample_rate
-        self.file_extension = file_extension
-        self.input_dimension = input_dimension
-        self.number_classes = number_classes
-        self.dropout_rate = dropout_rate
-        self.last_layer_activation = last_layer_activation
+        self.list_filters_encoder = list_filters_encoder  # Convolutional encoder filters
+        self.loss_function = loss_function  # Loss function for training
+        self.optimizer_function = optimizer_function  # Optimizer function
+        self.kernel_size = kernel_size  # Kernel size for the convolutional layers
+        self.quantization_units = quantization_units  # Number of quantization units
+        self.key_dimension = key_dimension  # Key dimension for transformer attention
+        self.intermediary_layer_activation = intermediary_layer_activation  # Activation for intermediary layers
+        self.number_heads = number_heads  # Number of attention heads for the transformer
+        self.input_dimension = input_dimension  # Input data shape
+        self.number_classes = number_classes  # Number of output classes for classification
+        self.dropout_rate = dropout_rate  # Dropout rate for regularization
+        self.last_layer_activation = last_layer_activation  # Activation for the output layer
+        self.model_name = "Wav2Vec2"  # Model name
 
     def build_model(self) -> None:
-        # Define the input layer
+        """
+        Build the Wav2Vec2 model architecture using Keras.
+
+        The model consists of the following components:
+            - Convolutional encoder layers with the specified filters.
+            - Transformer block with multi-head attention for capturing long-range dependencies.
+            - Quantization layer for feature compression.
+            - Dense layers for classification.
+
+        The model is designed for audio processing tasks, particularly feature extraction
+        from waveforms (e.g., Mel spectrograms).
+        """
+
+        # Input layer: reshape the input to match the expected format
         inputs = Input(shape=self.input_dimension)
         neural_network_flow = Reshape((128, 80, 1))(inputs)
 
-        # Apply Convolutional layers
+        # Apply convolutional layers to extract features from the input audio
         for number_filters in self.list_filters_encoder:
-
             neural_network_flow = TimeDistributed(
-                Conv1D(number_filters, self.kernel_size, strides=(2,),
-                       activation=self.intermediary_layer_activation))(neural_network_flow)
+                Conv1D(number_filters, self.kernel_size, strides=(2,), activation=self.intermediary_layer_activation))(
+                neural_network_flow)
 
+        # Flatten the convolutional output to feed into the dense layers
         flatten_flow = TimeDistributed(Flatten())(neural_network_flow)
 
-        # Dense layer
-        dense_layer = TimeDistributed(Dense(self.number_classes,
-                                            activation=self.intermediary_layer_activation))(flatten_flow)
+        # Apply a dense layer with specified activation
+        dense_layer = TimeDistributed(Dense(self.number_classes, activation=self.intermediary_layer_activation))(
+            flatten_flow)
 
-
+        # Create causal mask for the transformer attention
         causal_mask = create_mask(128)
-        # Transformer Block
-        transformer_attention = MultiHeadAttention(
-            num_heads=self.number_heads, key_dim=4)(dense_layer, dense_layer, attention_mask=causal_mask)
 
-        # Add & Normalize (LayerNormalization)
+        # Transformer block with multi-head attention
+        transformer_attention = MultiHeadAttention(num_heads=self.number_heads, key_dim=4)(dense_layer, dense_layer,
+                                                                                           attention_mask=causal_mask)
+
+        # Add residual connection and normalize using LayerNormalization
         transformer_attention = Add()([dense_layer, transformer_attention])
         transformer_attention = LayerNormalization()(transformer_attention)
 
-        # Feed Forward Network
-        ff_network = Dense(self.number_classes, activation="relu")(transformer_attention)
-        ff_network = Dense(self.number_classes, activation="relu")(ff_network)
+        # Feed-forward network (fully connected layers)
+        feedforward_network = Dense(self.number_classes, activation="relu")(transformer_attention)
+        feedforward_network = Dense(self.number_classes, activation="relu")(feedforward_network)
 
-        # Add & Normalize (LayerNormalization)
-        transformer_output = Add()([transformer_attention, ff_network])
+        # Add the output of the feed-forward network and normalize
+        transformer_output = Add()([transformer_attention, feedforward_network])
         transformer_output = LayerNormalization()(transformer_output)
 
-        # Quantize Layer
+        # Quantization layer for feature compression
         quantize_layer = TimeDistributed(QuantizationLayer(4), name="Quantization")(dense_layer)
 
+        # Create the Keras model
         self.neural_network_model = Model(inputs=inputs, outputs=[transformer_output, quantize_layer],
                                           name=self.model_name)
-        self.neural_network_model.compile(optimizer=self.optimizer_function,
-                                          loss=ContrastiveLoss(margin=0.5),
+
+        # Compile the model with the specified optimizer, loss function, and metrics
+        self.neural_network_model.compile(optimizer=self.optimizer_function, loss=ContrastiveLoss(margin=0.5),
                                           metrics=['accuracy'])
 
     def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,
@@ -216,180 +292,3 @@ class AudioWav2Vec2(MetricsCalculator):
         logging.info("Training completed successfully.")
 
         return training_history
-
-
-    def load_data(self, sub_directories: str = None, file_extension: str = None) -> tuple:
-        """
-        Loads audio data, extracts spectrogram's using sliding windows, normalizes them, and
-        associates labels based on the directory structure.
-
-        Args:
-            sub_directories (str): Path to the main directory containing class subdirectories.
-            file_extension (str): Optional file extension to filter the files.
-
-        Returns:
-            tuple: A tuple containing two numpy arrays:
-                - array_features (numpy.ndarray): Array of normalized signal features.
-                - array_labels (numpy.ndarray): Array of integer labels for each sample.
-        """
-        logging.info("Starting data loading process.")
-        list_spectrogram, list_labels, list_class_path = [], [], []
-        file_extension = file_extension or self.file_extension
-
-        # Traverse through class directories
-        for class_dir in os.listdir(sub_directories):
-            class_path = os.path.join(sub_directories, class_dir)
-            list_class_path.append(class_path)
-            logging.info(f"Added class path: {class_path}")
-
-        # Process each class path
-        for _, sub_directory in enumerate(list_class_path):
-            logging.info(f"Processing directory: {sub_directory}")
-
-            # Iterate through all audio files in the directory with the specified extension
-            for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
-
-                # Load the audio signal
-                signal, _ = librosa.load(file_name, sr=self.sample_rate)
-
-                # Extract label from file name (assumes directory structure encodes label)
-                label = int(file_name.split('/')[-2].split('_')[0])
-
-                # Segment the signal using sliding windows
-                for (start, end) in self.windows(signal, self.window_size, self.overlap):
-
-                    # Check if the windowed signal has the required length
-                    if len(signal[start:end]) == self.window_size:
-
-                        # Extract the signal window
-                        signal_window = numpy.abs(numpy.array(signal[start:end]))
-
-                        # Normalize the signal window
-                        signal_min = numpy.min(signal_window)
-                        signal_max = numpy.max(signal_window)
-
-                        if signal_max != signal_min:
-                            normalized_signal = (signal_window - signal_min) / (signal_max - signal_min)
-                        else:
-                            normalized_signal = numpy.zeros_like(signal_window)
-
-                        list_spectrogram.append(normalized_signal)
-                        list_labels.append(label)
-
-        # Convert lists to numpy arrays for efficient processing
-        array_features = numpy.array(list_spectrogram, dtype=numpy.float32)
-        array_features = numpy.expand_dims(array_features, axis=-1)  # Add channel dimension
-
-        array_labels = numpy.array(list_labels, dtype=numpy.int32)
-
-        logging.info("Data loading completed successfully.")
-        logging.info(f"Total samples loaded: {len(array_labels)}")
-
-        return array_features, array_labels
-
-    def train(self, dataset_directory, number_epochs, batch_size, number_splits,
-              loss, sample_rate, overlap, number_classes, arguments) -> tuple:
-
-        # Use default values if not provided
-        self.number_epochs = number_epochs or self.number_epochs
-        self.number_splits = number_splits or self.number_splits
-        self.size_batch = batch_size or self.size_batch
-        self.loss_function = loss or self.loss_function
-        self.sample_rate = sample_rate or self.sample_rate
-        self.overlap = overlap or self.overlap
-        self.number_classes = number_classes or self.number_classes
-
-        self.contex_dimension = arguments.wav_to_vec_context_dimension
-        self.list_filters_encoder = arguments.wav_to_vec_list_filters_encoder
-        self.projection_mlp_dimension = arguments.wav_to_vec_projection_mlp_dimension
-        self.window_size_factor = arguments.wav_to_vec_window_size_factor
-        self.decibel_scale_factor = arguments.wav_to_vec_decibel_scale_factor
-        self.hop_length = arguments.wav_to_vec_hop_length
-        self.kernel_size = arguments.wav_to_vec_kernel_size
-        self.quantization_units = arguments.wav_to_vec_quantization_bits
-        self.key_dimension = arguments.wav_to_vec_key_dimension
-        self.intermediary_layer_activation = arguments.wav_to_vec_intermediary_layer_activation
-        self.overlap = arguments.wav_to_vec_overlap
-        self.number_heads = arguments.wav_to_vec_number_heads
-        self.window_size = self.hop_length * self.window_size_factor
-        self.dropout_rate = arguments.wav_to_vec_dropout_rate
-        self.last_layer_activation = arguments.wav_to_vec_last_layer_activation
-
-        features, labels = self.load_data(dataset_directory)
-        metrics_list, confusion_matriz_list = [], []
-        labels = numpy.array(labels).astype(float)
-
-        # Split data into train/val and test sets
-        features_train_val, features_test, labels_train_val, labels_test = train_test_split(
-            features, labels, test_size=0.2, stratify=labels, random_state=42
-        )
-
-        # Balance training/validation set
-        features_train_val, labels_train_val = balance_classes(features_train_val, labels_train_val)
-
-        # Stratified k-fold cross-validation on the training/validation set
-        instance_k_fold = StratifiedKFold(n_splits=self.number_splits, shuffle=True, random_state=42)
-        print("STARTING TRAINING MODEL: {}".format(self.model_name))
-        list_history_model = []
-        history_model = None
-        probabilities_list = []
-        real_labels_list = []
-
-        for train_indexes, val_indexes in instance_k_fold.split(features_train_val, labels_train_val):
-            features_train, features_val = features_train_val[train_indexes], features_train_val[val_indexes]
-            labels_train, labels_val = labels_train_val[train_indexes], labels_train_val[val_indexes]
-
-            # Balance the training set for this fold
-            features_train, labels_train = balance_classes(features_train, labels_train)
-
-            self.build_model()
-            self.neural_network_model.summary()
-
-            history_model = self.compile_and_train(features_train, labels_train, epochs=self.number_epochs,
-                                                   batch_size=self.size_batch,
-                                                   validation_data=(features_val, labels_val))
-
-            model_predictions = self.neural_network_model.predict(features_val, batch_size=self.size_batch)
-            predicted_labels = numpy.argmax(model_predictions, axis=1)
-
-            probabilities_list.append(model_predictions)
-            real_labels_list.append(labels_val)
-
-            # Calculate and store the metrics for this fold
-            metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_val,
-                                                               predicted_labels)
-            metrics_list.append(metrics)
-            confusion_matriz_list.append(confusion_matrix)
-
-        # Calculate mean metrics across all folds
-        mean_metrics = {
-            'model_name': self.model_name,
-            'Acc.': {'value': numpy.mean([metric['Accuracy'] for metric in metrics_list]),
-                     'std': numpy.std([metric['Accuracy'] for metric in metrics_list])},
-            'Prec.': {'value': numpy.mean([metric['Precision'] for metric in metrics_list]),
-                      'std': numpy.std([metric['Precision'] for metric in metrics_list])},
-            'Rec.': {'value': numpy.mean([metric['Recall'] for metric in metrics_list]),
-                     'std': numpy.std([metric['Recall'] for metric in metrics_list])},
-            'F1.': {'value': numpy.mean([metric['F1-Score'] for metric in metrics_list]),
-                    'std': numpy.std([metric['F1-Score'] for metric in metrics_list])},
-        }
-
-        probabilities_predicted = {
-            'model_name': self.model_name,
-            'predicted': numpy.concatenate(probabilities_list),
-            'ground_truth': numpy.concatenate(real_labels_list)
-        }
-
-        confusion_matrix_array = numpy.array(confusion_matriz_list)
-        mean_confusion_matrix = numpy.mean(confusion_matrix_array, axis=0)
-        mean_confusion_matrix = numpy.round(mean_confusion_matrix).astype(numpy.int32).tolist()
-
-        mean_confusion_matrices = {
-            "confusion_matrix": mean_confusion_matrix,
-            "class_names": ['Class {}'.format(i) for i in range(self.number_classes)],
-            "title": self.model_name
-        }
-
-        return (mean_metrics, {"Name": self.model_name, "History": history_model.history}, mean_confusion_matrices,
-                probabilities_predicted)
-
