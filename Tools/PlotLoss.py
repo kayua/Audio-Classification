@@ -11,7 +11,6 @@ __credits__ = ['unknown']
 
 try:
     import sys
-
     import logging
 
     import matplotlib.pyplot as plt
@@ -19,6 +18,23 @@ try:
 except ImportError as error:
     print(error)
     sys.exit(-1)
+
+
+DEFAULT_FIGURE_SIZE = (10, 6)
+DEFAULT_TRAINING_LOSS_COLOR = "blue"
+DEFAULT_VALIDATION_LOSS_COLOR = "orange"
+DEFAULT_TITLE_FONT_SIZE = 16
+DEFAULT_AXIS_FONT_SIZE = 12
+DEFAULT_LEGEND_FONT_SIZE = 10
+DEFAULT_X_LABEL = 'Epochs'
+DEFAULT_Y_LABEL = 'Loss'
+DEFAULT_TITLE = 'Loss Graph'
+DEFAULT_GRID = True
+DEFAULT_LINE_STYLE_TRAINING = '-'
+DEFAULT_LINE_STYLE_VALIDATION = '--'
+DEFAULT_LINE_WIDTH = 2
+
+
 
 class LossPlotter:
     """
@@ -74,10 +90,10 @@ class LossPlotter:
         >>>
     """
 
-    def __init__(self, history_dict_list, path_output, figure_size=(10, 6), training_loss_color="blue",
-                 validation_loss_color="orange", title_font_size=16, axis_font_size=12,
-                 legend_font_size=10, x_label="Epochs", y_label="Loss", title="Loss Graph",
-                 grid=True, line_style_training='-', line_style_validation='--', line_width=2):
+    def __init__(self, history_dict_list, path_output, figure_size: tuple, training_loss_color: str,
+                 validation_loss_color: str, title_font_size: int, axis_font_size: int,
+                 legend_font_size: int, x_label: str, y_label: str, title: str,
+                 grid: bool, line_style_training: str, line_style_validation: str, line_width: int):
         """
         Initializes the LossPlotter instance with the list of model histories and the output path
         for saving the loss plots. Additionally, it allows for customization of the plot styles

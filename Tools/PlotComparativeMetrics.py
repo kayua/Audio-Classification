@@ -11,7 +11,6 @@ __credits__ = ['unknown']
 
 try:
     import sys
-
     import numpy
     import logging
 
@@ -20,6 +19,15 @@ try:
 except ImportError as error:
     print(error)
     sys.exit(-1)
+
+
+DEFAULT_FIGURE_WIDTH = 12
+DEFAULT_FIGURE_HEIGHT = 8
+DEFAULT_BAR_WIDTH = 0.20
+DEFAULT_CAPTION_SIZE = 10
+DEFAULT_SHOW_PLOT = False
+
+
 
 class ComparativeMetricsPlotter:
     """
@@ -64,7 +72,7 @@ class ComparativeMetricsPlotter:
         >>>
     """
 
-    def __init__(self, figure_width=12, figure_height=8, bar_width=0.20, caption_size=10, show_plot=False):
+    def __init__(self, figure_width: int, figure_height: int, bar_width: float, caption_size: int, show_plot: bool):
         """
         Initialize the ComparativeMetricsPlotter with customizable plot options.
 

@@ -26,6 +26,21 @@ except ImportError as error:
     print(error)
     sys.exit(-1)
 
+
+
+DEFAULT_FIGURE_SIZE = (8, 6)
+DEFAULT_LINE_WIDTH = 2
+DEFAULT_MARKER_STYLE = 'o'
+DEFAULT_COLOR_MAP = 'Blue'
+DEFAULT_SHOW_PLOT = True
+DEFAULT_TITLE_FONT_SIZE = 14
+DEFAULT_AXIS_LABEL_FONT_SIZE = 12
+DEFAULT_LEGEND_FONT_SIZE = 10
+DEFAULT_GRID = True
+DEFAULT_DIAGONAL_LINE = True
+
+
+
 class ROCPlotter:
     """
     A class for plotting ROC curves and calculating AUC for each class based on predicted probabilities.

@@ -23,6 +23,18 @@ except ImportError as error:
     sys.exit(-1)
 
 
+DEFAULT_FIGURE_SIZE = (5, 5)
+DEFAULT_COLOR_MAP = 'Blues'
+DEFAULT_ANNOT_FONT_SIZE = 10
+DEFAULT_LABEL_FONT_SIZE = 12
+DEFAULT_TITLE_FONT_SIZE = 14
+DEFAULT_SHOW_PLOT = False
+DEFAULT_COLOR_BAR = True
+DEFAULT_ANNOT_KWS = None
+DEFAULT_FMT = 'd'
+DEFAULT_ROTATION = 45
+
+
 class ConfusionMatrixPlotter:
     """
     A class to plot and save confusion matrices with highly customizable visualizations.
@@ -74,9 +86,8 @@ class ConfusionMatrixPlotter:
         >>>     cm_plotter.plot_confusion_matrices(cm_list, file_name_path='confusion_matrices/', show_plot=True)
     """
 
-    def __init__(self, figure_size=(5, 5), cmap='Blues', annot_font_size=10,
-                 label_font_size=12, title_font_size=14, show_plot=False,
-                 colorbar=True, annot_kws=None, fmt='d', rotation=45):
+    def __init__(self, figure_size:tuple, cmap: str, annot_font_size: int, label_font_size: int, title_font_size: int,
+                 show_plot: bool, colorbar: bool, annot_kws: None, fmt: str, rotation: int):
         """
         Initialize the ConfusionMatrixPlotter with customizable plotting options.
 

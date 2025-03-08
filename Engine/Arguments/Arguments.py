@@ -10,6 +10,7 @@ __credits__ = ['unknown']
 
 try:
     import sys
+
     import logging
     import argparse
 
@@ -17,8 +18,9 @@ try:
     from Engine.Arguments.Arguments import add_mlp_arguments
     from Engine.Arguments.Arguments import add_lstm_arguments
 
-    from Engine.Arguments.ArgumentsResidual import add_residual_arguments
     from Engine.Arguments.Arguments import add_wav_to_vec_arguments
+
+    from Engine.Arguments.ArgumentsResidual import add_residual_arguments
     from Engine.Arguments.ArgumentsConformer import add_conformer_arguments
 
 except ImportError as error:
@@ -112,10 +114,10 @@ class Arguments:
         Initializes the Arguments class.
 
         This constructor:
-        1. Initializes a base ArgumentParser with common arguments.
-        2. Sequentially adds arguments from different model components.
-        3. Parses the command-line arguments.
-        4. Logs all parsed arguments and the command used to run the script.
+            1. Initializes a base ArgumentParser with common arguments.
+            2. Sequentially adds arguments from different model components.
+            3. Parses the command-line arguments.
+            4. Logs all parsed arguments and the command used to run the script.
 
         External functions (add_ast_arguments, add_conformer_arguments, etc.) are assumed to
         be responsible for adding architecture-specific arguments to the parser.
@@ -174,12 +176,13 @@ class Arguments:
         Defines the base arguments required for the training and evaluation pipeline.
 
         These arguments are common across different models and cover:
-        - Dataset paths and structure.
-        - Training parameters such as epochs, batch size, and cross-validation splits.
-        - Loss function selection.
-        - Audio-specific settings such as sample rate and overlap.
-        - Plotting configuration for visualizations.
-        - Logging verbosity level.
+
+            - Dataset paths and structure.
+            - Training parameters such as epochs, batch size, and cross-validation splits.
+            - Loss function selection.
+            - Audio-specific settings such as sample rate and overlap.
+            - Plotting configuration for visualizations.
+            - Logging verbosity level.
 
         Returns
         -------
