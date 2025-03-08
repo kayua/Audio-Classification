@@ -82,7 +82,7 @@ class ConvolutionalModule(Layer):
 
     Example
     -------
-        >>> Create an instance of the convolutional module with custom parameters
+        >>> # Create an instance of the convolutional module with custom parameters
         ...     conv_module = ConvolutionalModule(number_filters=128, size_kernel=3)
         ...     # Example input tensor with shape (batch_size, sequence_length, num_features)
         ...     input_tensor = tf.random.normal([32, 100, 64])  # Batch of 32, sequence length of 100, and 64 features

@@ -36,9 +36,10 @@ class ContrastiveLoss(Loss):
 
     References:
     -----------
-    - Hadsell, R., Chopra, S., & LeCun, Y. (2006). Dimensionality Reduction by Learning an Invariant Mapping.
-      Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR).
-    - Bengio, Y., & LeCun, Y. (2007). Learning Deep Architectures for AI. Foundations and Trends in Machine Learning, 2(1), 1-127.
+        - Hadsell, R., Chopra, S., & LeCun, Y. (2006). Dimensionality Reduction by Learning an Invariant Mapping.
+          Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR).
+        - Bengio, Y., & LeCun, Y. (2007). Learning Deep Architectures for AI. Foundations and
+          Trends in Machine Learning, 2(1), 1-127.
 
     Mathematical Formula:
     ---------------------
