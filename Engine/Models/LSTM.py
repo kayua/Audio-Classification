@@ -26,7 +26,7 @@ try:
 
     from tensorflow.keras.layers import GlobalAveragePooling1D
 
-    from Engine.Models.Process.RawEvaluationProcess import RawEvaluationProcess
+    from Engine.Models.Process.MLPProcess import MLPProcess
 
 
 except ImportError as error:

@@ -187,7 +187,7 @@ if __name__ == "__main__":
     main.__start__()
 
     available_models = [
-#        DenseModel,
+        DenseModel,
 #        AudioSpectrogramTransformer,
 #        AudioLSTM,
 #        Conformer,
