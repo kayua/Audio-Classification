@@ -198,9 +198,7 @@ def auto_logger(function):
     """
 
     def wrapper(self, *args, **kwargs):
-        # Initialize the Arguments class for the instance
-        Logger.__init__(self, self.input_arguments)
-        # Call the wrapped function with the provided arguments
+        self.logger = Logger(self.input_arguments)
         return function(self, *args, **kwargs)
 
     return wrapper

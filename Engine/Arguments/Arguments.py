@@ -15,11 +15,11 @@ try:
     import logging
     import argparse
 
-    from Engine.Arguments.Arguments import add_ast_arguments
-    from Engine.Arguments.Arguments import add_mlp_arguments
-    from Engine.Arguments.Arguments import add_lstm_arguments
+    from Engine.Arguments.ArgumentsAST import add_ast_arguments
+    from Engine.Arguments.ArgumentsMLP import add_mlp_arguments
+    from Engine.Arguments.ArgumentsLSTM import add_lstm_arguments
 
-    from Engine.Arguments.Arguments import add_wav_to_vec_arguments
+    from Engine.Arguments.ArgumentsWav2Vec2 import add_wav_to_vec_arguments
 
     from Engine.Arguments.ArgumentsResidual import add_residual_arguments
     from Engine.Arguments.ArgumentsConformer import add_conformer_arguments
@@ -62,28 +62,6 @@ DEFAULT_VERBOSE_LIST = {logging.INFO: 2, logging.DEBUG: 1, logging.WARNING: 2,
                         logging.FATAL: 0, logging.ERROR: 0}
 
 
-def create_arguments(function):
-    """
-    Decorator to initialize an instance of the Arguments class
-    before executing the wrapped function.
-
-    Parameters:
-        function (callable): The function to be wrapped.
-
-    Returns:
-        callable: The wrapped function that initializes Arguments.
-    """
-
-    def wrapper(self, *args, **kwargs):
-        # Initialize the Arguments class for the instance
-        Arguments.__init__(self)
-        # Call the wrapped function with the provided arguments
-        return function(self, *args, **kwargs)
-
-    return wrapper
-
-
-
 class Arguments:
     """
     Arguments Class
@@ -98,15 +76,15 @@ class Arguments:
 
     Methods
     -------
-    __init__() :
+    @__init__() :
         Initializes the argument parser, adds arguments from multiple components, parses the
         command-line arguments, and logs the final settings.
 
-    show_all_settings() :
+    @show_all_settings() :
         Logs the parsed arguments in a formatted manner for better visibility, including
         the command used to launch the script.
 
-    get_arguments() :
+    @get_arguments() :
         Static method that defines the base arguments required for dataset handling, training,
         plotting, and logging.
 
@@ -157,8 +135,8 @@ class Arguments:
         Logs all parsed arguments in a formatted and structured way.
 
         This method logs:
-        - The full command used to run the script (useful for reproducibility).
-        - All arguments and their values, properly formatted for readability.
+            - The full command used to run the script (useful for reproducibility).
+            - All arguments and their values, properly formatted for readability.
 
         This function is particularly useful in machine learning experiments where tracking
         hyperparameters and configurations is critical.
@@ -275,3 +253,21 @@ class Arguments:
         )
 
         return argument_parser
+
+def auto_arguments(function):
+    """
+    Decorator to initialize an instance of the Arguments class
+    before executing the wrapped function.
+
+    Parameters:
+        function (callable): The function to be wrapped.
+
+    Returns:
+        callable: The wrapped function that initializes Arguments.
+    """
+
+    def wrapper(self, *args, **kwargs):
+        self.input_arguments = Arguments()
+        return function(self, *args, **kwargs)
+
+    return wrapper

@@ -11,14 +11,12 @@ __credits__ = ['unknown']
 
 # try:
 
-import gc
 import logging
 import os
-from datetime import datetime
-from logging.handlers import RotatingFileHandler
 
 import tensorflow
 
+from Engine.Arguments.Arguments import auto_arguments
 from Tools.Logger import auto_logger
 from Tools.RunScript import RunScript
 
@@ -39,25 +37,25 @@ DEFAULT_DATA_TYPE = "float32"
 DEFAULT_VERBOSE_LIST = {logging.INFO: 2, logging.DEBUG: 1, logging.WARNING: 2,
                         logging.FATAL: 0, logging.ERROR: 0}
 
-DEFAULT_MATRIX_FIGURE_SIZE = (5, 5)
-DEFAULT_MATRIX_COLOR_MAP = 'Blues'
-DEFAULT_MATRIX_ANNOTATION_FONT_SIZE = 10
-DEFAULT_MATRIX_LABEL_FONT_SIZE = 12
-DEFAULT_MATRIX_TITLE_FONT_SIZE = 14
-DEFAULT_SHOW_PLOT = False
-DEFAULT_DATASET_DIRECTORY = "Dataset/"
-DEFAULT_NUMBER_EPOCHS = 2
-DEFAULT_BATCH_SIZE = 32
-DEFAULT_NUMBER_SPLITS = 2
-DEFAULT_LOSS = 'sparse_categorical_crossentropy'
-DEFAULT_SAMPLE_RATE = 8000
-DEFAULT_OVERLAP = 2
-DEFAULT_NUMBER_CLASSES = 4
-DEFAULT_OUTPUT_DIRECTORY = "Results/"
-DEFAULT_PLOT_WIDTH = 14
-DEFAULT_PLOT_HEIGHT = 8
-DEFAULT_PLOT_BAR_WIDTH = 0.15
-DEFAULT_PLOT_CAP_SIZE = 10
+# DEFAULT_MATRIX_FIGURE_SIZE = (5, 5)
+# DEFAULT_MATRIX_COLOR_MAP = 'Blues'
+# DEFAULT_MATRIX_ANNOTATION_FONT_SIZE = 10
+# DEFAULT_MATRIX_LABEL_FONT_SIZE = 12
+# DEFAULT_MATRIX_TITLE_FONT_SIZE = 14
+# DEFAULT_SHOW_PLOT = False
+# DEFAULT_DATASET_DIRECTORY = "Dataset/"
+# DEFAULT_NUMBER_EPOCHS = 2
+# DEFAULT_BATCH_SIZE = 32
+# DEFAULT_NUMBER_SPLITS = 2
+# DEFAULT_LOSS = 'sparse_categorical_crossentropy'
+# DEFAULT_SAMPLE_RATE = 8000
+# DEFAULT_OVERLAP = 2
+# DEFAULT_NUMBER_CLASSES = 4
+# DEFAULT_OUTPUT_DIRECTORY = "Results/"
+# DEFAULT_PLOT_WIDTH = 14
+# DEFAULT_PLOT_HEIGHT = 8
+# DEFAULT_PLOT_BAR_WIDTH = 0.15
+# DEFAULT_PLOT_CAP_SIZE = 10
 
 
 class Main(RunScript):
@@ -67,11 +65,8 @@ class Main(RunScript):
         self.mean_history = []
         self.mean_matrices = []
         self.list_roc_curve = []
-        self.__autologger__()
 
-
-
-
+        self.__start__()
 
     @auto_logger
     def __autologger__(self):
@@ -89,7 +84,41 @@ class Main(RunScript):
         """
         pass
 
+    @auto_arguments
+    def __start__(self):
+        """
+            Arguments Class
 
+            This class manages the configuration and command-line arguments for a machine learning training
+            and evaluation pipeline. It collects arguments from multiple subsystems (AST, Conformer, LSTM,
+            MLP, Residual, Wav2Vec) and consolidates them into a single namespace.
+
+            The class also handles argument parsing, logging of all settings, and provides a static method
+            to define the core arguments related to dataset handling, training parameters, plotting, and
+            logging verbosity.
+
+            Methods
+            -------
+            @__init__() :
+                Initializes the argument parser, adds arguments from multiple components, parses the
+                command-line arguments, and logs the final settings.
+
+            @show_all_settings() :
+                Logs the parsed arguments in a formatted manner for better visibility, including
+                the command used to launch the script.
+
+            @get_arguments() :
+                Static method that defines the base arguments required for dataset handling, training,
+                plotting, and logging.
+
+            Notes
+            -----
+            This class relies on external functions to append arguments related to specific model types
+            (AST, Conformer, LSTM, MLP, Residual, Wav2Vec). These functions are expected to extend the
+            `ArgumentParser` instance with additional arguments specific to each model architecture.
+
+        """
+        self.__autologger__()
 
 
 
@@ -207,85 +236,86 @@ class Main(RunScript):
 
 # Main entry point of the program
 if __name__ == "__main__":
-
-    # Get input arguments from the user
-    input_arguments = get_arguments()
-    # Obtain a logger to log information
-    logger = logging.getLogger()
-
-    # Function that defines the path for the logs directory
-    def get_logs_path():
-        logs_dir = 'Logs'  # Name of the directory where logs will be stored
-        os.makedirs(logs_dir, exist_ok=True)  # Create the directory if it doesn't exist
-        return logs_dir  # Return the path to the logs directory
-
-    # Default format for log messages
-    logging_format = '%(asctime)s\t***\t%(message)s'
-
-    # If verbosity is set to DEBUG, update the log format to include more information
-    if input_arguments.verbosity == logging.DEBUG:
-        logging_format = '%(asctime)s\t***\t%(levelname)s {%(module)s} [%(funcName)s] %(message)s'
-
-    # Generate a log file name with the current date and time
-    LOGGING_FILE_NAME = datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.log'
-    logging_filename = os.path.join(get_logs_path(), LOGGING_FILE_NAME)  # Create the full path for the log file
-
-    # Set the log level based on user input
-    logger.setLevel(input_arguments.verbosity)
-
-    # Create a rotating file handler for logs
-    rotatingFileHandler = RotatingFileHandler(filename=logging_filename, maxBytes=1000000, backupCount=5)
-    rotatingFileHandler.setLevel(input_arguments.verbosity)  # Set log level for the file handler
-    rotatingFileHandler.setFormatter(logging.Formatter(logging_format))  # Set the format for log messages
-
-    # Add the file handler to the logger
-    logger.addHandler(rotatingFileHandler)
-
-    # Create a console handler to display logs in the console
-    consoleHandler = logging.StreamHandler()
-    consoleHandler.setLevel(input_arguments.verbosity)  # Set log level for the console handler
-    consoleHandler.setFormatter(logging.Formatter(logging_format))  # Set the format for log messages
-
-    # Add the console handler to the logger
-    logger.addHandler(consoleHandler)
-
-    # If the logger already has handlers, clear them
-    if logger.hasHandlers():
-        logger.handlers.clear()
-
-    # Re-add the handlers to the logger
-    logger.addHandler(rotatingFileHandler)
-    logger.addHandler(consoleHandler)
-
-
-
-    # List of available machine learning models for evaluation
-    available_models = [
-        AudioAST,
-        AudioLSTM,
-        DenseModel,
-        Conformer,
-        AudioWav2Vec2,
-        ResidualModel
-    ]
-
-    # Create an instance of the evaluation class
-    evaluation = Main()
-    # Run the evaluation of the models with specified parameters
-    evaluation.run(
-        models=available_models,  # Models to be evaluated
-        dataset_directory=input_arguments.dataset_directory,  # Directory of the dataset
-        number_epochs=input_arguments.number_epochs,  # Number of epochs for training
-        batch_size=input_arguments.batch_size,  # Batch size
-        number_splits=input_arguments.number_splits,  # Number of splits for validation
-        loss=input_arguments.loss,  # Loss function to be used
-        sample_rate=input_arguments.sample_rate,  # Sample rate
-        overlap=input_arguments.overlap,  # Overlap between samples
-        number_classes=input_arguments.number_classes,  # Number of classes in the dataset
-        output_directory=input_arguments.output_directory,  # Output directory for results
-        plot_width=input_arguments.plot_width,  # Width of the plot
-        plot_height=input_arguments.plot_height,  # Height of the plot
-        plot_bar_width=input_arguments.plot_bar_width,  # Width of bars in the plot
-        plot_cap_size=input_arguments.plot_cap_size,  # Size of caps in the plots
-        arguments=input_arguments  # Additional arguments for the evaluation function
-    )
+    main = Main()
+    main.__start__()
+    # # Get input arguments from the user
+    # input_arguments = get_arguments()
+    # # Obtain a logger to log information
+    # logger = logging.getLogger()
+    #
+    # # Function that defines the path for the logs directory
+    # def get_logs_path():
+    #     logs_dir = 'Logs'  # Name of the directory where logs will be stored
+    #     os.makedirs(logs_dir, exist_ok=True)  # Create the directory if it doesn't exist
+    #     return logs_dir  # Return the path to the logs directory
+    #
+    # # Default format for log messages
+    # logging_format = '%(asctime)s\t***\t%(message)s'
+    #
+    # # If verbosity is set to DEBUG, update the log format to include more information
+    # if input_arguments.verbosity == logging.DEBUG:
+    #     logging_format = '%(asctime)s\t***\t%(levelname)s {%(module)s} [%(funcName)s] %(message)s'
+    #
+    # # Generate a log file name with the current date and time
+    # LOGGING_FILE_NAME = datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.log'
+    # logging_filename = os.path.join(get_logs_path(), LOGGING_FILE_NAME)  # Create the full path for the log file
+    #
+    # # Set the log level based on user input
+    # logger.setLevel(input_arguments.verbosity)
+    #
+    # # Create a rotating file handler for logs
+    # rotatingFileHandler = RotatingFileHandler(filename=logging_filename, maxBytes=1000000, backupCount=5)
+    # rotatingFileHandler.setLevel(input_arguments.verbosity)  # Set log level for the file handler
+    # rotatingFileHandler.setFormatter(logging.Formatter(logging_format))  # Set the format for log messages
+    #
+    # # Add the file handler to the logger
+    # logger.addHandler(rotatingFileHandler)
+    #
+    # # Create a console handler to display logs in the console
+    # consoleHandler = logging.StreamHandler()
+    # consoleHandler.setLevel(input_arguments.verbosity)  # Set log level for the console handler
+    # consoleHandler.setFormatter(logging.Formatter(logging_format))  # Set the format for log messages
+    #
+    # # Add the console handler to the logger
+    # logger.addHandler(consoleHandler)
+    #
+    # # If the logger already has handlers, clear them
+    # if logger.hasHandlers():
+    #     logger.handlers.clear()
+    #
+    # # Re-add the handlers to the logger
+    # logger.addHandler(rotatingFileHandler)
+    # logger.addHandler(consoleHandler)
+    #
+    #
+    #
+    # # List of available machine learning models for evaluation
+    # available_models = [
+    #     AudioAST,
+    #     AudioLSTM,
+    #     DenseModel,
+    #     Conformer,
+    #     AudioWav2Vec2,
+    #     ResidualModel
+    # ]
+    #
+    # # Create an instance of the evaluation class
+    # evaluation = Main()
+    # # Run the evaluation of the models with specified parameters
+    # evaluation.run(
+    #     models=available_models,  # Models to be evaluated
+    #     dataset_directory=input_arguments.dataset_directory,  # Directory of the dataset
+    #     number_epochs=input_arguments.number_epochs,  # Number of epochs for training
+    #     batch_size=input_arguments.batch_size,  # Batch size
+    #     number_splits=input_arguments.number_splits,  # Number of splits for validation
+    #     loss=input_arguments.loss,  # Loss function to be used
+    #     sample_rate=input_arguments.sample_rate,  # Sample rate
+    #     overlap=input_arguments.overlap,  # Overlap between samples
+    #     number_classes=input_arguments.number_classes,  # Number of classes in the dataset
+    #     output_directory=input_arguments.output_directory,  # Output directory for results
+    #     plot_width=input_arguments.plot_width,  # Width of the plot
+    #     plot_height=input_arguments.plot_height,  # Height of the plot
+    #     plot_bar_width=input_arguments.plot_bar_width,  # Width of bars in the plot
+    #     plot_cap_size=input_arguments.plot_cap_size,  # Size of caps in the plots
+    #     arguments=input_arguments  # Additional arguments for the evaluation function
+    # )
