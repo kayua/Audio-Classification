@@ -131,7 +131,7 @@ class PlotterTools(ComparativeMetricsPlotter, ConfusionMatrixPlotter, PlotLossCu
                             arguments.roc_curve_figure_size,
                             arguments.roc_curve_line_width,
                             arguments.roc_curve_marker_style,
-                            arguments.roc_curve_cmap,
+                            arguments.roc_curve_color_map,
                             arguments.roc_curve_show_plot,
                             arguments.roc_curve_title_font_size,
                             arguments.roc_curve_axis_label_font_size,
