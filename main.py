@@ -19,6 +19,7 @@ from Engine.Models.AST import AudioSpectrogramTransformer
 from Engine.Models.Conformer import Conformer
 from Engine.Models.LSTM import AudioLSTM
 from Engine.Models.MLP import DenseModel
+from Engine.Models.ResidualModel import ResidualModel
 from Tools.Logger import auto_logger
 from Tools.PlotterTools import PlotterTools
 from Tools.RunScript import RunScript
@@ -184,12 +185,12 @@ if __name__ == "__main__":
     main.__start__()
 
     available_models = [
-        DenseModel,
+#        DenseModel,
 #       AudioLSTM,
 #        Conformer,
 #        AudioSpectrogramTransformer,
 #        AudioWav2Vec2,
-#        ResidualModel
+        ResidualModel
     ]
 
     main.__exec__(available_models, "Results")
