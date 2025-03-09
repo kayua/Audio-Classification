@@ -17,6 +17,12 @@ import os
 import tensorflow
 
 from Engine.Arguments.Arguments import auto_arguments
+from Engine.Models.AST import AudioSpectrogramTransformer
+from Engine.Models.Conformer import Conformer
+from Engine.Models.LSTM import AudioLSTM
+from Engine.Models.MLP import DenseModel
+from Engine.Models.ResidualModel import ResidualModel
+from Engine.Models.Wav2Vec2 import AudioWav2Vec2
 from Tools.Logger import auto_logger
 from Tools.PlotterTools import PlotterTools
 from Tools.RunScript import RunScript
@@ -54,16 +60,19 @@ class Main(RunScript, PlotterTools):
     @auto_logger
     def __autologger__(self):
         """
+
             A Logger class designed to manage and configure logging for an application.
             It supports logging to both console and rotating log files. The log file name is
             dynamically generated based on the current date and time, and it creates backups of
             the log file to prevent the log file from growing too large.
 
-        Attributes:
-            @_logger (logging.Logger): The main logger object for logging messages.
-            @_logging_format (str): The format in which log messages are written.
-            @_rotatingFileHandler (logging.Handler): The handler that writes logs to a rotating file.
-            @_consoleHandler (logging.Handler): The handler that writes logs to the console.
+            Attributes:
+            ----------
+                @_logger (logging.Logger): The main logger object for logging messages.
+                @_logging_format (str): The format in which log messages are written.
+                @_rotatingFileHandler (logging.Handler): The handler that writes logs to a rotating file.
+                @_consoleHandler (logging.Handler): The handler that writes logs to the console.
+
         """
         pass
 
@@ -76,30 +85,20 @@ class Main(RunScript, PlotterTools):
             This class manages the configuration and command-line arguments for a machine learning training
             and evaluation pipeline. It collects arguments from multiple subsystems (AST, Conformer, LSTM,
             MLP, Residual, Wav2Vec) and consolidates them into a single namespace.
-
-            The class also handles argument parsing, logging of all settings, and provides a static method
-            to define the core arguments related to dataset handling, training parameters, plotting, and
-            logging verbosity.
-
+            
             Methods
             -------
-            @__init__() :
-                Initializes the argument parser, adds arguments from multiple components, parses the
-                command-line arguments, and logs the final settings.
+                @__init__() :
+                    Initializes the argument parser, adds arguments from multiple components, parses the
+                    command-line arguments, and logs the final settings.
 
-            @show_all_settings() :
-                Logs the parsed arguments in a formatted manner for better visibility, including
-                the command used to launch the script.
+                @show_all_settings() :
+                    Logs the parsed arguments in a formatted manner for better visibility, including
+                    the command used to launch the script.
 
-            @get_arguments() :
-                Static method that defines the base arguments required for dataset handling, training,
-                plotting, and logging.
-
-            Notes
-            -----
-            This class relies on external functions to append arguments related to specific model types
-            (AST, Conformer, LSTM, MLP, Residual, Wav2Vec). These functions are expected to extend the
-            `ArgumentParser` instance with additional arguments specific to each model architecture.
+                @get_arguments() :
+                    Static method that defines the base arguments required for dataset handling, training,
+                    plotting, and logging.
 
         """
         pass
@@ -110,11 +109,12 @@ class Main(RunScript, PlotterTools):
 
         try:
             # Instantiate the model
-            instance = model_class()
+            instance = model_class(arguments = self.input_arguments)
             logging.info(f"Instantiated model class '{model_class.__name__}'.")
-
             # Train the model and collect results
-            model_metrics, model_history, model_matrices, model_roc_list = instance.train(self.input_arguments)
+            instance.build_model(8)
+            exit()
+            model_metrics, model_history, model_matrices, model_roc_list = instance.train()
             logging.info( f"Training completed for model '{model_class.__name__}'."
                           f" Collected metrics, history, matrices, and ROC data.")
 
@@ -130,63 +130,53 @@ class Main(RunScript, PlotterTools):
         return model_metrics, model_history, model_matrices, model_roc_list
 
 
-    # def __exec__(self, models, output_directory, plot_width, plot_height, plot_bar_width, plot_cap_size):
-    #
-    #     logging.info("Starting the training and evaluation process.")
-    #
-    #     for i, model_class in enumerate(models):
-    #         logging.debug(f"Training model {i + 1}/{len(models)}: {model_class.__name__}")
-    #
-    #         try:
-    #             metrics, history, matrices, roc_list = self.train_and_collect_metrics(model_class=model_class)
-    #
-    #             self.mean_metrics.append(metrics)
-    #             self.mean_history.append(history)
-    #             self.mean_matrices.append(matrices)
-    #
-    #             logging.info(f"Model {model_class.__name__} training completed. Metrics collected.")
-    #
-    #             self.plot_roc_curve(roc_list, "Results/")
-    #             logging.info(f"ROC curve plotted for {model_class.__name__}.")
-    #
-    #         except Exception as e:
-    #             logging.error(f"Error during training of model {model_class.__name__}: {str(e)}")
-    #             raise
-    #
-    #     try:
-    #         logging.info("Plotting comparative metrics.")
-    #         self.plot_comparative_metrics(dictionary_metrics_list=self.mean_metrics,
-    #                                       file_name=output_directory,
-    #                                       figure_width=plot_width,
-    #                                       figure_height=plot_height,
-    #                                       bar_width=plot_bar_width,
-    #                                       caption_size=plot_cap_size)
-    #
-    #         logging.info("Plotting confusion matrices.")
-    #         self.plot_confusion_matrices(confusion_matrix_list=self.mean_matrices,
-    #                                      file_name_path=output_directory,
-    #                                      fig_size=DEFAULT_MATRIX_FIGURE_SIZE,
-    #                                      cmap=DEFAULT_MATRIX_COLOR_MAP,
-    #                                      annot_font_size=DEFAULT_MATRIX_ANNOTATION_FONT_SIZE,
-    #                                      label_font_size=DEFAULT_MATRIX_LABEL_FONT_SIZE,
-    #                                      title_font_size=DEFAULT_MATRIX_TITLE_FONT_SIZE,
-    #                                      show_plot=DEFAULT_SHOW_PLOT)
-    #
-    #         logging.info("Plotting and saving loss.")
-    #         self.plot_and_save_loss(history_dict_list=self.mean_history, path_output=output_directory)
-    #
-    #     except Exception as e:
-    #         logging.error(f"Error during plotting or saving results: {str(e)}")
-    #         raise
-    #
-    #     try:
-    #         logging.info("Running final script to generate PDF.")
-    #         self.run_python_script('--output', "Results.pdf")
-    #         logging.info("PDF generation completed.")
-    #
-    #     except Exception as e:
-    #         logging.error(f"Error running the script for PDF generation: {str(e)}")
-    #         raise
+    def __exec__(self, models, output_directory):
+
+        logging.info("Starting the training and evaluation process.")
+
+        for i, model_class in enumerate(models):
+            logging.debug(f"Training model {i + 1}/{len(models)}: {model_class.__name__}")
+
+            try:
+                metrics, history, matrices, roc_list = self.train_and_collect_metrics(model_class=model_class)
+
+                self.mean_metrics.append(metrics)
+                self.mean_history.append(history)
+                self.mean_matrices.append(matrices)
+
+                logging.info(f"Model {model_class.__name__} training completed. Metrics collected.")
+
+                self.plot_roc_curve(roc_list, "Results/")
+                logging.info(f"ROC curve plotted for {model_class.__name__}.")
+
+            except Exception as e:
+                logging.error(f"Error during training of model {model_class.__name__}: {str(e)}")
+                raise
+
+        try:
+            logging.info("Plotting comparative metrics.")
+            self.plot_comparative_metrics(dictionary_metrics_list=self.mean_metrics,
+                                          file_name=output_directory)
+
+            logging.info("Plotting confusion matrices.")
+            self.plot_confusion_matrices(confusion_matrix_list=self.mean_matrices,
+                                         file_name_path=output_directory)
+
+            logging.info("Plotting and saving loss.")
+            self.plot_and_save_loss(history_dict_list=self.mean_history, path_output=output_directory)
+
+        except Exception as e:
+            logging.error(f"Error during plotting or saving results: {str(e)}")
+            raise
+
+        try:
+            logging.info("Running final script to generate PDF.")
+            self.run_python_script('--output', "Results.pdf")
+            logging.info("PDF generation completed.")
+
+        except Exception as e:
+            logging.error(f"Error running the script for PDF generation: {str(e)}")
+            raise
 
 
 # Main entry point of the program
@@ -194,12 +184,13 @@ if __name__ == "__main__":
     main = Main()
     main.__start__()
 
-    # available_models = [
-    #     AudioAST,
-    #     AudioLSTM,
-    #     DenseModel,
-    #     Conformer,
-    #     AudioWav2Vec2,
-    #     ResidualModel
-    # ]
-    # main.
+    available_models = [
+        AudioSpectrogramTransformer,
+        AudioLSTM,
+        DenseModel,
+        Conformer,
+        AudioWav2Vec2,
+        ResidualModel
+    ]
+
+    main.__exec__(available_models, "Results")

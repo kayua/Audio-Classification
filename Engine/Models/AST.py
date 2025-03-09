@@ -108,20 +108,23 @@ class AudioSpectrogramTransformer:
 
     """
 
-    def __init__(self,
-                 projection_dimension: int,
-                 head_size: int,
-                 num_heads: int,
-                 number_blocks: int,
-                 number_classes: int,
-                 patch_size: tuple,
-                 dropout: float,
-                 intermediary_activation: str,
-                 loss_function: str,
-                 last_activation_layer: str,
-                 optimizer_function: str,
-                 normalization_epsilon: float,
-                 number_filters_spectrogram):
+
+    def __init__(self, arguments):
+
+    # def __init__(self,
+    #             projection_dimension: int,
+    #             head_size: int,
+    #             num_heads: int,
+    #             number_blocks: int,
+    #             number_classes: int,
+    #             patch_size: tuple,
+    #             dropout: float,
+    #             intermediary_activation: str,
+    #             loss_function: str,
+    #             last_activation_layer: str,
+    #             optimizer_function: str,
+    #             normalization_epsilon: float,
+    #             number_filters_spectrogram):
         """
         Initialize the AudioSpectrogramTransformer model with the specified hyperparameters.
 
@@ -148,20 +151,21 @@ class AudioSpectrogramTransformer:
 
         """
         self.neural_network_model = None
-        self.head_size = head_size
-        self.number_heads = num_heads
-        self.number_blocks = number_blocks
-        self.number_classes = number_classes
-        self.patch_size = patch_size
-        self.dropout = dropout
-        self.optimizer_function = optimizer_function
-        self.loss_function = loss_function
-        self.normalization_epsilon = normalization_epsilon
-        self.last_activation_layer = last_activation_layer
-        self.projection_dimension = projection_dimension
-        self.intermediary_activation = intermediary_activation
-        self.number_filters_spectrogram = number_filters_spectrogram
+        self.head_size = arguments.ast_head_size
+        self.number_heads = arguments.ast_head_size
+        self.number_blocks = arguments.ast_number_blocks
+        self.number_classes = arguments.number_classes
+        self.patch_size = arguments.ast_patch_size
+        self.dropout = arguments.ast_dropout
+        self.optimizer_function = arguments.ast_optimizer_function
+        self.loss_function = arguments.ast_loss_function
+        self.normalization_epsilon = arguments.ast_normalization_epsilon
+        self.last_activation_layer = arguments.ast_intermediary_activation
+        self.projection_dimension = arguments.ast_projection_dimension
+        self.intermediary_activation = arguments.ast_intermediary_activation
+        self.number_filters_spectrogram = arguments.ast_number_filters_spectrogram
         self.model_name = "AST"
+
 
     def transformer_encoder(self, inputs: tensorflow.Tensor) -> tensorflow.Tensor:
         """
@@ -235,7 +239,7 @@ class AudioSpectrogramTransformer:
 
         # Create the Keras model
         self.neural_network_model = models.Model(inputs, outputs, name=self.model_name)
-
+        self.neural_network_model.summary()
         return self.neural_network_model
 
     def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,

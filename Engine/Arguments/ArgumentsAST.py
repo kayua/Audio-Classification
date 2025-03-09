@@ -51,6 +51,11 @@ def add_ast_arguments(parser):
     parser.add_argument('--ast_projection_dimension', type=int, default=DEFAULT_PROJECTION_DIMENSION,
                         help='Dimension for projection layer'
                         )
+    parser.add_argument('--ast_optimizer_function', type=str, default="adam",
+                                 help='Optimizer to use during training'
+                                 )
+    parser.add_argument('--ast_loss_function', type=str, default='sparse_categorical_crossentropy',
+                                 help='Loss function to use during training')
 
     parser.add_argument('--ast_head_size', type=int, default=DEFAULT_HEAD_SIZE,
                         help='Size of each head in multi-head attention'
