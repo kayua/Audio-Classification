@@ -152,7 +152,8 @@ class MetricsCalculator:
         """
         return confusion_matrix(label_true, label_predicted).tolist()
 
-    def calculate_metrics(self, label_true: List[int], label_predicted: List[int]) -> Tuple[Dict[str, float], List[List[int]]]:
+    def calculate_metrics(self, label_true: List[int], label_predicted: List[int]) ->\
+            Tuple[Dict[str, float], List[List[int]]]:
         """
         Calculate a set of metrics for classification.
 

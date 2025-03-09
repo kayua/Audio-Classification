@@ -55,8 +55,8 @@ class EvaluationProcess(MetricsCalculator,
     """
 
     def __init__(self, size_batch: int, number_splits: int, number_epochs: int, optimizer_function: str,
-                 window_size_factor: int, decibel_scale_factor: int, hop_length: int, overlap: int, sample_rate: int,
-                 file_extension: str):
+                 raw_feature_window_size_factor: int, decibel_scale_factor: int, hop_length: int, raw_feature_overlap: int, raw_feature_sample_rate: int,
+                 raw_feature_file_extension: str):
         """
         Initializes the RawProcess class with all the necessary parameters for training and data
         processing.
@@ -66,28 +66,28 @@ class EvaluationProcess(MetricsCalculator,
             number_splits (int): The number of splits for cross-validation.
             number_epochs (int): The number of epochs for training the model.
             optimizer_function (str): The optimizer function used in the model.
-            window_size_factor (int): A factor for calculating the window size for processing data.
+            raw_feature_window_size_factor (int): A factor for calculating the window size for processing data.
             decibel_scale_factor (int): A scaling factor for converting audio signals to decibels.
             hop_length (int): The hop length used for signal processing.
-            overlap (int): The overlap factor between windows in signal processing.
-            sample_rate (int): The sample rate for the data.
-            file_extension (str): The file extension for the dataset.
+            raw_feature_overlap (int): The overlap factor between windows in signal processing.
+            raw_feature_sample_rate (int): The sample rate for the data.
+            raw_feature_file_extension (str): The file extension for the dataset.
         """
         # Assigning provided parameters to instance variables
-        RawDataLoader.__init__(self, sample_rate, self.hop_length * self.window_size_factor, overlap,
-                               window_size_factor, file_extension)
+        RawDataLoader.__init__(self, raw_feature_sample_rate, self.hop_length * self._raw_feature_window_size_factor, raw_feature_overlap,
+                               raw_feature_window_size_factor, raw_feature_file_extension)
 
         self.size_batch = size_batch
         self.number_splits = number_splits
         self.number_epochs = number_epochs
         self.optimizer_function = optimizer_function
-        self.window_size_factor = window_size_factor
+        self.window_size_factor = raw_feature_window_size_factor
         self.decibel_scale_factor = decibel_scale_factor
         self.hop_length = hop_length
-        self.overlap = overlap
+        self.overlap = raw_feature_overlap
         self.window_size = self.hop_length * self.window_size_factor  # Calculate window size
-        self.sample_rate = sample_rate
-        self.file_extension = file_extension
+        self.sample_rate = raw_feature_sample_rate
+        self.file_extension = raw_feature_file_extension
 
     def load_and_preprocess_data(self, dataset_directory):
         """

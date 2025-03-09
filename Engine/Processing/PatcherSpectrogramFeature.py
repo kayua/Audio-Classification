@@ -23,6 +23,7 @@ try:
     from Engine.Processing.PathTools import PathTools
 
     from Engine.Processing.WindowGenerator import WindowGenerator
+
     from Engine.Transformations.SpectrogramPatcher import SpectrogramPatcher
 
 except ImportError as error:
@@ -31,22 +32,27 @@ except ImportError as error:
 
 class PatcherSpectrogramFeature(SpectrogramPatcher, WindowGenerator, PathTools):
 
-    def __init__(self, sample_rate: int, window_size: int, overlap: int, number_filters_spectrogram: int,
-                 window_size_fft: int, hop_length: int, decibel_scale_factor: int, patch_size: tuple[int, int]):
+    def __init__(self, patcher_spectrogram_sample_rate: int, patcher_spectrogram_window_size: int,
+                 patcher_spectrogram_overlap: int, patcher_spectrogram_number_filters_spectrogram: int,
+                 patcher_spectrogram_window_size_fft: int, patcher_spectrogram_hop_length: int,
+                 patcher_spectrogram_decibel_scale_factor: int, patcher_spectrogram_patch_size: tuple[int, int]):
 
         # Store all the parameters as attributes
-        super().__init__(patch_size)
-        WindowGenerator.__init__(self, window_size, overlap)
-        self.audio_duration = None
-        self.sample_rate = sample_rate
-        self.window_size = window_size
-        self.overlap = overlap
-        self.number_filters_spectrogram = number_filters_spectrogram
-        self.window_size_fft = window_size_fft
-        self.hop_length = hop_length
-        self.decibel_scale_factor = decibel_scale_factor
+        super().__init__(patcher_spectrogram_patch_size)
 
-    def load_data_patcher_spectrogram_format(self, sub_directories: str, file_extension: str = "*.wav",
+        WindowGenerator.__init__(self, patcher_spectrogram_window_size, patcher_spectrogram_overlap)
+
+        self._patcher_spectrogram_audio_duration = None
+        self._patcher_spectrogram_sample_rate = patcher_spectrogram_sample_rate
+        self._patcher_spectrogram_window_size = patcher_spectrogram_window_size
+        self._patcher_spectrogram_overlap = patcher_spectrogram_overlap
+        self._patcher_spectrogram_number_filters_spectrogram = patcher_spectrogram_number_filters_spectrogram
+        self._patcher_spectrogram_window_size_fft = patcher_spectrogram_window_size_fft
+        self._patcher_spectrogram_hop_length = patcher_spectrogram_hop_length
+        self._patcher_spectrogram_decibel_scale_factor = patcher_spectrogram_decibel_scale_factor
+
+    def load_data_patcher_spectrogram_format(self, sub_directories: str,
+                                             file_extension: str = "*.wav",
                                              stack_segments=False) -> tuple:
 
         logging.info("Starting to load data...")
@@ -63,12 +69,12 @@ class PatcherSpectrogramFeature(SpectrogramPatcher, WindowGenerator, PathTools):
         class_paths = self._get_class_paths(sub_directories)
 
         # Process all files to extract features and labels
-        list_all_spectrogram, list_all_labels = self._process_files(class_paths, file_extension)
+        list_all_spectrogram, list_all_labels = self._patcher_spectrogram_process_files(class_paths, file_extension)
 
         # Prepare the final output (features and labels)
-        return self._prepare_output(list_all_spectrogram, list_all_labels, stack_segments)
+        return self._patcher_spectrogram_prepare_output(list_all_spectrogram, list_all_labels, stack_segments)
 
-    def _process_files(self, class_paths: list, file_extension: str) -> tuple:
+    def _patcher_spectrogram_process_files(self, class_paths: list, file_extension: str) -> tuple:
         """
         Processes all files in the class directories to extract their features and labels.
 
@@ -85,23 +91,27 @@ class PatcherSpectrogramFeature(SpectrogramPatcher, WindowGenerator, PathTools):
 
         # Loop through each class directory
         for class_path in class_paths:
+
             logging.info(f"Processing class directory: {class_path}...")
+
             for file_name in tqdm(glob.glob(os.path.join(class_path, file_extension))):
+
                 try:
                     # Load the audio file and extract its label
-                    signal, label = self._load_audio_and_extract_label(file_name)
+                    signal, label = self._patcher_spectrogram_load_audio_and_extract_label(file_name)
 
                     # Extract the spectrogram for the audio signal
-                    list_spectrogram.extend(self._extract_spectrogram(signal))
+                    list_spectrogram.extend(self._patcher_spectrogram_extract_spectrogram(signal))
 
                     # Extend the labels to match the number of spectrogram segments
                     list_labels.extend([label] * len(list_spectrogram))
+
                 except Exception as e:
                     logging.error(f"Error processing file '{file_name}': {e}")
 
         return list_spectrogram, list_labels
 
-    def _load_audio_and_extract_label(self, file_name: str) -> tuple:
+    def _patcher_spectrogram_load_audio_and_extract_label(self, file_name: str) -> tuple:
         """
         Loads an audio file and extracts the corresponding label from the directory structure.
 
@@ -112,13 +122,13 @@ class PatcherSpectrogramFeature(SpectrogramPatcher, WindowGenerator, PathTools):
             tuple: A tuple containing the audio signal (numpy array) and the label (str).
         """
         # Load the audio signal with librosa
-        raw_signal, _ = librosa.load(file_name, sr=self.sample_rate)
+        raw_signal, _ = librosa.load(file_name, sr=self._patcher_spectrogram_sample_rate)
 
         # Extract the label based on the directory structure
         signal_label = os.path.basename(os.path.dirname(file_name)).split('_')[0]
 
         # Calculate the maximum length of the signal based on the desired duration
-        max_length = int(self.sample_rate * self.audio_duration)
+        max_length = int(self._patcher_spectrogram_sample_rate * self._patcher_spectrogram_audio_duration)
 
         # Pad the signal if it's shorter than the required length
         if len(raw_signal) < max_length:
@@ -131,7 +141,7 @@ class PatcherSpectrogramFeature(SpectrogramPatcher, WindowGenerator, PathTools):
         return raw_signal, signal_label
 
 
-    def _extract_spectrogram(self, signal: numpy.ndarray) -> list:
+    def _patcher_spectrogram_extract_spectrogram(self, signal: numpy.ndarray) -> list:
         """
         Extracts Mel spectrograms from the audio signal by generating windows.
 
@@ -145,13 +155,14 @@ class PatcherSpectrogramFeature(SpectrogramPatcher, WindowGenerator, PathTools):
 
         # Generate windows of the audio signal for processing
         for start, end in self.generate_windows(len(signal)):
-            if len(signal[start:end]) == self.window_size:
+
+            if len(signal[start:end]) == self._patcher_spectrogram_window_size:
                 # Generate a Mel spectrogram for each window
-                list_spectrogram.append(self._generate_mel_spectrogram(signal[start:end]))
+                list_spectrogram.append(self._patcher_spectrogram_generate_mel_spectrogram(signal[start:end]))
 
         return list_spectrogram
 
-    def _generate_mel_spectrogram(self, signal_window: numpy.ndarray) -> numpy.ndarray:
+    def _patcher_spectrogram_generate_mel_spectrogram(self, signal_window: numpy.ndarray) -> numpy.ndarray:
         """
         Generates the Mel spectrogram for a given audio window.
 
@@ -163,20 +174,18 @@ class PatcherSpectrogramFeature(SpectrogramPatcher, WindowGenerator, PathTools):
         """
         melody_spectrogram = librosa.feature.melspectrogram(
             y=signal_window,
-            sr=self.sample_rate,
-            n_mels=self.number_filters_spectrogram,
-            n_fft=self.window_size_fft,
-            hop_length=self.hop_length
+            sr=self._patcher_spectrogram_sample_rate,
+            n_mels=self._patcher_spectrogram_number_filters_spectrogram,
+            n_fft=self._patcher_spectrogram_window_size_fft,
+            hop_length=self._patcher_spectrogram_hop_length
         )
         # Convert to dB and normalize
-        spectrogram_decibel_scale =\
-            (librosa.power_to_db(melody_spectrogram, ref=numpy.max) / self.decibel_scale_factor) + 1
+        spectrogram_decibel_scale = \
+            (librosa.power_to_db(melody_spectrogram, ref=numpy.max) / self._patcher_spectrogram_decibel_scale_factor) + 1
 
         return self.split_into_patches(spectrogram_decibel_scale)
 
-
-
-    def _prepare_output(self, list_spectrogram: list, labels: list, stack_segments: bool) -> tuple:
+    def _patcher_spectrogram_prepare_output(self, list_spectrogram: list, labels: list, stack_segments: bool) -> tuple:
         """
         Prepares the spectrogram features and labels, reshaping them for model input.
 
@@ -193,8 +202,8 @@ class PatcherSpectrogramFeature(SpectrogramPatcher, WindowGenerator, PathTools):
         # Reshape spectrograms into the format [samples, filters, time_steps, 1]
         array_features = numpy.array(list_spectrogram).reshape(
             len(list_spectrogram),
-            self.number_filters_spectrogram,
-            self.window_size // self.hop_length,
+            self._patcher_spectrogram_number_filters_spectrogram,
+            self._patcher_spectrogram_window_size // self._patcher_spectrogram_hop_length,
             1
         )
         array_labels = numpy.array(labels, dtype=numpy.int32)
@@ -204,7 +213,7 @@ class PatcherSpectrogramFeature(SpectrogramPatcher, WindowGenerator, PathTools):
             new_shape = list(array_features.shape)
             new_shape[1] += 1  # Increase the number of filters by 1 for stacking
             stacked_features = numpy.zeros(new_shape)
-            stacked_features[:, :self.number_filters_spectrogram, :, :] = array_features
+            stacked_features[:, :self._patcher_spectrogram_number_filters_spectrogram, :, :] = array_features
             return stacked_features.astype(numpy.float32), array_labels
 
         return array_features.astype(numpy.float32), array_labels

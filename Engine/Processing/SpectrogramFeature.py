@@ -157,12 +157,12 @@ class SpectrogramFeature(WindowGenerator, PathTools):
         class_paths = self._get_class_paths(sub_directories)
 
         # Process all files to extract features and labels
-        list_all_spectrogram, list_all_labels = self._process_files(class_paths, file_extension)
+        list_all_spectrogram, list_all_labels = self._spectrogram_feature_process_files(class_paths, file_extension)
 
         # Prepare the final output (features and labels)
-        return self._prepare_output(list_all_spectrogram, list_all_labels, stack_segments)
+        return self._spectrogram_feature_prepare_output(list_all_spectrogram, list_all_labels, stack_segments)
 
-    def _process_files(self, class_paths: list, file_extension: str) -> tuple:
+    def _spectrogram_feature_process_files(self, class_paths: list, file_extension: str) -> tuple:
         """
         Processes all files in the class directories to extract their features and labels.
 
@@ -183,10 +183,10 @@ class SpectrogramFeature(WindowGenerator, PathTools):
             for file_name in tqdm(glob.glob(os.path.join(class_path, file_extension))):
                 try:
                     # Load the audio file and extract its label
-                    signal, label = self._load_audio_and_extract_label(file_name)
+                    signal, label = self._spectrogram_feature_load_audio_and_extract_label(file_name)
 
                     # Extract the spectrogram for the audio signal
-                    list_spectrogram.extend(self._extract_spectrogram(signal))
+                    list_spectrogram.extend(self._spectrogram_feature_extract_spectrogram(signal))
 
                     # Extend the labels to match the number of spectrogram segments
                     list_labels.extend([label] * len(list_spectrogram))
@@ -195,7 +195,7 @@ class SpectrogramFeature(WindowGenerator, PathTools):
 
         return list_spectrogram, list_labels
 
-    def _load_audio_and_extract_label(self, file_name: str) -> tuple:
+    def _spectrogram_feature_load_audio_and_extract_label(self, file_name: str) -> tuple:
         """
         Loads an audio file and extracts the corresponding label from the directory structure.
 
@@ -214,7 +214,7 @@ class SpectrogramFeature(WindowGenerator, PathTools):
         return raw_signal, signal_label
 
 
-    def _extract_spectrogram(self, signal: numpy.ndarray) -> list:
+    def _spectrogram_feature_extract_spectrogram(self, signal: numpy.ndarray) -> list:
         """
         Extracts Mel spectrograms from the audio signal by generating windows.
 
@@ -230,11 +230,11 @@ class SpectrogramFeature(WindowGenerator, PathTools):
         for start, end in self.generate_windows(len(signal)):
             if len(signal[start:end]) == self.window_size:
                 # Generate a Mel spectrogram for each window
-                list_spectrogram.append(self._generate_mel_spectrogram(signal[start:end]))
+                list_spectrogram.append(self._spectrogram_feature_generate_mel_spectrogram(signal[start:end]))
 
         return list_spectrogram
 
-    def _generate_mel_spectrogram(self, signal_window: numpy.ndarray) -> numpy.ndarray:
+    def _spectrogram_feature_generate_mel_spectrogram(self, signal_window: numpy.ndarray) -> numpy.ndarray:
         """
         Generates the Mel spectrogram for a given audio window.
 
@@ -256,7 +256,7 @@ class SpectrogramFeature(WindowGenerator, PathTools):
 
 
 
-    def _prepare_output(self, list_spectrogram: list, labels: list, stack_segments: bool) -> tuple:
+    def _spectrogram_feature_prepare_output(self, list_spectrogram: list, labels: list, stack_segments: bool) -> tuple:
         """
         Prepares the spectrogram features and labels, reshaping them for model input.
 

@@ -43,30 +43,30 @@ class RawDataLoader(WindowGenerator, PathTools):
         @file_extension (str): The file extension of the audio files to load (e.g., '.wav').
 
     Methods:
-        load_data(sub_directories: str, file_extension: Optional[str] = None) -> tuple:
+        @load_data(sub_directories: str, file_extension: Optional[str] = None) -> tuple:
             Loads the audio data from the specified directories and processes it into spectrogram features and labels.
-        get_class_paths(parent_directory: str) -> list:
+        @get_class_paths(parent_directory: str) -> list:
             Returns the list of class directories in the parent directory.
-        process_all_classes(class_paths: list, file_extension: str) -> tuple:
+        @process_all_classes(class_paths: list, file_extension: str) -> tuple:
             Processes all classes by iterating over their respective directories.
-        process_class_directory(class_path: str, file_extension: str) -> tuple:
+        @process_class_directory(class_path: str, file_extension: str) -> tuple:
             Processes a single class directory by loading and processing its audio files.
-        process_file(file_name: str) -> tuple:
+        @process_file(file_name: str) -> tuple:
             Processes a single audio file, extracting features and labels from it.
-        extract_label_from_path(file_path: str) -> int:
+        @extract_label_from_path(file_path: str) -> int:
             Extracts the class label from the file path based on the directory structure.
-        segment_and_normalize(segment: numpy.ndarray) -> numpy.ndarray:
+        @segment_and_normalize(segment: numpy.ndarray) -> numpy.ndarray:
             Segments and normalizes an audio segment (patch) for further processing.
 
     Example:
         >>> python
         ...     # Initialize the DataLoader instance
         ...     data_loader = RawDataLoader(
-        ...     sample_rate=22050,   # Standard audio sample rate
-        ...     window_size=1024,    # Window size for segmentation
-        ...     overlap=512,         # Overlap between windows
-        ...     window_size_factor=2,  # Factor for splitting segments into smaller windows
-        ...     file_extension='.wav'  # File extension for audio files
+        ...     raw_feature_sample_rate=22050,   # Standard audio sample rate
+        ...     raw_feature_window_size=1024,    # Window size for segmentation
+        ...     raw_feature_overlap=512,         # Overlap between windows
+        ...     raw_feature_window_size_factor=2,  # Factor for splitting segments into smaller windows
+        ...     raw_feature_file_extension='.wav'  # File extension for audio files
         ...     )
         ...
         ...     # Load data from the specified directory
@@ -79,13 +79,13 @@ class RawDataLoader(WindowGenerator, PathTools):
     """
 
     def __init__(self,
-                 sample_rate: int,
-                 window_size: int,
-                 overlap: int,
-                 window_size_factor: int,
-                 file_extension: str):
+                 raw_feature_sample_rate: int,
+                 raw_feature_window_size: int,
+                 raw_feature_overlap: int,
+                 raw_feature_window_size_factor: int,
+                 raw_feature_file_extension: str):
 
-        WindowGenerator.__init__(self, window_size, overlap)
+        WindowGenerator.__init__(self, raw_feature_window_size, raw_feature_overlap)
         """
         Initializes the DataLoader instance.
 
@@ -98,11 +98,11 @@ class RawDataLoader(WindowGenerator, PathTools):
         """
 
         # Store the parameters
-        self.sample_rate = sample_rate
-        self.window_size = window_size
-        self.overlap = overlap
-        self.window_size_factor = window_size_factor
-        self.file_extension = file_extension
+        self._raw_feature_sample_rate = raw_feature_sample_rate
+        self._raw_feature_window_size = raw_feature_window_size
+        self._raw_feature_overlap = raw_feature_overlap
+        self._raw_feature_window_size_factor = raw_feature_window_size_factor
+        self._raw_feature_file_extension = raw_feature_file_extension
 
     def load_data_raw_format(self, sub_directories: str = None, file_extension: str = None) -> tuple:
         """
@@ -122,7 +122,7 @@ class RawDataLoader(WindowGenerator, PathTools):
         logging.info("Starting to load data...")
 
         # Use the file_extension passed to the function or the one stored in the instance
-        file_extension = file_extension or self.file_extension
+        file_extension = file_extension or self._raw_feature_file_extension
 
         # Check if the provided directory exists
         if not os.path.exists(sub_directories):
@@ -134,7 +134,7 @@ class RawDataLoader(WindowGenerator, PathTools):
         logging.info(f"Found {len(class_paths)} classes.")
 
         # Process each class directory to obtain feature and labels
-        list_all_feature, list_all_labels = self._process_all_classes(class_paths, file_extension)
+        list_all_feature, list_all_labels = self._raw_feature_process_all_classes(class_paths, file_extension)
 
         # Convert the feature list into a numpy array
         array_features = numpy.array(list_all_feature, dtype=numpy.float32)
@@ -147,7 +147,7 @@ class RawDataLoader(WindowGenerator, PathTools):
 
 
 
-    def _process_all_classes(self, class_paths: list, file_extension: str) -> tuple:
+    def _raw_feature_process_all_classes(self, class_paths: list, file_extension: str) -> tuple:
         """
         Processes all class directories, loading and processing their respective files.
 
@@ -171,7 +171,7 @@ class RawDataLoader(WindowGenerator, PathTools):
 
         return list_feature, list_labels
 
-    def _process_file(self, file_name: str) -> tuple:
+    def _raw_feature_process_file(self, file_name: str) -> tuple:
         """
         Processes a single audio file, extracting its feature and corresponding label.
 
@@ -184,7 +184,7 @@ class RawDataLoader(WindowGenerator, PathTools):
                 - list: A list of labels corresponding to the feature segments.
         """
         # Load the audio file using librosa at the specified sample rate
-        raw_signal, _ = librosa.load(file_name, sr=self.sample_rate)
+        raw_signal, _ = librosa.load(file_name, sr=self._raw_feature_sample_rate)
 
         # Extract the label from the file path (based on directory structure)
         sound_label = self._extract_label_from_path(file_name)
@@ -194,14 +194,14 @@ class RawDataLoader(WindowGenerator, PathTools):
         # Generate windows and process each window of the raw audio signal
         for (start, end) in self.generate_windows(raw_signal):
             # Only process windows that match the desired window size
-            if len(raw_signal[start:end]) == self.window_size:
-                normalized_segment = self._segment_and_normalize(raw_signal[start:end])
+            if len(raw_signal[start:end]) == self._raw_feature_window_size:
+                normalized_segment = self._raw_feature_segment_and_normalize(raw_signal[start:end])
                 list_spectrogram.append(normalized_segment)
                 labels_feature.append(sound_label)
 
         return list_spectrogram, labels_feature
 
-    def _segment_and_normalize(self, segment: numpy.ndarray) -> numpy.ndarray:
+    def _raw_feature_segment_and_normalize(self, segment: numpy.ndarray) -> numpy.ndarray:
         """
         Segments and normalizes an audio segment into smaller patches for training.
 
@@ -212,7 +212,7 @@ class RawDataLoader(WindowGenerator, PathTools):
             numpy.ndarray: The normalized patches.
         """
         # Calculate the size of each local window
-        local_window = len(segment) // self.window_size_factor
+        local_window = len(segment) // self._raw_feature_window_size_factor
 
         # Split the segment into smaller patches
         patches = [segment[i:i + local_window] for i in range(0, len(segment), local_window)]

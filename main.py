@@ -187,12 +187,12 @@ if __name__ == "__main__":
     main.__start__()
 
     available_models = [
-        AudioSpectrogramTransformer,
-        DenseModel,
-        AudioLSTM,
-        Conformer,
-        AudioWav2Vec2,
-        ResidualModel
+#        DenseModel,
+#        AudioSpectrogramTransformer,
+#        AudioLSTM,
+#        Conformer,
+#        AudioWav2Vec2,
+#        ResidualModel
     ]
 
     main.__exec__(available_models, "Results")

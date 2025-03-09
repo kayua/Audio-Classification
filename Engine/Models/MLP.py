@@ -36,7 +36,7 @@ except ImportError as error:
 
 
 
-class DenseModel: #(EvaluationProcess):
+class DenseModel(EvaluationProcess):
     """
     @DenseModel
 

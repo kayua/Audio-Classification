@@ -57,8 +57,8 @@ class WindowGenerator:
         if overlap <= 0:
             raise ValueError("overlap must be a positive integer.")
 
-        self.window_size = window_size
-        self.overlap = overlap
+        self._patcher_spectrogram_window_size = window_size
+        self._patcher_spectrogram_overlap = overlap
 
     def generate_windows(self, data):
         """
@@ -78,8 +78,8 @@ class WindowGenerator:
             raise ValueError("Input data must be a numpy.ndarray.")
 
         start = 0
-        step_size = self.window_size // self.overlap
+        step_size = self._patcher_spectrogram_window_size // self._patcher_spectrogram_overlap
 
         while start < len(data):
-            yield start, start + self.window_size
+            yield start, start + self._patcher_spectrogram_window_size
             start += step_size
