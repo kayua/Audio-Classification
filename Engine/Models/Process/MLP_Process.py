@@ -102,18 +102,7 @@ class MLPProcess(ClassBalancer, WindowGenerator, BaseProcess):
 
                         # Divide the window into smaller segments
                         signal_segments = [signal[i:i + local_window] for i in range(0, len(signal[start:end]), local_window)]
-                        signal_segments = numpy.abs(numpy.array(signal_segments))
-
-                        # Normalize each segment
-                        signal_min = numpy.min(signal_segments)
-                        signal_max = numpy.max(signal_segments)
-
-                        if signal_max != signal_min:
-                            normalized_signal = (signal_segments - signal_min) / (signal_max - signal_min)
-                        else:
-                            normalized_signal = numpy.zeros_like(signal_segments)
-
-                        list_spectrogram.append(normalized_signal)
+                        list_spectrogram.append(self.normalization_signal(signal_segments))
                         list_labels.append(label)
 
         # Convert lists to numpy arrays

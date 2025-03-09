@@ -68,3 +68,18 @@ class BaseProcess:
                 list_class_path.append(class_path)
 
         return list_class_path
+
+    @staticmethod
+    def normalization_signal(signal_segments):
+        signal_segments = numpy.abs(numpy.array(signal_segments))
+
+        # Normalize each segment
+        signal_min = numpy.min(signal_segments)
+        signal_max = numpy.max(signal_segments)
+
+        if signal_max != signal_min:
+            normalized_signal = (signal_segments - signal_min) / (signal_max - signal_min)
+        else:
+            normalized_signal = numpy.zeros_like(signal_segments)
+
+        return normalized_signal

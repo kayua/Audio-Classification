@@ -119,20 +119,7 @@ class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess):
 
                     # Check if the windowed signal has the required length
                     if len(signal[start:end]) == self.window_size:
-
-                        # Extract the signal window
-                        signal_window = numpy.abs(numpy.array(signal[start:end]))
-
-                        # Normalize the signal window
-                        signal_min = numpy.min(signal_window)
-                        signal_max = numpy.max(signal_window)
-
-                        if signal_max != signal_min:
-                            normalized_signal = (signal_window - signal_min) / (signal_max - signal_min)
-                        else:
-                            normalized_signal = numpy.zeros_like(signal_window)
-
-                        list_spectrogram.append(normalized_signal)
+                        list_spectrogram.append(self.normalization_signal(signal))
                         list_labels.append(label)
 
         # Convert lists to numpy arrays for efficient processing
