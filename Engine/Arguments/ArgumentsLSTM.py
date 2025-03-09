@@ -47,6 +47,17 @@ def add_lstm_arguments(parser):
                         help='List of LSTM cell sizes for each layer'
                         )
 
+    parser.add_argument('--lstm_loss_function', type=str, default='sparse_categorical_crossentropy',
+                                 help='Loss function to use during training')
+
+    parser.add_argument('--lstm_optimizer_function', type=str, default="adam",
+                                 help='Optimizer to use during training'
+                                 )
+
+    parser.add_argument('--lstm_input_dimension', default=DEFAULT_INPUT_DIMENSION,
+                        help='Dimensions of the input data (height, width)'
+                        )
+
     parser.add_argument('--lstm_hop_length', type=int, default=DEFAULT_HOP_LENGTH,
                         help='Hop length for STFT'
                         )

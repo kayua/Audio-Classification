@@ -94,11 +94,15 @@ class AudioLSTM: #(EvaluationProcess):
 
     """
 
-    def __init__(self, number_classes: int, last_layer_activation: str, loss_function: str, optimizer_function: str,
-                 dropout_rate: float, intermediary_layer_activation: str, recurrent_activation: str,
-                 input_dimension: tuple, size_batch: int, number_splits: int, number_epochs: int,
-                 window_size_factor: int, decibel_scale_factor: int, hop_length: int, overlap: int, sample_rate: int,
-                 file_extension: str, list_lstm_cells=None):
+    def __init__(self, arguments):
+
+
+#    def __init__(self, number_classes: int, last_layer_activation: str, loss_function: str, optimizer_function: str,
+#                 dropout_rate: float, intermediary_layer_activation: str, recurrent_activation: str,
+#                 input_dimension: tuple, size_batch: int, number_splits: int, number_epochs: int,
+#                 window_size_factor: int, decibel_scale_factor: int, hop_length: int, overlap: int, sample_rate: int,
+#                 file_extension: str, list_lstm_cells=None):
+
         """
         Initialize the AudioLSTM model with specified hyperparameters.
 
@@ -119,15 +123,15 @@ class AudioLSTM: #(EvaluationProcess):
 
         # Initialize model parameters
         self.neural_network_model = None
-        self.list_lstm_cells = list_lstm_cells  # Number of cells in each LSTM layer
-        self.loss_function = loss_function  # Loss function for training
-        self.optimizer_function = optimizer_function  # Optimizer function
-        self.recurrent_activation = recurrent_activation  # Recurrent activation function
-        self.intermediary_layer_activation = intermediary_layer_activation  # Activation function for intermediary layers
-        self.input_dimension = input_dimension  # Input data shape
-        self.number_classes = number_classes  # Number of output classes for classification
-        self.dropout_rate = dropout_rate  # Dropout rate for regularization
-        self.last_layer_activation = last_layer_activation  # Activation for the output layer
+        self.list_lstm_cells = arguments.lstm_list_lstm_cells  # Number of cells in each LSTM layer
+        self.loss_function = arguments.lstm_loss_function  # Loss function for training
+        self.optimizer_function = arguments.lstm_optimizer_function  # Optimizer function
+        self.recurrent_activation = arguments.lstm_recurrent_activation  # Recurrent activation function
+        self.intermediary_layer_activation = arguments.lstm_intermediary_layer_activation  # Activation function for intermediary layers
+        self.input_dimension = arguments.lstm_input_dimension  # Input data shape
+        self.number_classes = arguments.number_classes  # Number of output classes for classification
+        self.dropout_rate = arguments.lstm_dropout_rate  # Dropout rate for regularization
+        self.last_layer_activation = arguments.lstm_last_layer_activation  # Activation for the output layer
         self.model_name = "LSTM"  # Model name
 
     def build_model(self) -> None:
@@ -162,6 +166,7 @@ class AudioLSTM: #(EvaluationProcess):
 
         # Create the model
         self.neural_network_model = Model(inputs=inputs, outputs=neural_network_flow)
+        self.neural_network_model.summary()
 
     def compile_and_train(self,
                           train_data: tensorflow.Tensor,
