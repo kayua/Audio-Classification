@@ -99,11 +99,7 @@ class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess):
         list_spectrogram, list_labels, list_class_path = [], [], []
         file_extension = file_extension or self.file_extension
 
-        # Traverse through class directories
-        for class_dir in os.listdir(sub_directories):
-            class_path = os.path.join(sub_directories, class_dir)
-            list_class_path.append(class_path)
-            logging.info(f"Added class path: {class_path}")
+        list_class_path = self.__create_dir__(sub_directories, list_class_path)
 
         # Process each class path
         for _, sub_directory in enumerate(list_class_path):

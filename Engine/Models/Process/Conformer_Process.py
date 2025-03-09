@@ -75,17 +75,7 @@ class ProcessConformer(ClassBalancer, WindowGenerator, BaseProcess):
         list_spectrogram, list_labels, list_class_path = [], [], []
         file_extension = file_extension or self.file_extension
 
-        # Check if directory exists
-        if not os.path.exists(sub_directories):
-            logging.error(f"Directory '{sub_directories}' does not exist.")
-            return None, None
-
-        # Collect all class directories
-        logging.info(f"Reading subdirectories in '{sub_directories}'...")
-        for class_dir in os.listdir(sub_directories):
-            class_path = os.path.join(sub_directories, class_dir)
-            if os.path.isdir(class_path):
-                list_class_path.append(class_path)
+        list_class_path = self.__create_dir__(sub_directories, list_class_path)
 
         logging.info(f"Found {len(list_class_path)} class directories.")
 

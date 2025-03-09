@@ -8,6 +8,9 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+import logging
+import os
+
 import numpy
 
 
@@ -46,3 +49,22 @@ class BaseProcess:
 
         return (mean_metrics, {"Name": self.model_name, "History": history_model.history}, mean_confusion_matrices,
                 probabilities_predicted)
+
+    @staticmethod
+    def __create_dir__(sub_directories, list_class_path):
+
+        # Check if the directory exists
+        if not os.path.exists(sub_directories):
+            logging.error(f"Directory '{sub_directories}' does not exist.")
+            return None, None
+
+        # Collect all class directories
+        logging.info(f"Reading subdirectories in '{sub_directories}'...")
+        for class_dir in os.listdir(sub_directories):
+
+            class_path = os.path.join(sub_directories, class_dir)
+
+            if os.path.isdir(class_path):
+                list_class_path.append(class_path)
+
+        return list_class_path

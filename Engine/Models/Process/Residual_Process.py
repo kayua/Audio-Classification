@@ -78,11 +78,7 @@ class ResidualProcess(ClassBalancer, WindowGenerator, BaseProcess):
         list_spectrogram, list_labels, list_class_path = [], [], []
         file_extension = file_extension or self.file_extension
 
-        # Collect class paths
-        logging.info(f"Listing subdirectories in {sub_directories}")
-        for class_dir in os.listdir(sub_directories):
-            class_path = os.path.join(sub_directories, class_dir)
-            list_class_path.append(class_path)
+        list_class_path = self.__create_dir__(sub_directories, list_class_path)
 
         # Process each subdirectory
         for _, sub_directory in enumerate(list_class_path):
