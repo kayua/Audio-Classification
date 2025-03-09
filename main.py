@@ -68,110 +68,146 @@ class EvaluationModels(RunScript):
         self.list_roc_curve = []
         logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+        input_arguments = get_arguments()
 
-    @staticmethod
-    def train_and_collect_metrics(model_class, dataset_directory, number_epochs, batch_size, number_splits, loss,
-                                  sample_rate, overlap, number_classes, arguments):
+        logger = logging.getLogger()
 
-        logging.info(f"Starting training for model {model_class.__name__}.")
+        def get_logs_path():
+            logs_dir = 'Logs'  # Name of the directory where logs will be stored
+            os.makedirs(logs_dir, exist_ok=True)  # Create the directory if it doesn't exist
+            return logs_dir  # Return the path to the logs directory
 
-        try:
-            # Instantiate the model
-            instance = model_class()
-            logging.info(f"Instantiated model class '{model_class.__name__}'.")
+        logging_format = '%(asctime)s\t***\t%(message)s'
 
-            # Train the model and collect results
-            metrics, history, matrices, roc_list = instance.train(dataset_directory,
-                                                                  number_epochs,
-                                                                  batch_size,
-                                                                  number_splits,
-                                                                  loss,
-                                                                  sample_rate,
-                                                                  overlap,
-                                                                  number_classes,
-                                                                  arguments)
-            logging.info(
-                f"Training completed for model '{model_class.__name__}'. Collected metrics, history, matrices, and ROC data.")
+        if input_arguments.verbosity == logging.DEBUG:
+            logging_format = '%(asctime)s\t***\t%(levelname)s {%(module)s} [%(funcName)s] %(message)s'
 
-        except Exception as e:
-            logging.error(f"Error during training of model '{model_class.__name__}': {e}")
-            raise
+        LOGGING_FILE_NAME = datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.log'
+        logging_filename = os.path.join(get_logs_path(), LOGGING_FILE_NAME)
 
-        finally:
-            # Force garbage collection to free up memory
-            gc.collect()
-            logging.info(f"Garbage collection complete after training model '{model_class.__name__}'.")
+        logger.setLevel(input_arguments.verbosity)
 
-        return metrics, history, matrices, roc_list
+        rotatingFileHandler = RotatingFileHandler(filename=logging_filename, maxBytes=1000000, backupCount=5)
+        rotatingFileHandler.setLevel(input_arguments.verbosity)
+        rotatingFileHandler.setFormatter(logging.Formatter(logging_format))
 
+        logger.addHandler(rotatingFileHandler)
 
-    def run(self, models, dataset_directory, number_epochs, batch_size, number_splits, loss, sample_rate, overlap,
-            number_classes, output_directory, plot_width, plot_height, plot_bar_width, plot_cap_size, arguments):
+        consoleHandler = logging.StreamHandler()
+        consoleHandler.setLevel(input_arguments.verbosity)
+        consoleHandler.setFormatter(logging.Formatter(logging_format))
 
-        logging.info("Starting the training and evaluation process.")
+        logger.addHandler(consoleHandler)
 
-        for i, model_class in enumerate(models):
-            logging.debug(f"Training model {i + 1}/{len(models)}: {model_class.__name__}")
+        if logger.hasHandlers():
+            logger.handlers.clear()
 
-            try:
-                metrics, history, matrices, roc_list = self.train_and_collect_metrics(model_class=model_class,
-                                                                                      dataset_directory=dataset_directory,
-                                                                                      number_epochs=number_epochs,
-                                                                                      batch_size=batch_size,
-                                                                                      number_splits=number_splits,
-                                                                                      loss=loss,
-                                                                                      sample_rate=sample_rate,
-                                                                                      overlap=overlap,
-                                                                                      number_classes=number_classes,
-                                                                                      arguments=arguments)
+        logger.addHandler(rotatingFileHandler)
+        logger.addHandler(consoleHandler)
 
-                self.mean_metrics.append(metrics)
-                self.mean_history.append(history)
-                self.mean_matrices.append(matrices)
-
-                logging.info(f"Model {model_class.__name__} training completed. Metrics collected.")
-
-                self.plot_roc_curve(roc_list, "Results/")
-                logging.info(f"ROC curve plotted for {model_class.__name__}.")
-
-            except Exception as e:
-                logging.error(f"Error during training of model {model_class.__name__}: {str(e)}")
-                raise
-
-        try:
-            logging.info("Plotting comparative metrics.")
-            self.plot_comparative_metrics(dictionary_metrics_list=self.mean_metrics,
-                                          file_name=output_directory,
-                                          figure_width=plot_width,
-                                          figure_height=plot_height,
-                                          bar_width=plot_bar_width,
-                                          caption_size=plot_cap_size)
-
-            logging.info("Plotting confusion matrices.")
-            self.plot_confusion_matrices(confusion_matrix_list=self.mean_matrices,
-                                         file_name_path=output_directory,
-                                         fig_size=DEFAULT_MATRIX_FIGURE_SIZE,
-                                         cmap=DEFAULT_MATRIX_COLOR_MAP,
-                                         annot_font_size=DEFAULT_MATRIX_ANNOTATION_FONT_SIZE,
-                                         label_font_size=DEFAULT_MATRIX_LABEL_FONT_SIZE,
-                                         title_font_size=DEFAULT_MATRIX_TITLE_FONT_SIZE,
-                                         show_plot=DEFAULT_SHOW_PLOT)
-
-            logging.info("Plotting and saving loss.")
-            self.plot_and_save_loss(history_dict_list=self.mean_history, path_output=output_directory)
-
-        except Exception as e:
-            logging.error(f"Error during plotting or saving results: {str(e)}")
-            raise
-
-        try:
-            logging.info("Running final script to generate PDF.")
-            self.run_python_script('--output', "Results.pdf")
-            logging.info("PDF generation completed.")
-
-        except Exception as e:
-            logging.error(f"Error running the script for PDF generation: {str(e)}")
-            raise
+    # @staticmethod
+    # def train_and_collect_metrics(model_class, dataset_directory, number_epochs, batch_size, number_splits, loss,
+    #                               sample_rate, overlap, number_classes, arguments):
+    #
+    #     logging.info(f"Starting training for model {model_class.__name__}.")
+    #
+    #     try:
+    #         # Instantiate the model
+    #         instance = model_class()
+    #         logging.info(f"Instantiated model class '{model_class.__name__}'.")
+    #
+    #         # Train the model and collect results
+    #         metrics, history, matrices, roc_list = instance.train(dataset_directory,
+    #                                                               number_epochs,
+    #                                                               batch_size,
+    #                                                               number_splits,
+    #                                                               loss,
+    #                                                               sample_rate,
+    #                                                               overlap,
+    #                                                               number_classes,
+    #                                                               arguments)
+    #         logging.info(
+    #             f"Training completed for model '{model_class.__name__}'. Collected metrics, history, matrices, and ROC data.")
+    #
+    #     except Exception as e:
+    #         logging.error(f"Error during training of model '{model_class.__name__}': {e}")
+    #         raise
+    #
+    #     finally:
+    #         # Force garbage collection to free up memory
+    #         gc.collect()
+    #         logging.info(f"Garbage collection complete after training model '{model_class.__name__}'.")
+    #
+    #     return metrics, history, matrices, roc_list
+    #
+    #
+    # def run(self, models, dataset_directory, number_epochs, batch_size, number_splits, loss, sample_rate, overlap,
+    #         number_classes, output_directory, plot_width, plot_height, plot_bar_width, plot_cap_size, arguments):
+    #
+    #     logging.info("Starting the training and evaluation process.")
+    #
+    #     for i, model_class in enumerate(models):
+    #         logging.debug(f"Training model {i + 1}/{len(models)}: {model_class.__name__}")
+    #
+    #         try:
+    #             metrics, history, matrices, roc_list = self.train_and_collect_metrics(model_class=model_class,
+    #                                                                                   dataset_directory=dataset_directory,
+    #                                                                                   number_epochs=number_epochs,
+    #                                                                                   batch_size=batch_size,
+    #                                                                                   number_splits=number_splits,
+    #                                                                                   loss=loss,
+    #                                                                                   sample_rate=sample_rate,
+    #                                                                                   overlap=overlap,
+    #                                                                                   number_classes=number_classes,
+    #                                                                                   arguments=arguments)
+    #
+    #             self.mean_metrics.append(metrics)
+    #             self.mean_history.append(history)
+    #             self.mean_matrices.append(matrices)
+    #
+    #             logging.info(f"Model {model_class.__name__} training completed. Metrics collected.")
+    #
+    #             self.plot_roc_curve(roc_list, "Results/")
+    #             logging.info(f"ROC curve plotted for {model_class.__name__}.")
+    #
+    #         except Exception as e:
+    #             logging.error(f"Error during training of model {model_class.__name__}: {str(e)}")
+    #             raise
+    #
+    #     try:
+    #         logging.info("Plotting comparative metrics.")
+    #         self.plot_comparative_metrics(dictionary_metrics_list=self.mean_metrics,
+    #                                       file_name=output_directory,
+    #                                       figure_width=plot_width,
+    #                                       figure_height=plot_height,
+    #                                       bar_width=plot_bar_width,
+    #                                       caption_size=plot_cap_size)
+    #
+    #         logging.info("Plotting confusion matrices.")
+    #         self.plot_confusion_matrices(confusion_matrix_list=self.mean_matrices,
+    #                                      file_name_path=output_directory,
+    #                                      fig_size=DEFAULT_MATRIX_FIGURE_SIZE,
+    #                                      cmap=DEFAULT_MATRIX_COLOR_MAP,
+    #                                      annot_font_size=DEFAULT_MATRIX_ANNOTATION_FONT_SIZE,
+    #                                      label_font_size=DEFAULT_MATRIX_LABEL_FONT_SIZE,
+    #                                      title_font_size=DEFAULT_MATRIX_TITLE_FONT_SIZE,
+    #                                      show_plot=DEFAULT_SHOW_PLOT)
+    #
+    #         logging.info("Plotting and saving loss.")
+    #         self.plot_and_save_loss(history_dict_list=self.mean_history, path_output=output_directory)
+    #
+    #     except Exception as e:
+    #         logging.error(f"Error during plotting or saving results: {str(e)}")
+    #         raise
+    #
+    #     try:
+    #         logging.info("Running final script to generate PDF.")
+    #         self.run_python_script('--output', "Results.pdf")
+    #         logging.info("PDF generation completed.")
+    #
+    #     except Exception as e:
+    #         logging.error(f"Error running the script for PDF generation: {str(e)}")
+    #         raise
 
 
 # Main entry point of the program
@@ -226,8 +262,7 @@ if __name__ == "__main__":
     logger.addHandler(rotatingFileHandler)
     logger.addHandler(consoleHandler)
 
-    # Display all current settings based on input arguments
-    show_all_settings(input_arguments)
+
 
     # List of available machine learning models for evaluation
     available_models = [
