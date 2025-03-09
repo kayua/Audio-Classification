@@ -8,133 +8,86 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-import glob
 import logging
-import os
-
-import librosa
-import numpy
-from sklearn.model_selection import StratifiedKFold, train_test_split
-from tqdm import tqdm
 
 from Engine.Processing.ClassBalance import ClassBalancer
 from Engine.Processing.WindowGenerator import WindowGenerator
-from Engine.Transformations.SpectrogramPatcher import SpectrogramPatcher
+
+try:
+    import os
+    import sys
+    import glob
+    import numpy
+    import librosa
+    import tensorflow
+
+    from tqdm import tqdm
+
+    from sklearn.utils import resample
+
+    from tensorflow.keras import Model
+
+    from tensorflow.keras.layers import Dense
+    from tensorflow.keras.layers import Input
+    from tensorflow.keras.layers import Layer
+    from tensorflow.keras.layers import Dropout
+    from tensorflow.keras.layers import Flatten
+    from tensorflow.keras.layers import Reshape
+    from tensorflow.keras.layers import Concatenate
+    from tensorflow.keras.layers import GlobalAveragePooling1D
+
+    from sklearn.model_selection import StratifiedKFold
+    from sklearn.model_selection import train_test_split
+
+    from Modules.Layers.ConformerBlock import ConformerBlock
+    from Modules.Evaluation.MetricsCalculator import MetricsCalculator
+    from Modules.Layers.ConvolutionalSubsampling import ConvolutionalSubsampling
 
 
-class ProcessAST(ClassBalancer, SpectrogramPatcher, WindowGenerator):
+except ImportError as error:
+    print(error)
+    print("1. Install requirements:")
+    print("  pip3 install --upgrade pip")
+    print("  pip3 install -r requirements.txt ")
+    print()
+    sys.exit(-1)
+
+
+
+class Conformer(ClassBalancer, WindowGenerator):
     """
-    A class used to build and train an audio classification model.
+    A Conformer model for audio classification, integrating convolutional subsampling, conformer blocks,
+    and a final classification layer.
 
-    Attributes
-    ----------
-    Various attributes with default values for model parameters.
     """
 
     def __init__(self, arguments):
 
-
         self.neural_network_model = None
-
-        self.number_classes = arguments.number_classes
-        self.sample_rate = arguments.sample_rate
-        self.hop_length = arguments.ast_hop_length
-        self.size_fft = arguments.ast_size_fft
-        self.patch_size = arguments.ast_patch_size
-        self.overlap = arguments.overlap
-        self.number_epochs = arguments.number_epochs
+        self.size_batch = arguments.size_batch
         self.number_splits = arguments.number_splits
-        self.batch_size = arguments.batch_size
-        self.dataset_directory = arguments.dataset_directory
-
-        self.audio_duration = 10
-        self.sound_file_format = arguments.file_extension
-        self.decibel_scale_factor = arguments.ast_decibel_scale_factor
-        self.window_size_fft = arguments.ast_window_size_fft
-        self.window_size_factor = arguments.ast_window_size_factor
-        self.window_size = arguments.ast_hop_length * (self.window_size_factor - 1)
-        self.number_filters_spectrogram = arguments.ast_number_filters_spectrogram
-
-        SpectrogramPatcher.__init__(self, self.patch_size)
+        self.number_epochs = arguments.number_epochs
+        self.loss_function = arguments.loss_function
+        self.optimizer_function = arguments.optimizer_function
+        self.window_size_factor = arguments.window_size_factor
+        self.decibel_scale_factor = arguments.decibel_scale_factor
+        self.hop_length = arguments.hop_length
+        self.window_size_fft = arguments.window_size_fft
+        self.overlap = arguments.overlap
+        self.window_size = arguments.hop_length * (self.window_size_factor - 1)
+        self.sample_rate = arguments.sample_rate
+        self.file_extension = arguments.file_extension
+        self.input_dimension = arguments.input_dimension
+        self.number_classes = arguments.number_classes
+        self.number_filters_spectrogram = arguments.number_filters_spectrogram
         WindowGenerator.__init__(self, self.window_size, self.overlap)
 
-    def load_audio(self, filename: str) -> tuple:
+    def load_data(self, sub_directories: str = None, file_extension: str = None) -> tuple:
         """
-        Loads an audio file and pads or truncates it to the required duration.
-
-        Parameters
-        ----------
-        filename : str
-            Path to the audio file.
-
-        Returns
-        -------
-        tuple
-            A tuple containing the signal and the sample rate. The signal is a numpy array representing the audio waveform,
-            and the sample rate is an integer representing the number of samples per second.
-        """
-        # Load the audio file with the specified sample rate
-        signal, sample_rate = librosa.load(filename, sr=self.sample_rate)
-
-        # Calculate the maximum length of the signal based on the desired duration
-        max_length = int(self.sample_rate * self.audio_duration)
-
-        # Pad the signal if it's shorter than the required length
-        if len(signal) < max_length:
-            padding = max_length - len(signal)
-            signal = numpy.pad(signal, (0, padding), 'constant')
-
-        # Truncate the signal to the maximum length
-        signal = signal[:max_length]
-
-        # Return the processed signal and the sample rate
-        return signal, sample_rate
-
-    def load_data(self, data_dir: str) -> tuple:
-        """
-        Loads audio file paths and labels from the given directory.
-
-        Parameters
-        ----------
-        data_dir : str
-            Directory containing the audio files.
-
-        Returns
-        -------
-        tuple
-            A tuple containing the file paths and labels.
-        """
-        file_paths, labels = [], []
-
-        # Iterate over each class directory in the given data directory
-        for class_dir in os.listdir(data_dir):
-            class_path = os.path.join(data_dir, class_dir)
-
-            # Check if the path is a directory
-            if os.path.isdir(class_path):
-
-                # Convert the directory name to an integer label
-                class_label = int(class_dir)
-
-                # Get all audio files matching the sound file format within the class directory
-                class_files = glob.glob(os.path.join(class_path, self.sound_file_format))
-
-                # Extend the file_paths list with the found files
-                file_paths.extend(class_files)
-
-                # Extend the labels list with the corresponding class label
-                labels.extend([class_label] * len(class_files))
-
-        # Return the list of file paths and corresponding labels
-        return file_paths, labels
-
-
-    def load_dataset(self, sub_directories: str = None, file_extension: str = None) -> tuple:
-        """
-        Loads audio data, extracts features, and prepares labels.
+        Loads audio data, extracts spectrogram features, and prepares labels.
 
         This method reads audio files from the specified directories, extracts mel spectrogram features,
-        and prepares the corresponding labels. It also supports splitting spectrograms into patches.
+        and prepares the corresponding labels.
 
         Parameters
         ----------
@@ -148,11 +101,11 @@ class ProcessAST(ClassBalancer, SpectrogramPatcher, WindowGenerator):
         tuple
             A tuple containing the feature array and label array.
         """
-        logging.info("Starting to load the dataset...")
+        logging.info("Starting to load data...")
         list_spectrogram, list_labels, list_class_path = [], [], []
-        file_extension = file_extension or self.sound_file_format
+        file_extension = file_extension or self.file_extension
 
-        # Check if the directory exists
+        # Check if directory exists
         if not os.path.exists(sub_directories):
             logging.error(f"Directory '{sub_directories}' does not exist.")
             return None, None
@@ -192,9 +145,6 @@ class ProcessAST(ClassBalancer, SpectrogramPatcher, WindowGenerator):
                             spectrogram_decibel_scale = librosa.power_to_db(spectrogram, ref=numpy.max)
                             spectrogram_decibel_scale = (spectrogram_decibel_scale / self.decibel_scale_factor) + 1
 
-                            # Split spectrogram into patches
-                            spectrogram_decibel_scale = self.split_spectrogram_into_patches(spectrogram_decibel_scale)
-
                             # Append spectrogram and label
                             list_spectrogram.append(spectrogram_decibel_scale)
                             list_labels.append(label)
@@ -202,21 +152,27 @@ class ProcessAST(ClassBalancer, SpectrogramPatcher, WindowGenerator):
                 except Exception as e:
                     logging.error(f"Error processing file '{file_name}': {e}")
 
-        # Convert lists to arrays
-        array_features = numpy.array(list_spectrogram)
+        # Reshape the feature array to the expected dimensions
+        array_features = numpy.array(list_spectrogram).reshape(
+            len(list_spectrogram),
+            self.number_filters_spectrogram,
+            self.window_size // self.hop_length,  # Time frames depend on hop length
+            1
+        )
+
         array_labels = numpy.array(list_labels, dtype=numpy.int32)
 
         logging.info(f"Loaded {len(array_features)} spectrogram features.")
-        logging.info("Dataset loading complete.")
+        logging.info("Data loading complete.")
 
         return numpy.array(array_features, dtype=numpy.float32), array_labels
 
 
-    def train(self) -> tuple:
+
+    def train(self, dataset_directory) -> tuple:
 
         history_model = None
-        features, labels = self.load_dataset(self.dataset_directory)
-        number_patches = features.shape[1]
+        features, labels = self.load_data(dataset_directory)
         metrics_list, confusion_matriz_list = [], []
         labels = numpy.array(labels).astype(float)
 
@@ -233,20 +189,18 @@ class ProcessAST(ClassBalancer, SpectrogramPatcher, WindowGenerator):
         probabilities_list = []
         real_labels_list = []
 
-
         for train_indexes, val_indexes in instance_k_fold.split(features_train_val, labels_train_val):
-
             features_train, features_val = features_train_val[train_indexes], features_train_val[val_indexes]
             labels_train, labels_val = labels_train_val[train_indexes], labels_train_val[val_indexes]
 
             # Balance the training set for this fold
             features_train, labels_train = self.balance_class(features_train, labels_train)
 
-            self.build_model(number_patches)
+            self.build_model()
             self.neural_network_model.summary()
 
             history_model = self.compile_and_train(features_train, labels_train, epochs=self.number_epochs,
-                                                   batch_size=self.batch_size,
+                                                   batch_size=self.size_batch,
                                                    validation_data=(features_val, labels_val))
 
             model_predictions = self.neural_network_model.predict(features_val)
@@ -288,5 +242,8 @@ class ProcessAST(ClassBalancer, SpectrogramPatcher, WindowGenerator):
             "class_names": ['Class {}'.format(i) for i in range(self.number_classes)],
             "title": self.model_name
         }
+
         return (mean_metrics, {"Name": self.model_name, "History": history_model.history}, mean_confusion_matrices,
                 probabilities_predicted)
+
+
