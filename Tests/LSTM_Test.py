@@ -29,7 +29,7 @@ class TestAudioLSTM(unittest.TestCase):
 
     Example usage:
         >>> test_suite = unittest.TestLoader().loadTestsFromTestCase(TestAudioLSTM)
-        >>> unittest.TextTestRunner().run(test_suite)
+        >>> unittest.TextTestRunner().__exec__(test_suite)
     """
 
     def setUp(self):

@@ -17,14 +17,16 @@ try:
 
     from Engine.Arguments.ArgumentsAST import add_ast_arguments
     from Engine.Arguments.ArgumentsMLP import add_mlp_arguments
+
     from Engine.Arguments.ArgumentsLSTM import add_lstm_arguments
 
+    from Engine.Arguments.ArgumentsResidual import add_residual_arguments
+
+    from Engine.Arguments.ArgumentsConformer import add_conformer_arguments
     from Engine.Arguments.ArgumentsWav2Vec2 import add_wav_to_vec_arguments
 
-    from Engine.Arguments.ArgumentsResidual import add_residual_arguments
-    from Engine.Arguments.ArgumentsConformer import add_conformer_arguments
-
     from Engine.Arguments.ArgumentsROCPlotter import add_roc_plotter_arguments
+
     from Engine.Arguments.ArgumentsLossPlotter import add_loss_plotter_arguments
 
     from Engine.Arguments.ArgumentsConfusionMatrix import add_confusion_matrix_arguments
@@ -60,6 +62,9 @@ TIME_FORMAT = '%Y-%m-%d,%H:%M:%S'
 DEFAULT_DATA_TYPE = "float32"
 DEFAULT_VERBOSE_LIST = {logging.INFO: 2, logging.DEBUG: 1, logging.WARNING: 2,
                         logging.FATAL: 0, logging.ERROR: 0}
+
+
+
 
 
 class Arguments:
@@ -111,24 +116,23 @@ class Arguments:
         super().__init__()
 
         # Initialize argument parser with common arguments
-        self.arguments = self.get_arguments()
+        self.input_arguments = self.get_arguments()
 
         # Append additional arguments related to specific architectures
-        self.arguments = add_ast_arguments(self.arguments)
-        self.arguments = add_conformer_arguments(self.arguments)
-        self.arguments = add_lstm_arguments(self.arguments)
-        self.arguments = add_mlp_arguments(self.arguments)
-        self.arguments = add_residual_arguments(self.arguments)
-        self.arguments = add_wav_to_vec_arguments(self.arguments)
-        self.arguments = add_comparative_metrics_plotter_arguments(self.arguments)
-        self.arguments = add_confusion_matrix_arguments(self.arguments)
-        self.arguments = add_loss_plotter_arguments(self.arguments)
-        self.arguments = add_roc_plotter_arguments(self.arguments)
+        self.input_arguments = add_ast_arguments(self.input_arguments)
+        self.input_arguments = add_conformer_arguments(self.input_arguments)
+        self.input_arguments = add_lstm_arguments(self.input_arguments)
+        self.input_arguments = add_mlp_arguments(self.input_arguments)
+        self.input_arguments = add_residual_arguments(self.input_arguments)
+        self.input_arguments = add_wav_to_vec_arguments(self.input_arguments)
+        self.input_arguments = add_comparative_metrics_plotter_arguments(self.input_arguments)
+        self.input_arguments = add_confusion_matrix_arguments(self.input_arguments)
+        self.input_arguments = add_loss_plotter_arguments(self.input_arguments)
+        self.input_arguments = add_roc_plotter_arguments(self.input_arguments)
         # Parse the combined set of arguments
-        self.arguments = self.arguments.parse_args()
-
-        # Log all parsed settings
+        self.input_arguments = self.input_arguments.parse_args()
         self.show_all_settings()
+        # Log all parsed settings
 
     def show_all_settings(self):
         """
@@ -148,11 +152,11 @@ class Arguments:
         logging.info("Settings:")
 
         # Compute maximum argument name length for aligned logging
-        lengths = [len(x) for x in vars(self.arguments).keys()]
+        lengths = [len(x) for x in vars(self.input_arguments).keys()]
         max_length = max(lengths)
 
         # Log each argument name and value pair
-        for keys, values in sorted(vars(self.arguments).items()):
+        for keys, values in sorted(vars(self.input_arguments).items()):
             settings_parser = "\t" + keys.ljust(max_length, " ") + " : {}".format(values)
             logging.info(settings_parser)
 
@@ -201,6 +205,7 @@ class Arguments:
             "--number_splits", type=int, default=DEFAULT_NUMBER_SPLITS,
             help="Number of splits for cross-validation."
         )
+
 
         argument_parser.add_argument(
             "--loss", type=str, default=DEFAULT_LOSS,
@@ -267,7 +272,8 @@ def auto_arguments(function):
     """
 
     def wrapper(self, *args, **kwargs):
-        self.input_arguments = Arguments()
+        arguments = Arguments()
+        self.input_arguments = arguments.input_arguments
         return function(self, *args, **kwargs)
 
     return wrapper

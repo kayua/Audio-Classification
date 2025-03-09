@@ -26,59 +26,59 @@ DEFAULT_LOSS_PLOTTER_LINE_WIDTH = 2
 
 def add_loss_plotter_arguments(parser):
 
-    parser.add_argument('--loss_plotter_figure_size', type=tuple, default=DEFAULT_LOSS_PLOTTER_FIGURE_SIZE,
+    parser.add_argument('--loss_curve_figure_size', type=tuple, default=DEFAULT_LOSS_PLOTTER_FIGURE_SIZE,
                         help='Size of the figure (width, height) in inches'
                         )
 
-    parser.add_argument('--loss_plotter_training_loss_color', type=str,
+    parser.add_argument('--loss_curve_training_loss_color', type=str,
                         default=DEFAULT_LOSS_PLOTTER_TRAINING_LOSS_COLOR,
                         help='Color of the training loss curve'
                         )
 
-    parser.add_argument('--loss_plotter_validation_loss_color', type=str,
+    parser.add_argument('--loss_curve_validation_loss_color', type=str,
                         default=DEFAULT_LOSS_PLOTTER_VALIDATION_LOSS_COLOR,
                         help='Color of the validation loss curve'
                         )
 
-    parser.add_argument('--loss_plotter_title_font_size', type=int, default=DEFAULT_LOSS_PLOTTER_TITLE_FONT_SIZE,
+    parser.add_argument('--loss_curve_title_font_size', type=int, default=DEFAULT_LOSS_PLOTTER_TITLE_FONT_SIZE,
                         help='Font size for the plot title'
                         )
 
-    parser.add_argument('--loss_plotter_axis_font_size', type=int, default=DEFAULT_LOSS_PLOTTER_AXIS_FONT_SIZE,
+    parser.add_argument('--loss_curve_axis_font_size', type=int, default=DEFAULT_LOSS_PLOTTER_AXIS_FONT_SIZE,
                         help='Font size for the axis labels'
                         )
 
-    parser.add_argument('--loss_plotter_legend_font_size', type=int, default=DEFAULT_LOSS_PLOTTER_LEGEND_FONT_SIZE,
+    parser.add_argument('--loss_curve_legend_font_size', type=int, default=DEFAULT_LOSS_PLOTTER_LEGEND_FONT_SIZE,
                         help='Font size for the legend'
                         )
 
-    parser.add_argument('--loss_plotter_x_label', type=str, default=DEFAULT_LOSS_PLOTTER_X_LABEL,
+    parser.add_argument('--loss_curve_x_label', type=str, default=DEFAULT_LOSS_PLOTTER_X_LABEL,
                         help='Label for the x-axis'
                         )
 
-    parser.add_argument('--loss_plotter_y_label', type=str, default=DEFAULT_LOSS_PLOTTER_Y_LABEL,
+    parser.add_argument('--loss_curve_y_label', type=str, default=DEFAULT_LOSS_PLOTTER_Y_LABEL,
                         help='Label for the y-axis'
                         )
 
-    parser.add_argument('--loss_plotter_title', type=str, default=DEFAULT_LOSS_PLOTTER_TITLE,
+    parser.add_argument('--loss_curve_title', type=str, default=DEFAULT_LOSS_PLOTTER_TITLE,
                         help='Title of the plot'
                         )
 
-    parser.add_argument('--loss_plotter_grid', type=bool, default=DEFAULT_LOSS_PLOTTER_GRID,
+    parser.add_argument('--loss_curve_grid', type=bool, default=DEFAULT_LOSS_PLOTTER_GRID,
                         help='Whether to display the grid on the plot'
                         )
 
-    parser.add_argument('--loss_plotter_line_style_training', type=str,
+    parser.add_argument('--loss_curve_line_style_training', type=str,
                         default=DEFAULT_LOSS_PLOTTER_LINE_STYLE_TRAINING,
                         help='Line style for the training loss curve'
                         )
 
-    parser.add_argument('--loss_plotter_line_style_validation', type=str,
+    parser.add_argument('--loss_curve_line_style_validation', type=str,
                         default=DEFAULT_LOSS_PLOTTER_LINE_STYLE_VALIDATION,
                         help='Line style for the validation loss curve'
                         )
 
-    parser.add_argument('--loss_plotter_line_width', type=int, default=DEFAULT_LOSS_PLOTTER_LINE_WIDTH,
+    parser.add_argument('--loss_curve_line_width', type=int, default=DEFAULT_LOSS_PLOTTER_LINE_WIDTH,
                         help='Line width for the curves'
                         )
 

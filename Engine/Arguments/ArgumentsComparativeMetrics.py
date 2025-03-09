@@ -18,23 +18,23 @@ DEFAULT_COMPARATIVE_METRICS_SHOW_PLOT = False
 
 def add_comparative_metrics_plotter_arguments(parser):
 
-    parser.add_argument('--comparative_metrics_plotter_figure_width', type=int,
+    parser.add_argument('--comparative_metrics_figure_width', type=int,
                         default=DEFAULT_COMPARATIVE_METRICS_FIGURE_WIDTH, help='Width of the figure in inches'
                         )
 
-    parser.add_argument('--comparative_metrics_plotter_figure_height', type=int,
+    parser.add_argument('--comparative_metrics_figure_height', type=int,
                         default=DEFAULT_COMPARATIVE_METRICS_FIGURE_HEIGHT, help='Height of the figure in inches'
                         )
 
-    parser.add_argument('--comparative_metrics_plotter_bar_width', type=float,
+    parser.add_argument('--comparative_metrics_bar_width', type=float,
                         default=DEFAULT_COMPARATIVE_METRICS_BAR_WIDTH, help='Width of the bars in a bar plot'
                         )
 
-    parser.add_argument('--comparative_metrics_plotter_caption_size', type=int,
+    parser.add_argument('--comparative_metrics_caption_size', type=int,
                         default=DEFAULT_COMPARATIVE_METRICS_CAPTION_SIZE, help='Font size for captions in the plot'
                         )
 
-    parser.add_argument('--comparative_metrics_plotter_show_plot', type=bool,
+    parser.add_argument('--comparative_metrics_show_plot', type=bool,
                         default=DEFAULT_COMPARATIVE_METRICS_SHOW_PLOT, help='Whether to display the plot after creation'
                         )
 

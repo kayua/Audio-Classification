@@ -223,13 +223,10 @@ class EvaluationProcess(MetricsCalculator,
 
         return mean_metrics, probabilities_predicted, mean_confusion_matrices
 
-    def train(self, dataset_directory) -> tuple:
+    def train(self, input_arguments) -> tuple:
         """
         Executes the entire training and evaluation process including data loading, preprocessing,
         model training, and metrics calculation.
-
-        Args:
-            dataset_directory (str): The directory containing the dataset to load.
 
         Returns:
             tuple: A tuple containing the aggregated mean metrics, model history, mean confusion matrix,
@@ -238,7 +235,7 @@ class EvaluationProcess(MetricsCalculator,
 
         # Load and preprocess the data
         features_train_val, features_test, labels_train_val, labels_test = \
-            self.load_and_preprocess_data(dataset_directory)
+            self.load_and_preprocess_data(input_arguments.dataset_directory)
 
         # Prepare data for cross-validation and model training
         instance_k_fold, list_history_model, probabilities_list, real_labels_list = \

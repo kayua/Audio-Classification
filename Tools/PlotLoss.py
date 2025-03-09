@@ -8,7 +8,6 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-import os
 
 try:
     import sys
@@ -76,11 +75,11 @@ class PlotLossCurve:
         >>>
     """
 
-    def __init__(self, loss_curve_history_dict_list, loss_curve_path_output, loss_curve_figure_size: tuple,
-                 loss_curve_training_loss_color: str, loss_curve_validation_loss_color: str,
-                 loss_curve_title_font_size: int, loss_curve_axis_font_size: int,
-                 loss_curve_legend_font_size: int, loss_curve_x_label: str, loss_curve_y_label: str,
-                 loss_curve_title: str, loss_curve_grid: bool, loss_curve_line_style_training: str,
+    def __init__(self, loss_curve_figure_size: tuple, loss_curve_training_loss_color: str,
+                 loss_curve_validation_loss_color: str, loss_curve_title_font_size: int,
+                 loss_curve_axis_font_size: int, loss_curve_legend_font_size: int,
+                 loss_curve_x_label: str, loss_curve_y_label: str, loss_curve_title: str,
+                 loss_curve_grid: bool, loss_curve_line_style_training: str,
                  loss_curve_line_style_validation: str, loss_curve_line_width: int):
         """
         Initializes the LossPlotter instance with the list of model histories and the output path
@@ -88,8 +87,7 @@ class PlotLossCurve:
         and parameters.
 
         Args:
-            @loss_curve_history_history_dict_list (list): A list of dictionaries where each dictionary contains the 'Name'
-                                      of a model and the 'History' dictionary with loss values.
+
             @loss_curve_history_path_output (str): The directory path where the loss plot images should be saved.
             @loss_curve_history_figure_size (tuple): The size of the plot figure (width, height). Default is (10, 6).
             @loss_curve_history_training_loss_color (str): The color of the training loss curve. Default is "blue".
@@ -105,30 +103,6 @@ class PlotLossCurve:
             @loss_curve_history_line_style_validation (str): Line style for the validation loss curve. Default is "--".
             @loss_curve_history_line_width (int): Width of the lines for both loss curves. Default is 2.
         """
-
-        # Validate history_dict_list
-        if not isinstance(loss_curve_history_dict_list, list):
-            raise ValueError("loss_curve_history_dict_list must be a list.")
-
-        for model in loss_curve_history_dict_list:
-
-            if not isinstance(model, dict):
-                raise ValueError("Each item in loss_curve_history_dict_list must be a dictionary.")
-
-            if 'Name' not in model or 'History' not in model:
-                raise ValueError(
-                    "Each dictionary in loss_curve_history_dict_list must contain 'Name' and 'History' keys.")
-
-            if not isinstance(model['History'], dict) or 'loss' not in model['History'] or 'val_loss' not in model[
-                'History']:
-                raise ValueError("'History' must be a dictionary containing 'loss' and 'val_loss' lists.")
-
-        # Validate output path
-        if not isinstance(loss_curve_path_output, str):
-            raise ValueError("loss_curve_path_output must be a string representing the output directory.")
-
-        if not os.path.isdir(loss_curve_path_output):
-            raise ValueError(f"The specified path does not exist or is not a directory: {loss_curve_path_output}")
 
         # Validate figure size
         if not isinstance(loss_curve_figure_size, tuple) or len(loss_curve_figure_size) != 2:
@@ -185,8 +159,6 @@ class PlotLossCurve:
         if not isinstance(loss_curve_line_width, int) or loss_curve_line_width <= 0:
             raise ValueError("loss_curve_line_width must be a positive integer.")
 
-        self._loss_curve_history_history_dict_list = loss_curve_history_dict_list
-        self._loss_curve_history_path_output = loss_curve_path_output
         self._loss_curve_history_figure_size = loss_curve_figure_size
         self._loss_curve_history_training_loss_color = loss_curve_training_loss_color
         self._loss_curve_history_validation_loss_color = loss_curve_validation_loss_color
@@ -201,7 +173,7 @@ class PlotLossCurve:
         self._loss_curve_history_line_style_validation = loss_curve_line_style_validation
         self._loss_curve_history_line_width = loss_curve_line_width
 
-    def plot_loss(self):
+    def plot_loss(self, loss_curve_history_dict_list, loss_curve_path_output):
         """
         Plots the training and validation loss curves for each model in the history list and saves
         the plots to the specified output directory.
@@ -212,7 +184,7 @@ class PlotLossCurve:
         logging.info("Starting the process of plotting and saving loss graphs for the models.")
 
         # Iterate over each model's history dictionary
-        for history_dict in self._loss_curve_history_history_dict_list:
+        for history_dict in loss_curve_history_dict_list:
 
             try:
                 model_name = history_dict['Name']
@@ -232,7 +204,7 @@ class PlotLossCurve:
                 self._loss_curve_plot_loss(history, model_name)
 
                 # Save the plot
-                self._loss_curve_save_plot(model_name)
+                self._loss_curve_save_plot(model_name, loss_curve_path_output)
 
             except KeyError as e:
                 logging.error(f"KeyError in model '{model_name}': {e}")
@@ -276,14 +248,14 @@ class PlotLossCurve:
         plt.ylabel(self._loss_curve_history_y_label, fontsize=self._loss_curve_history_axis_font_size)
         plt.legend(fontsize=self._loss_curve_history_legend_font_size)
 
-    def _loss_curve_save_plot(self, model_name):
+    def _loss_curve_save_plot(self, model_name, loss_curve_path_output):
         """
         Saves the generated plot to the specified output directory.
 
         Args:
             model_name (str): The name of the model to generate the file name for the plot.
         """
-        file_path = f'{self._loss_curve_history_path_output}{model_name}_loss.png'
+        file_path = f'{loss_curve_path_output}{model_name}_loss.png'
         plt.savefig(file_path)
         plt.close()  # Close the plot to free memory
         logging.info(f"Loss plot saved for model '{model_name}' at {file_path}")
