@@ -184,7 +184,7 @@ if __name__ == "__main__":
     available_models = [
         Conformer,
 #        DenseModel,
-        AudioSpectrogramTransformer,
+#        AudioSpectrogramTransformer,
 #        AudioLSTM,
 #        AudioWav2Vec2,
 #        ResidualModel

@@ -8,6 +8,7 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+from Engine.Models.Process.Conformer_Process import ProcessConformer
 
 try:
     import sys
@@ -31,8 +32,6 @@ try:
 
     from tensorflow.keras.layers import GlobalAveragePooling1D
 
-    from Engine.Models.Process.MLPProcess import MLPProcess
-
     from Engine.Layers.ConvolutionalSubsampling import ConvolutionalSubsampling
 
 
@@ -41,7 +40,7 @@ except ImportError as error:
      sys.exit(-1)
 
 
-class Conformer: #(EvaluationProcess):
+class Conformer(ProcessConformer): #(EvaluationProcess):
     """
     @Conformer
 
@@ -132,6 +131,7 @@ class Conformer: #(EvaluationProcess):
 #        super().__init__(size_batch, number_splits, number_epochs, optimizer_function, window_size_factor,
 #                         decibel_scale_factor, hop_length, overlap, sample_rate, file_extension)
 
+        ProcessConformer.__init__(self, arguments)
         self.neural_network_model = None
         self.loss_function = arguments.conformer_loss_function
         self.optimizer_function = arguments.conformer_optimizer_function

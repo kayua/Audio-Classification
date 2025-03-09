@@ -8,53 +8,20 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+import glob
 import logging
+import os
+
+import librosa
+import numpy
+from sklearn.model_selection import StratifiedKFold, train_test_split
+from tqdm import tqdm
 
 from Engine.Processing.ClassBalance import ClassBalancer
 from Engine.Processing.WindowGenerator import WindowGenerator
 
-try:
-    import os
-    import sys
-    import glob
-    import numpy
-    import librosa
-    import tensorflow
 
-    from tqdm import tqdm
-
-    from sklearn.utils import resample
-
-    from tensorflow.keras import Model
-
-    from tensorflow.keras.layers import Dense
-    from tensorflow.keras.layers import Input
-    from tensorflow.keras.layers import Layer
-    from tensorflow.keras.layers import Dropout
-    from tensorflow.keras.layers import Flatten
-    from tensorflow.keras.layers import Reshape
-    from tensorflow.keras.layers import Concatenate
-    from tensorflow.keras.layers import GlobalAveragePooling1D
-
-    from sklearn.model_selection import StratifiedKFold
-    from sklearn.model_selection import train_test_split
-
-    from Modules.Layers.ConformerBlock import ConformerBlock
-    from Modules.Evaluation.MetricsCalculator import MetricsCalculator
-    from Modules.Layers.ConvolutionalSubsampling import ConvolutionalSubsampling
-
-
-except ImportError as error:
-    print(error)
-    print("1. Install requirements:")
-    print("  pip3 install --upgrade pip")
-    print("  pip3 install -r requirements.txt ")
-    print()
-    sys.exit(-1)
-
-
-
-class Conformer(ClassBalancer, WindowGenerator):
+class ProcessConformer(ClassBalancer, WindowGenerator):
     """
     A Conformer model for audio classification, integrating convolutional subsampling, conformer blocks,
     and a final classification layer.
@@ -64,22 +31,24 @@ class Conformer(ClassBalancer, WindowGenerator):
     def __init__(self, arguments):
 
         self.neural_network_model = None
-        self.size_batch = arguments.size_batch
+        self.batch_size = arguments.batch_size
         self.number_splits = arguments.number_splits
         self.number_epochs = arguments.number_epochs
-        self.loss_function = arguments.loss_function
-        self.optimizer_function = arguments.optimizer_function
-        self.window_size_factor = arguments.window_size_factor
-        self.decibel_scale_factor = arguments.decibel_scale_factor
-        self.hop_length = arguments.hop_length
-        self.window_size_fft = arguments.window_size_fft
+        self.loss_function = arguments.conformer_loss_function
+        self.optimizer_function = arguments.conformer_optimizer_function
+        self.window_size_factor = arguments.conformer_window_size_factor
+        self.decibel_scale_factor = arguments.conformer_decibel_scale_factor
+        self.hop_length = arguments.conformer_hop_length
+        self.window_size_fft = arguments.conformer_window_size
         self.overlap = arguments.overlap
-        self.window_size = arguments.hop_length * (self.window_size_factor - 1)
+        self.window_size = arguments.conformer_hop_length * (self.window_size_factor - 1)
         self.sample_rate = arguments.sample_rate
         self.file_extension = arguments.file_extension
-        self.input_dimension = arguments.input_dimension
+        self.input_dimension = arguments.conformer_input_dimension
         self.number_classes = arguments.number_classes
-        self.number_filters_spectrogram = arguments.number_filters_spectrogram
+        self.dataset_directory = arguments.dataset_directory
+        self.number_filters_spectrogram = arguments.conformer_number_filters_spectrogram
+
         WindowGenerator.__init__(self, self.window_size, self.overlap)
 
     def load_data(self, sub_directories: str = None, file_extension: str = None) -> tuple:
@@ -169,10 +138,10 @@ class Conformer(ClassBalancer, WindowGenerator):
 
 
 
-    def train(self, dataset_directory) -> tuple:
+    def train(self) -> tuple:
 
         history_model = None
-        features, labels = self.load_data(dataset_directory)
+        features, labels = self.load_data(self.dataset_directory)
         metrics_list, confusion_matriz_list = [], []
         labels = numpy.array(labels).astype(float)
 
@@ -200,7 +169,7 @@ class Conformer(ClassBalancer, WindowGenerator):
             self.neural_network_model.summary()
 
             history_model = self.compile_and_train(features_train, labels_train, epochs=self.number_epochs,
-                                                   batch_size=self.size_batch,
+                                                   batch_size=self.batch_size,
                                                    validation_data=(features_val, labels_val))
 
             model_predictions = self.neural_network_model.predict(features_val)
