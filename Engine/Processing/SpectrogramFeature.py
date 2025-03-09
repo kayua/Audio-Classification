@@ -119,7 +119,7 @@ class SpectrogramFeature(WindowGenerator, PathTools):
         """
 
         # Store all the parameters as attributes
-        super().__init__(window_size, overlap)
+        WindowGenerator.__init__(self, window_size, overlap)
 
         self.sample_rate = sample_rate
         self.window_size = window_size

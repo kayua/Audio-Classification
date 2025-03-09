@@ -85,7 +85,7 @@ class RawDataLoader(WindowGenerator, PathTools):
                  window_size_factor: int,
                  file_extension: str):
 
-        super().__init__(window_size, overlap)
+        WindowGenerator.__init__(self, window_size, overlap)
         """
         Initializes the DataLoader instance.
 

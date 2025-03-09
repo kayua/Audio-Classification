@@ -257,6 +257,11 @@ class Arguments:
             help="Logging verbosity level (higher values indicate more detailed logs)."
         )
 
+        argument_parser.add_argument(
+            "--file_extension", type=str, default='*.wav',
+            help="Logging verbosity level (higher values indicate more detailed logs)."
+        )
+
         return argument_parser
 
 def auto_arguments(function):

@@ -113,10 +113,10 @@ class Main(RunScript, PlotterTools):
             logging.info(f"Instantiated model class '{model_class.__name__}'.")
             # Train the model and collect results
             instance.build_model(8)
-            exit()
-            model_metrics, model_history, model_matrices, model_roc_list = instance.train()
-            logging.info( f"Training completed for model '{model_class.__name__}'."
-                          f" Collected metrics, history, matrices, and ROC data.")
+            #exit()
+            #model_metrics, model_history, model_matrices, model_roc_list = instance.train()
+            #logging.info( f"Training completed for model '{model_class.__name__}'."
+            #              f" Collected metrics, history, matrices, and ROC data.")11
 
         except Exception as e:
             logging.error(f"Error during training of model '{model_class.__name__}': {e}")
@@ -127,7 +127,9 @@ class Main(RunScript, PlotterTools):
             gc.collect()
             logging.info(f"Garbage collection complete after training model '{model_class.__name__}'.")
 
-        return model_metrics, model_history, model_matrices, model_roc_list
+        return [], [], [], []
+
+        # return model_metrics, model_history, model_matrices, model_roc_list
 
 
     def __exec__(self, models, output_directory):
@@ -140,14 +142,14 @@ class Main(RunScript, PlotterTools):
             try:
                 metrics, history, matrices, roc_list = self.train_and_collect_metrics(model_class=model_class)
 
-                self.mean_metrics.append(metrics)
-                self.mean_history.append(history)
-                self.mean_matrices.append(matrices)
-
-                logging.info(f"Model {model_class.__name__} training completed. Metrics collected.")
-
-                self.plot_roc_curve(roc_list, "Results/")
-                logging.info(f"ROC curve plotted for {model_class.__name__}.")
+                # self.mean_metrics.append(metrics)
+                # self.mean_history.append(history)
+                # self.mean_matrices.append(matrices)
+                #
+                # logging.info(f"Model {model_class.__name__} training completed. Metrics collected.")
+                #
+                # self.plot_roc_curve(roc_list, "Results/")
+                # logging.info(f"ROC curve plotted for {model_class.__name__}.")
 
             except Exception as e:
                 logging.error(f"Error during training of model {model_class.__name__}: {str(e)}")
@@ -186,8 +188,8 @@ if __name__ == "__main__":
 
     available_models = [
         AudioSpectrogramTransformer,
-        AudioLSTM,
         DenseModel,
+        AudioLSTM,
         Conformer,
         AudioWav2Vec2,
         ResidualModel

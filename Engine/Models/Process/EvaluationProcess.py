@@ -74,7 +74,9 @@ class EvaluationProcess(MetricsCalculator,
             file_extension (str): The file extension for the dataset.
         """
         # Assigning provided parameters to instance variables
-        super().__init__()
+        RawDataLoader.__init__(self, sample_rate, self.hop_length * self.window_size_factor, overlap,
+                               window_size_factor, file_extension)
+
         self.size_batch = size_batch
         self.number_splits = number_splits
         self.number_epochs = number_epochs

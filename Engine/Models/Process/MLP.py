@@ -48,48 +48,46 @@ DEFAULT_LIST_DENSE_NEURONS = [128, 129]
 
 class DenseModel(MetricsCalculator):
 
-    def __init__(self,
-                 number_classes: int,
-                 last_layer_activation: str,
-                 size_batch: int,
-                 number_splits: int,
-                 number_epochs: int,
-                 loss_function: str,
-                 optimizer_function: str,
-                 window_size_factor: int,
-                 decibel_scale_factor: int,
-                 hop_length: int,
-                 overlap: int,
-                 sample_rate: int,
-                 dropout_rate: float,
-                 file_extension: str,
-                 intermediary_layer_activation: str,
-                 input_dimension: tuple,
-                 list_lstm_cells=None):
+    #def __init__(self,
+    #             number_classes: int,
+    #             last_layer_activation: str,
+    #             size_batch: int,
+    #             number_splits: int,
+    #             number_epochs: int,
+    #             loss_function: str,
+    #             optimizer_function: str,
+    #             window_size_factor: int,
+    #             decibel_scale_factor: int,
+    #             hop_length: int,
+    #             overlap: int,
+    #             sample_rate: int,
+    #             dropout_rate: float,
+    #             file_extension: str,
+    #             intermediary_layer_activation: str,
+    #             input_dimension: tuple,
+    #             list_lstm_cells=None):
 
-
-        if list_lstm_cells is None:
-            list_lstm_cells = DEFAULT_LIST_DENSE_NEURONS
-
+    def __init__(self, arguments):
+        
         self.neural_network_model = None
-        self.size_batch = size_batch
-        self.list_number_neurons = list_lstm_cells
-        self.number_splits = number_splits
-        self.number_epochs = number_epochs
-        self.loss_function = loss_function
-        self.optimizer_function = optimizer_function
-        self.window_size_factor = window_size_factor
-        self.decibel_scale_factor = decibel_scale_factor
-        self.hop_length = hop_length
-        self.intermediary_layer_activation = intermediary_layer_activation
-        self.overlap = overlap
-        self.window_size = self.hop_length * self.window_size_factor
-        self.sample_rate = sample_rate
-        self.file_extension = file_extension
-        self.input_dimension = input_dimension
-        self.number_classes = number_classes
-        self.dropout_rate = dropout_rate
-        self.last_layer_activation = last_layer_activation
+        self.size_batch = arguments.size_batch
+        self.list_number_neurons = arguments.list_lstm_cells
+        self.number_splits = arguments.number_splits
+        self.number_epochs = arguments.number_epochs
+        self.loss_function = arguments.loss_function
+        self.optimizer_function = arguments.optimizer_function
+        self.window_size_factor = arguments.window_size_factor
+        self.decibel_scale_factor = arguments.decibel_scale_factor
+        self.hop_length = arguments.hop_length
+        self.intermediary_layer_activation = arguments.intermediary_layer_activation
+        self.overlap = arguments.overlap
+        self.window_size = arguments.hop_length * arguments.window_size_factor
+        self.sample_rate = arguments.sample_rate
+        self.file_extension = arguments.file_extension
+        self.input_dimension = arguments.input_dimension
+        self.number_classes = arguments.number_classes
+        self.dropout_rate = arguments.dropout_rate
+        self.last_layer_activation = arguments.last_layer_activation
         self.model_name = "MLP"
 
     def build_model(self) -> None:

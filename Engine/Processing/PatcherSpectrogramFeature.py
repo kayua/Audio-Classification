@@ -36,6 +36,7 @@ class PatcherSpectrogramFeature(SpectrogramPatcher, WindowGenerator, PathTools):
 
         # Store all the parameters as attributes
         super().__init__(patch_size)
+        WindowGenerator.__init__(self, window_size, overlap)
         self.audio_duration = None
         self.sample_rate = sample_rate
         self.window_size = window_size

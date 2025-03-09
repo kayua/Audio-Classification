@@ -93,10 +93,14 @@ class DenseModel(EvaluationProcess):
 
     """
 
-    def __init__(self, number_classes: int, last_layer_activation: str, loss_function: str, optimizer_function: str,
-                 dropout_rate: float, intermediary_layer_activation: str, input_dimension: tuple, size_batch: int,
-                 number_splits: int, number_epochs: int, window_size_factor: int, decibel_scale_factor: int,
-                 hop_length: int, overlap: int, sample_rate: int, file_extension: str, list_lstm_cells=None):
+    def __init__(self, arguments):
+
+
+    # def __init__(self, number_classes: int, last_layer_activation: str, loss_function: str, optimizer_function: str,
+    #             dropout_rate: float, intermediary_layer_activation: str, input_dimension: tuple, size_batch: int,
+    #             number_splits: int, number_epochs: int, window_size_factor: int, decibel_scale_factor: int,
+    #             hop_length: int, overlap: int, sample_rate: int, file_extension: str, list_lstm_cells=None):
+
         """
         Initialize the DenseModel class.
 
@@ -113,20 +117,23 @@ class DenseModel(EvaluationProcess):
         """
 
         # If list_lstm_cells is not provided, use the default list of dense neurons.
-        super().__init__(size_batch, number_splits, number_epochs, optimizer_function, window_size_factor,
-                         decibel_scale_factor, hop_length, overlap, sample_rate, file_extension)
+        EvaluationProcess.__init__(arguments.batch_size, arguments.number_splits, arguments.number_epochs,
+                         arguments.mlp_optimizer_function, arguments.mlp_window_size_factor,
+                         arguments.mlp_decibel_scale_factor, arguments.mlp_hop_length, arguments.mlp_overlap,
+                         arguments.sample_rate, arguments.file_extension)
 
         # Model initialization attributes.
         self.neural_network_model = None  # Placeholder for the Keras model.
-        self.list_number_neurons = list_lstm_cells  # List of the number of neurons in each hidden layer.
-        self.loss_function = loss_function  # Loss function for training.
-        self.optimizer_function = optimizer_function  # Optimizer function for training.
-        self.intermediary_layer_activation = intermediary_layer_activation  # Activation function for hidden layers.
-        self.input_dimension = input_dimension  # Shape of the input data (e.g., images).
-        self.number_classes = number_classes  # Number of output classes for classification.
-        self.dropout_rate = dropout_rate  # Dropout rate for regularization.
-        self.last_layer_activation = last_layer_activation  # Activation for the output layer.
+        self.list_number_neurons = arguments.mlp_list_dense_neurons  # List of the number of neurons in each hidden layer.
+        self.loss_function = arguments.mlp_loss_function  # Loss function for training.
+        self.optimizer_function = arguments.mlp_optimizer_function  # Optimizer function for training.
+        self.intermediary_layer_activation = arguments.mlp_intermediary_layer_activation  # Activation function for hidden layers.
+        self.input_dimension = arguments.input_dimension  # Shape of the input data (e.g., images).
+        self.number_classes = arguments.number_classes  # Number of output classes for classification.
+        self.dropout_rate = arguments.mlp_dropout_rate  # Dropout rate for regularization.
+        self.last_layer_activation = arguments.mlp_last_layer_activation  # Activation for the output layer.
         self.model_name = "MLP"  # Name of the model (default to 'MLP').
+
 
     def build_model(self) -> None:
         """
@@ -167,6 +174,7 @@ class DenseModel(EvaluationProcess):
 
         # Create the model with input and output layers defined.
         self.neural_network_model = Model(inputs=inputs, outputs=neural_network_flow, name=self.model_name)
+        self.neural_network_model.summary()
 
     def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,
                           batch_size: int, validation_data: tuple = None) -> tensorflow.keras.callbacks.History:

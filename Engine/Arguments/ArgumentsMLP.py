@@ -51,6 +51,12 @@ def add_mlp_arguments(parser):
                         help='List of LSTM cell sizes for each layer'
                         )
 
+    parser.add_argument('--mlp_optimizer_function', type=str, default="adam",
+                                 help='Optimizer to use during training'
+                                 )
+    parser.add_argument('--mlp_loss_function', type=str, default='sparse_categorical_crossentropy',
+                                 help='Loss function to use during training')
+
     parser.add_argument('--mlp_hop_length', type=int, default=DEFAULT_HOP_LENGTH,
                         help='Hop length for STFT'
                         )
