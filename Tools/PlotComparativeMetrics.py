@@ -32,11 +32,11 @@ class ComparativeMetricsPlotter:
 
     Parameters:
     ----------
-        @figure_width : float, optional Width of the figure (default is 12).
-        @figure_height : float, optional Height of the figure (default is 8).
-        @bar_width : float, optional Width of the bars in the plot (default is 0.20).
-        @caption_size : int, optional Size of the caption font (default is 10).
-        @show_plot : bool, optional Whether to show the plot interactively (default is False).
+        @comparative_metrics_figure_width : float, optional Width of the figure (default is 12).
+        @comparative_metrics_figure_height : float, optional Height of the figure (default is 8).
+        @comparative_metrics_bar_width : float, optional Width of the bars in the plot (default is 0.20).
+        @comparative_metrics_caption_size : int, optional Size of the caption font (default is 10).
+        @comparative_metrics_show_plot : bool, optional Whether to show the plot interactively (default is False).
 
 
     Example:
@@ -65,38 +65,58 @@ class ComparativeMetricsPlotter:
         >>>
     """
 
-    def __init__(self, figure_width: int, figure_height: int, bar_width: float, caption_size: int, show_plot: bool):
+    def __init__(self, comparative_metrics_figure_width: int, comparative_metrics_figure_height: int,
+                 comparative_metrics_bar_width: float, comparative_metrics_caption_size: int,
+                 comparative_metrics_show_plot: bool):
         """
         Initialize the ComparativeMetricsPlotter with customizable plot options.
 
         Parameters
         ----------
-        figure_width : float, optional
+        @comparative_metrics_figure_width : float, optional
             Width of the figure (default is 12).
-        figure_height : float, optional
+        @comparative_metrics_figure_height : float, optional
             Height of the figure (default is 8).
-        bar_width : float, optional
+        @comparative_metrics_bar_width : float, optional
             Width of the bars in the plot (default is 0.20).
-        caption_size : int, optional
+        @comparative_metrics_caption_size : int, optional
             Size of the caption font (default is 10).
-        show_plot : bool, optional
+        @comparative_metrics_show_plot : bool, optional
             Whether to show the plot interactively (default is False).
         """
-        self.figure_width = figure_width
-        self.figure_height = figure_height
-        self.bar_width = bar_width
-        self.caption_size = caption_size
-        self.show_plot = show_plot
 
-        self.list_metrics = ['Acc.', 'Prec.', 'Rec.', 'F1.']
-        self.list_color_bases = {
+        # Validate inputs
+        if not isinstance(comparative_metrics_figure_width, (int, float)) or comparative_metrics_figure_width <= 0:
+            raise ValueError("Width of the figure must be a positive number.")
+
+        if not isinstance(comparative_metrics_figure_height, (int, float)) or comparative_metrics_figure_height <= 0:
+            raise ValueError("Height of the figure must be a positive number.")
+
+        if not isinstance(comparative_metrics_bar_width, (int, float)) or not (0 < comparative_metrics_bar_width <= 1):
+            raise ValueError("Bar width must be a float between 0 and 1.")
+
+        if not isinstance(comparative_metrics_caption_size, int) or comparative_metrics_caption_size <= 0:
+            raise ValueError("Caption size must be a positive integer.")
+
+        if not isinstance(comparative_metrics_show_plot, bool):
+            raise ValueError("Show plot must be a boolean value.")
+
+
+        self._comparative_metrics_figure_width = comparative_metrics_figure_width
+        self._comparative_metrics_figure_height = comparative_metrics_figure_height
+        self._comparative_metrics_bar_width = comparative_metrics_bar_width
+        self._comparative_metrics_caption_size = comparative_metrics_caption_size
+        self._comparative_metrics_show_plot = comparative_metrics_show_plot
+
+        self._comparative_metrics_list_metrics = ['Acc.', 'Prec.', 'Rec.', 'F1.']
+        self._comparative_metrics_list_color_bases = {
             'Acc.': 'Blues',
             'Prec.': 'Greens',
             'Rec.': 'Reds',
             'F1.': 'Purples'
         }
 
-    def _extract_metric_data(self, dictionary_metrics_list):
+    def _comparative_metrics_extract_metric_data(self, dictionary_metrics_list):
         """
         Extracts metric values and standard deviations from the provided data.
 
@@ -115,11 +135,11 @@ class ComparativeMetricsPlotter:
             - metric values for each model
         """
         number_models = len(dictionary_metrics_list)
-        number_metrics = len(self.list_metrics)
+        number_metrics = len(self._comparative_metrics_list_metrics)
 
-        return self.list_metrics, number_models, number_metrics
+        return self._comparative_metrics_list_metrics, number_models, number_metrics
 
-    def _create_figure(self):
+    def _comparative_metrics_create_figure(self):
         """
         Creates the figure and axis for the plot.
 
@@ -128,11 +148,13 @@ class ComparativeMetricsPlotter:
         figure, axis
             The created matplotlib figure and axis.
         """
-        figure_plot, axis_plot = plt.subplots(figsize=(self.figure_width, self.figure_height))
+        figure_plot, axis_plot = plt.subplots(figsize=(self._comparative_metrics_figure_width,
+                                                       self._comparative_metrics_figure_height))
+
         return figure_plot, axis_plot
 
-    def _plot_bars_for_metric(self, axis_plot, positions, metric_id, model_data, metric_name, metric_color_base,
-                              number_models):
+    def _comparative_metrics_plot_bars_for_metric(self, axis_plot, positions, metric_id, model_data,
+                                                  metric_name, metric_color_base, number_models):
         """
         Plots bars for a specific metric across all models.
 
@@ -154,19 +176,20 @@ class ComparativeMetricsPlotter:
             Total number of models being compared.
         """
         for metric_dictionary_id, model in enumerate(model_data):
+
             metric_values = model[metric_name]['value']
             metric_stander_deviation = model[metric_name]['std']
             metric_color_bar = plt.get_cmap(metric_color_base)(metric_dictionary_id / (number_models - 1))
             metric_label = f"{metric_name} {model['model_name']}"
 
             bar_definitions = axis_plot.bar(
-                positions[metric_id] + metric_dictionary_id * self.bar_width,
+                positions[metric_id] + metric_dictionary_id * self._comparative_metrics_bar_width,
                 metric_values,
                 yerr=metric_stander_deviation,
                 color=metric_color_bar,
-                width=self.bar_width,
+                width=self._comparative_metrics_bar_width,
                 edgecolor='grey',
-                capsize=self.caption_size,
+                capsize=self._comparative_metrics_caption_size,
                 label=metric_label
             )
 
@@ -179,7 +202,7 @@ class ComparativeMetricsPlotter:
                                    ha='center',
                                    va='bottom')
 
-    def _set_plot_labels(self, axis_plot, positions, number_models):
+    def _comparative_metrics_set_plot_labels(self, axis_plot, positions, number_models):
         """
         Set the labels, title, and legend for the plot.
 
@@ -193,13 +216,13 @@ class ComparativeMetricsPlotter:
             Total number of models being compared.
         """
         axis_plot.set_xlabel('Metric', fontweight='bold')
-        axis_plot.set_xticks([r + self.bar_width * (number_models - 1) / 2 for r in positions])
-        axis_plot.set_xticklabels(self.list_metrics)
+        axis_plot.set_xticks([r + self._comparative_metrics_bar_width * (number_models - 1) / 2 for r in positions])
+        axis_plot.set_xticklabels(self._comparative_metrics_list_metrics)
         axis_plot.set_ylabel('Score', fontweight='bold')
         axis_plot.set_title('Comparative Metrics', fontweight='bold')
         axis_plot.legend(loc='lower center', bbox_to_anchor=(0.5, -0.25), ncol=number_models)
 
-    def _save_or_show_plot(self, file_name):
+    def _comparative_metrics_save_or_show_plot(self, file_name):
         """
         Saves or shows the plot based on user preference.
 
@@ -209,7 +232,7 @@ class ComparativeMetricsPlotter:
             The base name for the saved plot file.
         """
         output_path = f'{file_name}metrics.png'
-        if self.show_plot:
+        if self._comparative_metrics_show_plot:
             plt.show()
         else:
             plt.tight_layout()
@@ -232,23 +255,25 @@ class ComparativeMetricsPlotter:
 
         try:
             # Extract data
-            list_metrics, number_models, number_metrics = self._extract_metric_data(dictionary_metrics_list)
+            list_metrics, number_models, number_metrics \
+                = self._comparative_metrics_extract_metric_data(dictionary_metrics_list)
 
             # Create figure
-            figure_plot, axis_plot = self._create_figure()
+            figure_plot, axis_plot = self._comparative_metrics_create_figure()
             positions = numpy.arange(number_metrics)
 
             # Plot bars for each metric
             for metric_id, metric_name in enumerate(list_metrics):
-                metric_color_base = self.list_color_bases[metric_name]
-                self._plot_bars_for_metric(axis_plot, positions, metric_id, dictionary_metrics_list, metric_name,
-                                           metric_color_base, number_models)
+                metric_color_base = self._comparative_metrics_list_color_bases[metric_name]
+                self._comparative_metrics_plot_bars_for_metric(axis_plot, positions, metric_id,
+                                                               dictionary_metrics_list, metric_name,
+                                                               metric_color_base, number_models)
 
             # Set plot labels, title, and legend
-            self._set_plot_labels(axis_plot, positions, number_models)
+            self._comparative_metrics_set_plot_labels(axis_plot, positions, number_models)
 
             # Save or display the plot
-            self._save_or_show_plot(file_name)
+            self._comparative_metrics_save_or_show_plot(file_name)
 
         except Exception as e:
             logging.error(f"An error occurred while plotting comparative metrics: {e}")

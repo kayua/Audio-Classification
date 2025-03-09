@@ -8,50 +8,25 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/26'
 __credits__ = ['unknown']
 
+
+# try:
+
+import gc
+import logging
+import os
+from datetime import datetime
+from logging.handlers import RotatingFileHandler
+
+import tensorflow
+
 from Tools.RunScript import RunScript
 
-try:
-
-    import os
-    import gc
-    import sys
-
-    import numpy
-    import logging
-    import argparse
-    import tensorflow
-    import subprocess
-
-    import seaborn as sns
-    from datetime import datetime
-    import matplotlib.pyplot as plt
-    from sklearn.metrics import auc
-
-    from sklearn.metrics import roc_curve
-    from sklearn.preprocessing import label_binarize
-
-    from sklearn.metrics import accuracy_score
-    from sklearn.metrics import precision_score
-    from sklearn.metrics import recall_score
-    from sklearn.metrics import f1_score
-    from sklearn.metrics import roc_auc_score
-    from sklearn.metrics import confusion_matrix
-
-    from logging.handlers import RotatingFileHandler
-    from Engine.Models.AST import AudioAST, get_audio_ast_args
-    from Engine.Models.LSTM import AudioLSTM, get_lstm_model_args
-    from Engine.Models.MLP import DenseModel, get_MLP_model_args
-
-    from Engine.Models.Conformer import Conformer, get_conformer_models_args
-    from Engine.Models.Wav2Vec2 import AudioWav2Vec2, get_wav_to_vec_args
-    from Engine.Models.ResidualModel import ResidualModel, get_residual_model_args
-
-except ImportError as error:
-    print(error)
-    print("1. Install requirements:")
-    print("  pip3 install --upgrade pip")
-    print("  pip3 install -r requirements.txt")
-    sys.exit(-1)
+# except ImportError as error:
+#     print(error)
+#     print("1. Install requirements:")
+#     print("  pip3 install --upgrade pip")
+#     print("  pip3 install -r requirements.txt")
+#     sys.exit(-1)
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
