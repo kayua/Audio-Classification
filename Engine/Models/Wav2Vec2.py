@@ -8,6 +8,7 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+from Engine.Models.Process.Wav2Vec2_Process import Wav2Vec2Process
 
 try:
 
@@ -42,7 +43,6 @@ try:
     from tensorflow.keras.layers import GlobalAveragePooling1D
     from Engine.Layers.QuantizerLayerMLP import QuantizationLayer
 
-    from Engine.Models.Process.MLPProcess import MLPProcess
 
 except ImportError as error:
     print(error)
@@ -51,7 +51,7 @@ except ImportError as error:
 
 
 
-class AudioWav2Vec2(MaskCreator): #, EvaluationProcess):
+class AudioWav2Vec2(MaskCreator, Wav2Vec2Process): #, EvaluationProcess):
     """
     @AudioWav2Vec2
         AudioWav2Vec2 is a class that implements a deep learning model based on the Wav2Vec2
@@ -140,9 +140,7 @@ class AudioWav2Vec2(MaskCreator): #, EvaluationProcess):
             @kernel_size (int): The kernel size for the convolutional layers.
             @list_filters_encoder (list[int], optional): A list of the number of filters for each convolutional encoder block.
         """
-
-#        super().__init__()
-
+        Wav2Vec2Process.__init__(self, arguments)
 
         # Initialize model parameters
         self.neural_network_model = None

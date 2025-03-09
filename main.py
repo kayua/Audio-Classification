@@ -16,6 +16,7 @@ import tensorflow
 
 from Engine.Arguments.Arguments import auto_arguments
 from Engine.Models.ResidualModel import ResidualModel
+from Engine.Models.Wav2Vec2 import AudioWav2Vec2
 from Tools.Logger import auto_logger
 from Tools.PlotterTools import PlotterTools
 from Tools.RunScript import RunScript
@@ -185,8 +186,8 @@ if __name__ == "__main__":
 #       AudioLSTM,
 #        Conformer,
 #        AudioSpectrogramTransformer,
-#        AudioWav2Vec2,
-        ResidualModel
+        AudioWav2Vec2,
+#        ResidualModel
     ]
 
     main.__exec__(available_models, "Results")
