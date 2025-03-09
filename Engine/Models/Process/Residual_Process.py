@@ -11,6 +11,7 @@ __credits__ = ['unknown']
 
 import logging
 
+from Engine.Models.Process.Base_Process import BaseProcess
 from Engine.Processing.ClassBalance import ClassBalancer
 from Engine.Processing.WindowGenerator import WindowGenerator
 
@@ -46,7 +47,7 @@ except ImportError as error:
     sys.exit(-1)
 
 
-class ResidualProcess(ClassBalancer, WindowGenerator):
+class ResidualProcess(ClassBalancer, WindowGenerator, BaseProcess):
 
     def __init__(self, arguments):
 
@@ -175,34 +176,6 @@ class ResidualProcess(ClassBalancer, WindowGenerator):
             metrics_list.append(metrics)
             confusion_matriz_list.append(confusion_matrix)
 
-        # Calculate mean metrics across all folds
-        mean_metrics = {
-            'model_name': self.model_name,
-            'Acc.': {'value': numpy.mean([metric['Accuracy'] for metric in metrics_list]),
-                     'std': numpy.std([metric['Accuracy'] for metric in metrics_list])},
-            'Prec.': {'value': numpy.mean([metric['Precision'] for metric in metrics_list]),
-                      'std': numpy.std([metric['Precision'] for metric in metrics_list])},
-            'Rec.': {'value': numpy.mean([metric['Recall'] for metric in metrics_list]),
-                     'std': numpy.std([metric['Recall'] for metric in metrics_list])},
-            'F1.': {'value': numpy.mean([metric['F1-Score'] for metric in metrics_list]),
-                    'std': numpy.std([metric['F1-Score'] for metric in metrics_list])},
-        }
 
-        probabilities_predicted = {
-            'model_name': self.model_name,
-            'predicted': numpy.concatenate(probabilities_list),
-            'ground_truth': numpy.concatenate(real_labels_list)
-        }
-
-        confusion_matrix_array = numpy.array(confusion_matriz_list)
-        mean_confusion_matrix = numpy.mean(confusion_matrix_array, axis=0)
-        mean_confusion_matrix = numpy.round(mean_confusion_matrix).astype(numpy.int32).tolist()
-
-        mean_confusion_matrices = {
-            "confusion_matrix": mean_confusion_matrix,
-            "class_names": ['Class {}'.format(i) for i in range(self.number_classes)],
-            "title": self.model_name
-        }
-
-        return (mean_metrics, {"Name": self.model_name, "History": history_model.history}, mean_confusion_matrices,
-                probabilities_predicted)
+        return self.__cast_to_dic__(metrics_list, probabilities_list,
+                                    real_labels_list, confusion_matriz_list, history_model)
