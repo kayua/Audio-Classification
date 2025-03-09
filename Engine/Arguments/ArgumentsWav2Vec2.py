@@ -47,6 +47,18 @@ DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
 
 def add_wav_to_vec_arguments(parser):
 
+    parser.add_argument('--wav_to_vec_optimizer_function', type=str, default="adam",
+                        help='Optimizer to use during training'
+                        )
+
+    parser.add_argument('--wav_to_vec_loss_function', type=str, default='sparse_categorical_crossentropy',
+                        help='Loss function to use during training'
+                        )
+
+    parser.add_argument('--wav_to_vec_input_dimension', default=DEFAULT_INPUT_DIMENSION,
+                        help='Dimensions of the input data (height, width)'
+                        )
+
     parser.add_argument('--wav_to_vec_number_heads', type=int, default=DEFAULT_NUMBER_HEADS,
                         help='Number of heads in multi-head attention'
                         )
@@ -108,9 +120,6 @@ def add_wav_to_vec_arguments(parser):
                         help='Activation function for intermediary layers'
                         )
 
-    parser.add_argument('--wav_to_vec_loss_function', type=str, default=DEFAULT_LOSS_FUNCTION,
-                        help='Loss function to use during training'
-                        )
 
 
     return parser

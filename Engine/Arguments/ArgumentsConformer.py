@@ -48,6 +48,16 @@ DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
 
 def add_conformer_arguments(parser):
 
+    parser.add_argument('--conformer_optimizer_function', type=str, default="adam",
+                                 help='Optimizer to use during training'
+                                 )
+    parser.add_argument('--conformer_loss_function', type=str, default='sparse_categorical_crossentropy',
+                                 help='Loss function to use during training')
+
+    parser.add_argument('--conformer_input_dimension', default=DEFAULT_INPUT_DIMENSION,
+                        help='Dimensions of the input data (height, width)'
+                        )
+
     parser.add_argument('--conformer_number_conformer_blocks', type=int, default=DEFAULT_NUMBER_CONFORMER_BLOCKS,
                         help='Number of conformer blocks'
                         )
@@ -91,5 +101,7 @@ def add_conformer_arguments(parser):
     parser.add_argument('--conformer_number_filters_spectrogram', type=int, default=DEFAULT_NUMBER_FILTERS_SPECTROGRAM,
                         help='Number of filters in the spectrogram'
                         )
-
+    parser.add_argument('--conformer_last_layer_activation', type=str, default=DEFAULT_LAST_LAYER_ACTIVATION,
+                        help='Activation function for the last layer'
+                        )
     return parser

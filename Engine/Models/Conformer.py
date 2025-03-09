@@ -104,11 +104,14 @@ class Conformer: #(EvaluationProcess):
         >>>
     """
 
-    def __init__(self, number_conformer_blocks: int, embedding_dimension: int, number_heads: int, size_kernel: tuple,
-                 number_classes: int, last_layer_activation: str, loss_function: str, optimizer_function: str,
-                 number_filters_spectrogram: int, dropout_rate: float, input_dimension: tuple, size_batch: int,
-                 number_splits: int, number_epochs: int, window_size_factor: int, decibel_scale_factor: int,
-                 hop_length: int, overlap: int, sample_rate: int, file_extension: str):
+#    def __init__(self, number_conformer_blocks: int, embedding_dimension: int, number_heads: int, size_kernel: tuple,
+#                 number_classes: int, last_layer_activation: str, loss_function: str, optimizer_function: str,
+#                 number_filters_spectrogram: int, dropout_rate: float, input_dimension: tuple, size_batch: int,
+#                 number_splits: int, number_epochs: int, window_size_factor: int, decibel_scale_factor: int,
+#                 hop_length: int, overlap: int, sample_rate: int, file_extension: str):
+
+    def __init__(self, arguments):
+
         """
         Initialize the Conformer model with the specified hyperparameters.
 
@@ -130,17 +133,17 @@ class Conformer: #(EvaluationProcess):
 #                         decibel_scale_factor, hop_length, overlap, sample_rate, file_extension)
 
         self.neural_network_model = None
-        self.loss_function = loss_function
-        self.optimizer_function = optimizer_function
-        self.number_filters_spectrogram = number_filters_spectrogram
-        self.input_dimension = input_dimension
-        self.number_conformer_blocks = number_conformer_blocks
-        self.embedding_dimension = embedding_dimension
-        self.number_heads = number_heads
-        self.number_classes = number_classes
-        self.kernel_size = size_kernel
-        self.dropout_rate = dropout_rate
-        self.last_layer_activation = last_layer_activation
+        self.loss_function = arguments.conformer_loss_function
+        self.optimizer_function = arguments.conformer_optimizer_function
+        self.number_filters_spectrogram = arguments.conformer_number_filters_spectrogram
+        self.input_dimension = arguments.conformer_input_dimension
+        self.number_conformer_blocks = arguments.conformer_number_conformer_blocks
+        self.embedding_dimension = arguments.conformer_embedding_dimension
+        self.number_heads = arguments.conformer_number_heads
+        self.number_classes = arguments.number_classes
+        self.kernel_size = arguments.conformer_size_kernel
+        self.dropout_rate = arguments.conformer_dropout_rate
+        self.last_layer_activation = arguments.conformer_last_layer_activation
         self.model_name = "Conformer"
 
     def build_model(self) -> None:
@@ -178,6 +181,7 @@ class Conformer: #(EvaluationProcess):
 
         # Create the model
         self.neural_network_model = Model(inputs=inputs, outputs=neural_network_flow, name=self.model_name)
+        self.neural_network_model.summary()
 
     def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,
                           batch_size: int, validation_data: tuple = None) -> tensorflow.keras.callbacks.History:

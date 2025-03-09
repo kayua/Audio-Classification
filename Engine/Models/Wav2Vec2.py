@@ -51,7 +51,7 @@ except ImportError as error:
 
 
 
-class AudioWav2Vec2(MaskCreator, EvaluationProcess):
+class AudioWav2Vec2(MaskCreator): #, EvaluationProcess):
     """
     @AudioWav2Vec2
         AudioWav2Vec2 is a class that implements a deep learning model based on the Wav2Vec2
@@ -117,10 +117,12 @@ class AudioWav2Vec2(MaskCreator, EvaluationProcess):
         @last_layer_activation (str): The activation function used in the output layer (e.g., 'softmax').
         @model_name (str): The name of the model (default is "Wav2Vec2").
     """
+    def __init__(self, arguments):
 
-    def __init__(self, number_classes: int, last_layer_activation: str, loss_function: str, optimizer_function: str,
-                 quantization_units: int, key_dimension: int, dropout_rate: float, intermediary_layer_activation: str,
-                 input_dimension: tuple, number_heads: int, kernel_size: int, list_filters_encoder=None):
+
+#    def __init__(self, number_classes: int, last_layer_activation: str, loss_function: str, optimizer_function: str,
+#                 quantization_units: int, key_dimension: int, dropout_rate: float, intermediary_layer_activation: str,
+#                 input_dimension: tuple, number_heads: int, kernel_size: int, list_filters_encoder=None):
         """
         Initialize the AudioWav2Vec2 model with specified hyperparameters.
 
@@ -144,18 +146,18 @@ class AudioWav2Vec2(MaskCreator, EvaluationProcess):
 
         # Initialize model parameters
         self.neural_network_model = None
-        self.list_filters_encoder = list_filters_encoder  # Convolutional encoder filters
-        self.loss_function = loss_function  # Loss function for training
-        self.optimizer_function = optimizer_function  # Optimizer function
-        self.kernel_size = kernel_size  # Kernel size for the convolutional layers
-        self.quantization_units = quantization_units  # Number of quantization units
-        self.key_dimension = key_dimension  # Key dimension for transformer attention
-        self.intermediary_layer_activation = intermediary_layer_activation  # Activation for intermediary layers
-        self.number_heads = number_heads  # Number of attention heads for the transformer
-        self.input_dimension = input_dimension  # Input data shape
-        self.number_classes = number_classes  # Number of output classes for classification
-        self.dropout_rate = dropout_rate  # Dropout rate for regularization
-        self.last_layer_activation = last_layer_activation  # Activation for the output layer
+        self.list_filters_encoder = arguments.wav_to_vec_list_filters_encoder  # Convolutional encoder filters
+        self.loss_function = arguments.wav_to_vec_loss_function  # Loss function for training
+        self.optimizer_function = arguments.wav_to_vec_optimizer_function  # Optimizer function
+        self.kernel_size = arguments.wav_to_vec_kernel_size  # Kernel size for the convolutional layers
+        self.quantization_units = arguments.wav_to_vec_quantization_bits  # Number of quantization units
+        self.key_dimension = arguments.wav_to_vec_key_dimension  # Key dimension for transformer attention
+        self.intermediary_layer_activation = arguments.wav_to_vec_intermediary_layer_activation  # Activation for intermediary layers
+        self.number_heads = arguments.wav_to_vec_number_heads  # Number of attention heads for the transformer
+        self.input_dimension = arguments.wav_to_vec_input_dimension  # Input data shape
+        self.number_classes = arguments.number_classes  # Number of output classes for classification
+        self.dropout_rate = arguments.wav_to_vec_dropout_rate  # Dropout rate for regularization
+        self.last_layer_activation = arguments.wav_to_vec_last_layer_activation  # Activation for the output layer
         self.model_name = "Wav2Vec2"  # Model name
 
     def build_model(self) -> None:
@@ -218,6 +220,8 @@ class AudioWav2Vec2(MaskCreator, EvaluationProcess):
         # Compile the model with the specified optimizer, loss function, and metrics
         self.neural_network_model.compile(optimizer=self.optimizer_function, loss=ContrastiveLoss(margin=0.5),
                                           metrics=['accuracy'])
+
+        self.neural_network_model.summary()
 
     def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,
                           batch_size: int, validation_data: tuple = None) -> tensorflow.keras.callbacks.History:
