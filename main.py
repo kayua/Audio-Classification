@@ -9,8 +9,6 @@ __last_update__ = '2024/07/26'
 __credits__ = ['unknown']
 
 import gc
-# try:
-
 import logging
 import os
 
@@ -18,14 +16,11 @@ import tensorflow
 
 from Engine.Arguments.Arguments import auto_arguments
 from Engine.Models.AST import AudioSpectrogramTransformer
-from Engine.Models.Conformer import Conformer
-from Engine.Models.LSTM import AudioLSTM
-from Engine.Models.MLP import DenseModel
-from Engine.Models.ResidualModel import ResidualModel
-from Engine.Models.Wav2Vec2 import AudioWav2Vec2
 from Tools.Logger import auto_logger
 from Tools.PlotterTools import PlotterTools
 from Tools.RunScript import RunScript
+
+# try:
 
 # except ImportError as error:
 #     print(error)
@@ -113,8 +108,7 @@ class Main(RunScript, PlotterTools):
             logging.info(f"Instantiated model class '{model_class.__name__}'.")
             # Train the model and collect results
             instance.build_model()
-            #exit()
-            #model_metrics, model_history, model_matrices, model_roc_list = instance.train()
+            model_metrics, model_history, model_matrices, model_roc_list = instance.train()
             #logging.info( f"Training completed for model '{model_class.__name__}'."
             #              f" Collected metrics, history, matrices, and ROC data.")11
 
@@ -187,8 +181,8 @@ if __name__ == "__main__":
     main.__start__()
 
     available_models = [
-        DenseModel,
-#        AudioSpectrogramTransformer,
+#        DenseModel,
+        AudioSpectrogramTransformer,
 #        AudioLSTM,
 #        Conformer,
 #        AudioWav2Vec2,

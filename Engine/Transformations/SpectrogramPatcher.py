@@ -39,7 +39,7 @@ class SpectrogramPatcher:
         """
         self.patch_size = patch_size
 
-    def split_into_patches(self, spectrogram: numpy.ndarray) -> numpy.ndarray:
+    def split_spectrogram_into_patches(self, spectrogram: numpy.ndarray) -> numpy.ndarray:
         """
         Splits a 2D spectrogram into non-overlapping patches of the configured patch size.
         Pads the spectrogram with zeros if its dimensions are not perfectly divisible by the patch size.

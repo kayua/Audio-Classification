@@ -8,6 +8,7 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+from Engine.Models.Process.AST_Process import ProcessAST
 
 try:
 
@@ -45,7 +46,7 @@ except ImportError as error:
 
 
 
-class AudioSpectrogramTransformer:
+class AudioSpectrogramTransformer(ProcessAST):
     """
     @AudioSpectrogramTransformer
 
@@ -111,20 +112,7 @@ class AudioSpectrogramTransformer:
 
     def __init__(self, arguments):
 
-    # def __init__(self,
-    #             projection_dimension: int,
-    #             head_size: int,
-    #             num_heads: int,
-    #             number_blocks: int,
-    #             number_classes: int,
-    #             patch_size: tuple,
-    #             dropout: float,
-    #             intermediary_activation: str,
-    #             loss_function: str,
-    #             last_activation_layer: str,
-    #             optimizer_function: str,
-    #             normalization_epsilon: float,
-    #             number_filters_spectrogram):
+
         """
         Initialize the AudioSpectrogramTransformer model with the specified hyperparameters.
 
@@ -150,6 +138,7 @@ class AudioSpectrogramTransformer:
              from the spectrogram before the transformer.
 
         """
+        super().__init__(arguments)
         self.neural_network_model = None
         self.head_size = arguments.ast_head_size
         self.number_heads = arguments.ast_head_size
