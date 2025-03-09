@@ -38,46 +38,49 @@ class PlotterTools(ComparativeMetricsPlotter, ConfusionMatrixPlotter, PlotLossCu
 
     Parameters:
     ----------
-    @comparative_metrics_figure_width : int The width of the figure for comparative metrics plots.
-    @comparative_metrics_figure_height : int The height of the figure for comparative metrics plots.
-    @comparative_metrics_bar_width : float The width of the bars in the comparative metrics plots.
-    @comparative_metrics_caption_size : int The font size for captions in comparative metrics plots.
-    @comparative_metrics_show_plot : bool Whether to display the comparative metrics plot interactively.
-    @confusion_matrix_figure_size : tuple The size of the figure for the confusion matrix plot (width, height).
-    @confusion_matrix_cmap : str The colormap to use for the confusion matrix plot.
-    @confusion_matrix_annot_font_size : int The font size for annotations in the confusion matrix plot.
-    @confusion_matrix_label_font_size : int The font size for the axis labels in the confusion matrix plot.
-    @confusion_matrix_title_font_size : int The font size for the title in the confusion matrix plot.
-    @confusion_matrix_show_plot : bool Whether to display the confusion matrix plot interactively.
-    @confusion_matrix_colorbar : bool Whether to display the colorbar in the confusion matrix plot.
-    @confusion_matrix_annot_kws : dict or None Additional keyword arguments for annotation in the confusion matrix plot.
-    @confusion_matrix_fmt : str The format string for displaying the confusion matrix values.
-    @confusion_matrix_rotation : int The angle to rotate the axis labels in the confusion matrix plot.
-    @loss_curve_history_dict_list : list A list of dictionaries containing model names and loss history for plotting loss curves.
-    @loss_curve_path_output : str The directory path to save the loss curve plot.
-    @loss_curve_figure_size : tuple The size of the figure for the loss curve plot (width, height).
-    @loss_curve_training_loss_color : str The color of the training loss curve.
-    @loss_curve_validation_loss_color : str The color of the validation loss curve.
-    @loss_curve_title_font_size : int The font size for the title of the loss curve plot.
-    @loss_curve_axis_font_size : int The font size for the axis labels of the loss curve plot.
-    @loss_curve_legend_font_size : int The font size for the legend of the loss curve plot.
-    @loss_curve_x_label : str The label for the x-axis of the loss curve plot.
-    @loss_curve_y_label : str The label for the y-axis of the loss curve plot.
-    @loss_curve_title : str The title of the loss curve plot.
-    @loss_curve_grid : bool Whether to display grid lines on the loss curve plot.
-    @loss_curve_line_style_training : str The line style for the training loss curve.
-    @loss_curve_line_style_validation : str The line style for the validation loss curve.
-    @loss_curve_line_width : int The line width for both the training and validation loss curves.
-    @roc_curve_figure_size : tuple The size of the figure for the ROC curve plot (width, height).
-    @roc_curve_line_width : int The line width for the ROC curve plot.
-    @roc_curve_marker_style : str The marker style for the ROC curve plot.
-    @roc_curve_cmap : str The colormap for the ROC curve plot.
-    @roc_curve_show_plot : bool Whether to display the ROC curve plot interactively.
-    @roc_curve_title_font_size : int The font size for the title of the ROC curve plot.
-    @roc_curve_axis_label_font_size : int The font size for the axis labels of the ROC curve plot.
-    @roc_curve_legend_font_size : int The font size for the legend of the ROC curve plot.
-    @roc_curve_grid : bool Whether to display grid lines on the ROC curve plot.
-    @roc_curve_diagonal_line : bool Whether to include the diagonal line (representing random guessing) on the ROC curve plot.
+        @comparative_metrics_figure_width : int The width of the figure for comparative metrics plots.
+        @comparative_metrics_figure_height : int The height of the figure for comparative metrics plots.
+        @comparative_metrics_bar_width : float The width of the bars in the comparative metrics plots.
+        @comparative_metrics_caption_size : int The font size for captions in comparative metrics plots.
+        @comparative_metrics_show_plot : bool Whether to display the comparative metrics plot interactively.
+
+        @confusion_matrix_figure_size : tuple The size of the figure for the confusion matrix plot (width, height).
+        @confusion_matrix_cmap : str The colormap to use for the confusion matrix plot.
+        @confusion_matrix_annot_font_size : int The font size for annotations in the confusion matrix plot.
+        @confusion_matrix_label_font_size : int The font size for the axis labels in the confusion matrix plot.
+        @confusion_matrix_title_font_size : int The font size for the title in the confusion matrix plot.
+        @confusion_matrix_show_plot : bool Whether to display the confusion matrix plot interactively.
+        @confusion_matrix_colorbar : bool Whether to display the colorbar in the confusion matrix plot.
+        @confusion_matrix_annot_kws : dict or None Additional keyword arguments for annotation in the confusion matrix plot.
+        @confusion_matrix_fmt : str The format string for displaying the confusion matrix values.
+        @confusion_matrix_rotation : int The angle to rotate the axis labels in the confusion matrix plot.
+
+        @loss_curve_history_dict_list : list A list of dictionaries containing model names and loss history for plotting loss curves.
+        @loss_curve_path_output : str The directory path to save the loss curve plot.
+        @loss_curve_figure_size : tuple The size of the figure for the loss curve plot (width, height).
+        @loss_curve_training_loss_color : str The color of the training loss curve.
+        @loss_curve_validation_loss_color : str The color of the validation loss curve.
+        @loss_curve_title_font_size : int The font size for the title of the loss curve plot.
+        @loss_curve_axis_font_size : int The font size for the axis labels of the loss curve plot.
+        @loss_curve_legend_font_size : int The font size for the legend of the loss curve plot.
+        @loss_curve_x_label : str The label for the x-axis of the loss curve plot.
+        @loss_curve_y_label : str The label for the y-axis of the loss curve plot.
+        @loss_curve_title : str The title of the loss curve plot.
+        @loss_curve_grid : bool Whether to display grid lines on the loss curve plot.
+        @loss_curve_line_style_training : str The line style for the training loss curve.
+        @loss_curve_line_style_validation : str The line style for the validation loss curve.
+        @loss_curve_line_width : int The line width for both the training and validation loss curves.
+
+        @roc_curve_figure_size : tuple The size of the figure for the ROC curve plot (width, height).
+        @roc_curve_line_width : int The line width for the ROC curve plot.
+        @roc_curve_marker_style : str The marker style for the ROC curve plot.
+        @roc_curve_cmap : str The colormap for the ROC curve plot.
+        @roc_curve_show_plot : bool Whether to display the ROC curve plot interactively.
+        @roc_curve_title_font_size : int The font size for the title of the ROC curve plot.
+        @roc_curve_axis_label_font_size : int The font size for the axis labels of the ROC curve plot.
+        @roc_curve_legend_font_size : int The font size for the legend of the ROC curve plot.
+        @roc_curve_grid : bool Whether to display grid lines on the ROC curve plot.
+        @roc_curve_diagonal_line : bool Whether to include the diagonal line (representing random guessing) on the ROC curve plot.
 
     Example:
     -------
