@@ -19,6 +19,7 @@ from logging.handlers import RotatingFileHandler
 
 import tensorflow
 
+from Tools.Logger import auto_logger
 from Tools.RunScript import RunScript
 
 # except ImportError as error:
@@ -59,51 +60,45 @@ DEFAULT_PLOT_BAR_WIDTH = 0.15
 DEFAULT_PLOT_CAP_SIZE = 10
 
 
-class EvaluationModels(RunScript):
+class Main(RunScript):
 
     def __init__(self):
         self.mean_metrics = []
         self.mean_history = []
         self.mean_matrices = []
         self.list_roc_curve = []
-        logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+        self.__autologger__()
 
-        input_arguments = get_arguments()
 
-        logger = logging.getLogger()
 
-        def get_logs_path():
-            logs_dir = 'Logs'  # Name of the directory where logs will be stored
-            os.makedirs(logs_dir, exist_ok=True)  # Create the directory if it doesn't exist
-            return logs_dir  # Return the path to the logs directory
 
-        logging_format = '%(asctime)s\t***\t%(message)s'
 
-        if input_arguments.verbosity == logging.DEBUG:
-            logging_format = '%(asctime)s\t***\t%(levelname)s {%(module)s} [%(funcName)s] %(message)s'
+    @auto_logger
+    def __autologger__(self):
+        """
+            A Logger class designed to manage and configure logging for an application.
+            It supports logging to both console and rotating log files. The log file name is
+            dynamically generated based on the current date and time, and it creates backups of
+            the log file to prevent the log file from growing too large.
 
-        LOGGING_FILE_NAME = datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.log'
-        logging_filename = os.path.join(get_logs_path(), LOGGING_FILE_NAME)
+        Attributes:
+            @_logger (logging.Logger): The main logger object for logging messages.
+            @_logging_format (str): The format in which log messages are written.
+            @_rotatingFileHandler (logging.Handler): The handler that writes logs to a rotating file.
+            @_consoleHandler (logging.Handler): The handler that writes logs to the console.
+        """
+        pass
 
-        logger.setLevel(input_arguments.verbosity)
 
-        rotatingFileHandler = RotatingFileHandler(filename=logging_filename, maxBytes=1000000, backupCount=5)
-        rotatingFileHandler.setLevel(input_arguments.verbosity)
-        rotatingFileHandler.setFormatter(logging.Formatter(logging_format))
 
-        logger.addHandler(rotatingFileHandler)
 
-        consoleHandler = logging.StreamHandler()
-        consoleHandler.setLevel(input_arguments.verbosity)
-        consoleHandler.setFormatter(logging.Formatter(logging_format))
 
-        logger.addHandler(consoleHandler)
 
-        if logger.hasHandlers():
-            logger.handlers.clear()
 
-        logger.addHandler(rotatingFileHandler)
-        logger.addHandler(consoleHandler)
+
+
+
+
 
     # @staticmethod
     # def train_and_collect_metrics(model_class, dataset_directory, number_epochs, batch_size, number_splits, loss,
@@ -275,7 +270,7 @@ if __name__ == "__main__":
     ]
 
     # Create an instance of the evaluation class
-    evaluation = EvaluationModels()
+    evaluation = Main()
     # Run the evaluation of the models with specified parameters
     evaluation.run(
         models=available_models,  # Models to be evaluated
