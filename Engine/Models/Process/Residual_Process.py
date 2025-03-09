@@ -46,23 +46,23 @@ except ImportError as error:
     sys.exit(-1)
 
 
-class ResidualModel(ClassBalancer, WindowGenerator):
+class ResidualProcess(ClassBalancer, WindowGenerator):
 
     def __init__(self, arguments):
 
         self.neural_network_model = None
-        self.sample_rate = arguments.residual_sample_rate
-        self.size_batch = arguments.residual_size_batch
-        self.number_splits = arguments.residual_number_splits
+        self.sample_rate = arguments.sample_rate
+        self.batch_size = arguments.batch_size
+        self.number_splits = arguments.number_splits
         self.loss_function = arguments.residual_loss_function
         self.hop_length = arguments.residual_hop_length
         self.decibel_scale_factor = arguments.residual_decibel_scale_factor
-        self.window_size_fft = arguments.residual_window_size_fft
+        self.window_size_fft = arguments.residual_window_size
         self.window_size_factor = arguments.residual_window_size_factor
         self.window_size = arguments.residual_hop_length * (self.window_size_factor - 1)
         self.input_shape = arguments.residual_input_dimension
         self.overlap = arguments.residual_overlap
-        self.number_epochs = arguments.residual_number_epochs
+        self.number_epochs = arguments.number_epochs
         self.optimizer_function = arguments.residual_optimizer_function
         self.file_extension = arguments.file_extension
         self.number_classes = arguments.number_classes
@@ -161,7 +161,7 @@ class ResidualModel(ClassBalancer, WindowGenerator):
             self.neural_network_model.summary()
 
             history_model = self.compile_and_train(features_train, labels_train, epochs=self.number_epochs,
-                                                   batch_size=self.size_batch,
+                                                   batch_size=self.batch_size,
                                                    validation_data=(features_val, labels_val))
 
             model_predictions = self.neural_network_model.predict(features_val)

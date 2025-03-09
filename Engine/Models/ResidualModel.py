@@ -8,6 +8,8 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+from Engine.Models.Process.Residual_Process import ResidualProcess
+
 try:
     import sys
 
@@ -25,8 +27,6 @@ try:
     from tensorflow.keras.layers import Concatenate
     from tensorflow.keras.layers import MaxPooling2D
 
-    from Engine.Models.Process.MLPProcess import MLPProcess
-
 except ImportError as error:
 
     print(error)
@@ -34,7 +34,7 @@ except ImportError as error:
 
 
 
-class ResidualModel: #(EvaluationProcess):
+class ResidualModel(ResidualProcess): #(EvaluationProcess):
     """
     @ResidualModel
         ResidualModel is a class that implements a residual convolutional neural
@@ -133,6 +133,7 @@ class ResidualModel: #(EvaluationProcess):
 #        super().__init__(size_batch, number_splits, number_epochs, optimizer_function, window_size_factor,
 #                         decibel_scale_factor, hop_length, overlap, sample_rate, file_extension)
 
+        ResidualProcess.__init__(self, arguments)
         self.neural_network_model = None  # Placeholder for the Keras model
         self.loss_function = arguments.residual_loss_function  # Loss function used during training
         self.size_pooling = arguments.residual_size_pooling  # Pooling size for down-sampling
