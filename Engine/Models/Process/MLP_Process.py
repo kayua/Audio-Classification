@@ -59,17 +59,16 @@ class MLPProcess(ClassBalancer, WindowGenerator):
         self.batch_size = arguments.batch_size
         self.number_splits = arguments.number_splits
         self.number_epochs = arguments.number_epochs
-        self.loss_function = arguments.loss_function
-        self.optimizer_function = arguments.optimizer_function
-        self.window_size_factor = arguments.window_size_factor
-        self.decibel_scale_factor = arguments.decibel_scale_factor
-        self.hop_length = arguments.hop_length
-        self.intermediary_layer_activation = arguments.intermediary_layer_activation
-        self.overlap = arguments.overlap
+        self.loss_function = arguments.mlp_loss_function
+        self.optimizer_function = arguments.mlp_optimizer_function
+        self.window_size_factor = arguments.mlp_window_size_factor
+        self.decibel_scale_factor = arguments.mlp_decibel_scale_factor
+        self.hop_length = arguments.mlp_hop_length
+        self.overlap = arguments.mlp_overlap
         self.window_size = self.hop_length * self.window_size_factor
         self.sample_rate = arguments.sample_rate
         self.file_extension = arguments.file_extension
-        self.input_dimension = arguments.input_dimension
+        self.input_dimension = arguments.mlp_input_dimension
         self.number_classes = arguments.number_classes
         self.dataset_directory = arguments.dataset_directory
         WindowGenerator.__init__(self, self.window_size, self.overlap)
@@ -100,7 +99,7 @@ class MLPProcess(ClassBalancer, WindowGenerator):
                 label = file_name.split('/')[-2].split('_')[0]
 
                 # Segment the audio into windows
-                for (start, end) in self.generate_windows(signal, self.window_size, self.overlap):
+                for (start, end) in self.generate_windows(signal):
                     if len(signal[start:end]) == self.window_size:
                         local_window = len(signal[start:end]) // self.window_size_factor
 
