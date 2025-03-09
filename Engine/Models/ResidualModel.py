@@ -34,7 +34,7 @@ except ImportError as error:
 
 
 
-class ResidualModel(EvaluationProcess):
+class ResidualModel: #(EvaluationProcess):
     """
     @ResidualModel
         ResidualModel is a class that implements a residual convolutional neural
@@ -101,13 +101,17 @@ class ResidualModel(EvaluationProcess):
         @intermediary_activation (str): Activation function used in intermediary layers (e.g., 'relu').
         @model_name (str): The name of the model (default is "ResidualModel").
     """
+    def __init__(self, arguments):
 
-    def __init__(self, input_dimension: tuple[int, int, int], convolutional_padding: str, intermediary_activation: str,
-                 last_layer_activation: str, number_classes: int, size_convolutional_filters: tuple[int, int],
-                 size_pooling: tuple[int, int], filters_per_block: list[int], loss_function: str,
-                 optimizer_function: str, dropout_rate: float, size_batch: int, number_splits: int, number_epochs: int,
-                 window_size_factor: int, decibel_scale_factor: int, hop_length: int, overlap: int, sample_rate: int,
-                 file_extension: str):
+
+
+#    def __init__(self, input_dimension: tuple[int, int, int], convolutional_padding: str, intermediary_activation: str,
+#                 last_layer_activation: str, number_classes: int, size_convolutional_filters: tuple[int, int],
+#                 size_pooling: tuple[int, int], filters_per_block: list[int], loss_function: str,
+#                 optimizer_function: str, dropout_rate: float, size_batch: int, number_splits: int, number_epochs: int,
+#                 window_size_factor: int, decibel_scale_factor: int, hop_length: int, overlap: int, sample_rate: int,
+#                 file_extension: str):
+
         """
         Initialize the ResidualModel class.
 
@@ -130,17 +134,17 @@ class ResidualModel(EvaluationProcess):
 #                         decibel_scale_factor, hop_length, overlap, sample_rate, file_extension)
 
         self.neural_network_model = None  # Placeholder for the Keras model
-        self.loss_function = loss_function  # Loss function used during training
-        self.size_pooling = size_pooling  # Pooling size for down-sampling
-        self.filters_per_block = filters_per_block  # Number of filters in each block
-        self.input_shape = input_dimension  # Shape of the input data
-        self.optimizer_function = optimizer_function  # Optimizer used for training
-        self.dropout_rate = dropout_rate  # Dropout rate for regularization
-        self.size_convolutional_filters = size_convolutional_filters  # Size of convolutional filters
-        self.number_classes = number_classes  # Number of output classes
-        self.last_layer_activation = last_layer_activation  # Activation function for the output layer
-        self.convolutional_padding = convolutional_padding  # Padding type for convolution layers
-        self.intermediary_activation = intermediary_activation  # Activation for intermediary layers
+        self.loss_function = arguments.residual_loss_function  # Loss function used during training
+        self.size_pooling = arguments.residual_size_pooling  # Pooling size for down-sampling
+        self.filters_per_block = arguments.residual_filters_per_block  # Number of filters in each block
+        self.input_shape = arguments.residual_input_dimension  # Shape of the input data
+        self.optimizer_function = arguments.residual_optimizer_function  # Optimizer used for training
+        self.dropout_rate = arguments.residual_dropout_rate  # Dropout rate for regularization
+        self.size_convolutional_filters = arguments.residual_size_convolutional_filters  # Size of convolutional filters
+        self.number_classes = arguments.number_classes  # Number of output classes
+        self.last_layer_activation = arguments.residual_last_layer_activation  # Activation function for the output layer
+        self.convolutional_padding = arguments.residual_convolutional_padding  # Padding type for convolution layers
+        self.intermediary_activation = arguments.residual_intermediary_activation  # Activation for intermediary layers
         self.model_name = "ResidualModel"  # Name of the model
 
     def build_model(self):
@@ -193,6 +197,7 @@ class ResidualModel(EvaluationProcess):
 
         # Create the Keras model with the defined input and output layers.
         self.neural_network_model = Model(inputs=inputs, outputs=neural_network_flow, name=self.model_name)
+        self.neural_network_model.summary()
 
     def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,
                           batch_size: int, validation_data: tuple = None) -> tensorflow.keras.callbacks.History:

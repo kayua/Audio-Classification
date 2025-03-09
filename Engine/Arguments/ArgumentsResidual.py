@@ -50,6 +50,18 @@ DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
 
 def add_residual_arguments(parser):
 
+    parser.add_argument('--residual_optimizer_function', type=str, default="adam",
+                        help='Optimizer to use during training'
+                        )
+
+    parser.add_argument('--residual_loss_function', type=str, default='sparse_categorical_crossentropy',
+                        help='Loss function to use during training'
+                        )
+
+    parser.add_argument('--residual_input_dimension', default=DEFAULT_INPUT_DIMENSION,
+                        help='Dimensions of the input data (height, width)'
+                        )
+
     parser.add_argument('--residual_hop_length', type=int, default=DEFAULT_HOP_LENGTH,
                         help='Hop length for STFT'
                         )
