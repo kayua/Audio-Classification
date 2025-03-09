@@ -62,7 +62,7 @@ DEFAULT_VERBOSE_LIST = {logging.INFO: 2, logging.DEBUG: 1, logging.WARNING: 2,
                         logging.FATAL: 0, logging.ERROR: 0}
 
 
-def arguments(function):
+def load_arguments(function):
     """
     Decorator to initialize an instance of the Arguments class
     before executing the wrapped function.
