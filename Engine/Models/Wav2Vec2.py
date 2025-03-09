@@ -42,7 +42,7 @@ try:
     from tensorflow.keras.layers import GlobalAveragePooling1D
     from Engine.Layers.QuantizerLayerMLP import QuantizationLayer
 
-    from Engine.Models.Process.EvaluationProcess import EvaluationProcess
+    from Engine.Models.Process.RawEvaluationProcess import RawEvaluationProcess
 
 except ImportError as error:
     print(error)

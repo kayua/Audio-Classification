@@ -21,9 +21,6 @@ try:
 
     from tqdm import tqdm
 
-    from Engine.Processing.PathTools import PathTools
-
-    from Engine.Processing.WindowGenerator import WindowGenerator
 
 except ImportError as error:
     print(error)
@@ -31,7 +28,7 @@ except ImportError as error:
 
 
 
-class SpectrogramFeature(WindowGenerator, PathTools):
+class SpectrogramFeature:
     """
     A class for generating spectrogram features from audio signals for machine
     learning tasks.
@@ -117,9 +114,6 @@ class SpectrogramFeature(WindowGenerator, PathTools):
             hop_length (int): The hop length for computing the spectrogram.
             decibel_scale_factor (int): The decibel scale factor for normalization.
         """
-
-        # Store all the parameters as attributes
-        WindowGenerator.__init__(self, window_size, overlap)
 
         self.sample_rate = sample_rate
         self.window_size = window_size

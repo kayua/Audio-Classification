@@ -20,17 +20,13 @@ try:
 
     from tqdm import tqdm
 
-    from Engine.Processing.PathTools import PathTools
-
-    from Engine.Processing.WindowGenerator import WindowGenerator
-
     from Engine.Transformations.SpectrogramPatcher import SpectrogramPatcher
 
 except ImportError as error:
     print(error)
     sys.exit(-1)
 
-class PatcherSpectrogramFeature(SpectrogramPatcher, WindowGenerator, PathTools):
+class PatcherSpectrogramFeature(SpectrogramPatcher):
 
     def __init__(self, patcher_spectrogram_sample_rate: int, patcher_spectrogram_window_size: int,
                  patcher_spectrogram_overlap: int, patcher_spectrogram_number_filters_spectrogram: int,
@@ -38,9 +34,7 @@ class PatcherSpectrogramFeature(SpectrogramPatcher, WindowGenerator, PathTools):
                  patcher_spectrogram_decibel_scale_factor: int, patcher_spectrogram_patch_size: tuple[int, int]):
 
         # Store all the parameters as attributes
-        super().__init__(patcher_spectrogram_patch_size)
-
-        WindowGenerator.__init__(self, patcher_spectrogram_window_size, patcher_spectrogram_overlap)
+        SpectrogramPatcher.__init__(self, patcher_spectrogram_patch_size)
 
         self._patcher_spectrogram_audio_duration = None
         self._patcher_spectrogram_sample_rate = patcher_spectrogram_sample_rate

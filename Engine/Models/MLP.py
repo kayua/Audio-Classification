@@ -28,7 +28,7 @@ try:
 
     from tensorflow.keras.layers import GlobalAveragePooling1D
 
-    from Engine.Models.Process.EvaluationProcess import EvaluationProcess
+    from Engine.Models.Process.RawEvaluationProcess import RawEvaluationProcess
 
 except ImportError as error:
     print(error)
@@ -36,7 +36,7 @@ except ImportError as error:
 
 
 
-class DenseModel(EvaluationProcess):
+class DenseModel(RawEvaluationProcess):
     """
     @DenseModel
 
@@ -123,6 +123,8 @@ class DenseModel(EvaluationProcess):
 #                         arguments.sample_rate, arguments.file_extension)
 
         # Model initialization attributes.
+        super().__init__(arguments)
+
         self.neural_network_model = None  # Placeholder for the Keras model.
         self.list_number_neurons = arguments.mlp_list_dense_neurons  # List of the number of neurons in each hidden layer.
         self.loss_function = arguments.mlp_loss_function  # Loss function for training.

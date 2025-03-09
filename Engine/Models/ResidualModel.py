@@ -25,7 +25,7 @@ try:
     from tensorflow.keras.layers import Concatenate
     from tensorflow.keras.layers import MaxPooling2D
 
-    from Engine.Models.Process.EvaluationProcess import EvaluationProcess
+    from Engine.Models.Process.RawEvaluationProcess import RawEvaluationProcess
 
 except ImportError as error:
 
