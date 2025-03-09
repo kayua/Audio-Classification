@@ -41,7 +41,7 @@ except ImportError as error:
      sys.exit(-1)
 
 
-class Conformer(EvaluationProcess):
+class Conformer: #(EvaluationProcess):
     """
     @Conformer
 
@@ -126,8 +126,9 @@ class Conformer(EvaluationProcess):
             @input_dimension (tuple): The shape of the input data.
         """
 
-        super().__init__(size_batch, number_splits, number_epochs, optimizer_function, window_size_factor,
-                         decibel_scale_factor, hop_length, overlap, sample_rate, file_extension)
+#        super().__init__(size_batch, number_splits, number_epochs, optimizer_function, window_size_factor,
+#                         decibel_scale_factor, hop_length, overlap, sample_rate, file_extension)
+
         self.neural_network_model = None
         self.loss_function = loss_function
         self.optimizer_function = optimizer_function

@@ -36,7 +36,7 @@ except ImportError as error:
 
 
 
-class DenseModel(EvaluationProcess):
+class DenseModel: #(EvaluationProcess):
     """
     @DenseModel
 
@@ -116,11 +116,11 @@ class DenseModel(EvaluationProcess):
             LSTM layer. Default is None.
         """
 
-        # If list_lstm_cells is not provided, use the default list of dense neurons.
-        EvaluationProcess.__init__(arguments.batch_size, arguments.number_splits, arguments.number_epochs,
-                         arguments.mlp_optimizer_function, arguments.mlp_window_size_factor,
-                         arguments.mlp_decibel_scale_factor, arguments.mlp_hop_length, arguments.mlp_overlap,
-                         arguments.sample_rate, arguments.file_extension)
+#        # If list_lstm_cells is not provided, use the default list of dense neurons.
+#        EvaluationProcess.__init__(arguments.batch_size, arguments.number_splits, arguments.number_epochs,
+#                         arguments.mlp_optimizer_function, arguments.mlp_window_size_factor,
+#                         arguments.mlp_decibel_scale_factor, arguments.mlp_hop_length, arguments.mlp_overlap,
+#                         arguments.sample_rate, arguments.file_extension)
 
         # Model initialization attributes.
         self.neural_network_model = None  # Placeholder for the Keras model.
@@ -128,7 +128,7 @@ class DenseModel(EvaluationProcess):
         self.loss_function = arguments.mlp_loss_function  # Loss function for training.
         self.optimizer_function = arguments.mlp_optimizer_function  # Optimizer function for training.
         self.intermediary_layer_activation = arguments.mlp_intermediary_layer_activation  # Activation function for hidden layers.
-        self.input_dimension = arguments.input_dimension  # Shape of the input data (e.g., images).
+        self.input_dimension = arguments.mlp_input_dimension  # Shape of the input data (e.g., images).
         self.number_classes = arguments.number_classes  # Number of output classes for classification.
         self.dropout_rate = arguments.mlp_dropout_rate  # Dropout rate for regularization.
         self.last_layer_activation = arguments.mlp_last_layer_activation  # Activation for the output layer.

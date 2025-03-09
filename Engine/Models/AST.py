@@ -203,7 +203,7 @@ class AudioSpectrogramTransformer:
 
         return inputs
 
-    def build_model(self, number_patches: int) -> tensorflow.keras.models.Model:
+    def build_model(self, number_patches: int = 8) -> tensorflow.keras.models.Model:
         """
         Builds the AST model consisting of a transformer encoder and a classification head.
 

@@ -112,7 +112,7 @@ class Main(RunScript, PlotterTools):
             instance = model_class(arguments = self.input_arguments)
             logging.info(f"Instantiated model class '{model_class.__name__}'.")
             # Train the model and collect results
-            instance.build_model(8)
+            instance.build_model()
             #exit()
             #model_metrics, model_history, model_matrices, model_roc_list = instance.train()
             #logging.info( f"Training completed for model '{model_class.__name__}'."

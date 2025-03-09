@@ -35,7 +35,7 @@ except ImportError as error:
 
 
 
-class AudioLSTM(EvaluationProcess):
+class AudioLSTM: #(EvaluationProcess):
     """
     @AudioLSTM
 
@@ -114,8 +114,8 @@ class AudioLSTM(EvaluationProcess):
             @list_lstm_cells (list[int], optional): A list of the number of cells for each LSTM layer.
         """
 
-        super().__init__(size_batch, number_splits, number_epochs, optimizer_function, window_size_factor,
-                         decibel_scale_factor, hop_length, overlap, sample_rate, file_extension)
+#        super().__init__(size_batch, number_splits, number_epochs, optimizer_function, window_size_factor,
+#                         decibel_scale_factor, hop_length, overlap, sample_rate, file_extension)
 
         # Initialize model parameters
         self.neural_network_model = None

@@ -126,8 +126,8 @@ class ResidualModel(EvaluationProcess):
         """
 
         # Initialize model parameters
-        super().__init__(size_batch, number_splits, number_epochs, optimizer_function, window_size_factor,
-                         decibel_scale_factor, hop_length, overlap, sample_rate, file_extension)
+#        super().__init__(size_batch, number_splits, number_epochs, optimizer_function, window_size_factor,
+#                         decibel_scale_factor, hop_length, overlap, sample_rate, file_extension)
 
         self.neural_network_model = None  # Placeholder for the Keras model
         self.loss_function = loss_function  # Loss function used during training

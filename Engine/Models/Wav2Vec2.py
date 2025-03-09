@@ -139,7 +139,7 @@ class AudioWav2Vec2(MaskCreator, EvaluationProcess):
             @list_filters_encoder (list[int], optional): A list of the number of filters for each convolutional encoder block.
         """
 
-        super().__init__()
+#        super().__init__()
 
 
         # Initialize model parameters
