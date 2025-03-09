@@ -17,6 +17,7 @@ import tensorflow
 from Engine.Arguments.Arguments import auto_arguments
 from Engine.Models.AST import AudioSpectrogramTransformer
 from Engine.Models.Conformer import Conformer
+from Engine.Models.LSTM import AudioLSTM
 from Tools.Logger import auto_logger
 from Tools.PlotterTools import PlotterTools
 from Tools.RunScript import RunScript
@@ -182,10 +183,10 @@ if __name__ == "__main__":
     main.__start__()
 
     available_models = [
-        Conformer,
+       AudioLSTM,
+#        Conformer,
 #        DenseModel,
 #        AudioSpectrogramTransformer,
-#        AudioLSTM,
 #        AudioWav2Vec2,
 #        ResidualModel
     ]

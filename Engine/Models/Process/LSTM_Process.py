@@ -33,7 +33,6 @@ try:
     from sklearn.model_selection import StratifiedKFold
     from sklearn.model_selection import train_test_split
     from tensorflow.keras.layers import GlobalAveragePooling1D
-    from Modules.Evaluation.MetricsCalculator import MetricsCalculator
 
 except ImportError as error:
     print(error)
@@ -44,7 +43,7 @@ except ImportError as error:
     sys.exit(-1)
 
 
-class AudioLSTM(ClassBalancer, WindowGenerator):
+class ProcessLSTM(ClassBalancer, WindowGenerator):
     """
     A Long Short-Term Memory (LSTM) model for audio classification, integrating LSTM layers and a final classification layer.
 
@@ -54,19 +53,19 @@ class AudioLSTM(ClassBalancer, WindowGenerator):
     def __init__(self, arguments):
 
         self.neural_network_model = None
-        self.size_batch = arguments.size_batch
+        self.batch_size = arguments.batch_size
         self.number_splits = arguments.number_splits
         self.number_epochs = arguments.number_epochs
-        self.loss_function = arguments.loss_function
-        self.optimizer_function = arguments.optimizer_function
-        self.window_size_factor = arguments.window_size_factor
-        self.decibel_scale_factor = arguments.decibel_scale_factor
-        self.hop_length = arguments.hop_length
-        self.overlap = arguments.overlap
+        self.loss_function = arguments.lstm_loss_function
+        self.optimizer_function = arguments.lstm_optimizer_function
+        self.window_size_factor = arguments.lstm_window_size_factor
+        self.decibel_scale_factor = arguments.lstm_decibel_scale_factor
+        self.hop_length = arguments.lstm_hop_length
+        self.overlap = arguments.lstm_overlap
         self.window_size = self.hop_length * self.window_size_factor
         self.sample_rate = arguments.sample_rate
         self.file_extension = arguments.file_extension
-        self.input_dimension = arguments.input_dimension
+        self.input_dimension = arguments.lstm_input_dimension
         self.number_classes = arguments.number_classes
         self.dataset_directory = arguments.dataset_directory
         self.model_name = "LSTM"
@@ -192,7 +191,7 @@ class AudioLSTM(ClassBalancer, WindowGenerator):
             self.neural_network_model.summary()
 
             history_model = self.compile_and_train(features_train, labels_train, epochs=self.number_epochs,
-                                                   batch_size=self.size_batch,
+                                                   batch_size=self.batch_size,
                                                    validation_data=(features_val, labels_val))
 
             model_predictions = self.neural_network_model.predict(features_val)

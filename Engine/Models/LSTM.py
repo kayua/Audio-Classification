@@ -8,6 +8,7 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+from Engine.Models.Process.LSTM_Process import ProcessLSTM
 
 try:
     import sys
@@ -26,8 +27,6 @@ try:
 
     from tensorflow.keras.layers import GlobalAveragePooling1D
 
-    from Engine.Models.Process.MLPProcess import MLPProcess
-
 
 except ImportError as error:
     print(error)
@@ -35,7 +34,7 @@ except ImportError as error:
 
 
 
-class AudioLSTM: #(EvaluationProcess):
+class AudioLSTM(ProcessLSTM): #(EvaluationProcess):
     """
     @AudioLSTM
 
@@ -122,6 +121,8 @@ class AudioLSTM: #(EvaluationProcess):
 #                         decibel_scale_factor, hop_length, overlap, sample_rate, file_extension)
 
         # Initialize model parameters
+        ProcessLSTM.__init__(self, arguments)
+
         self.neural_network_model = None
         self.list_lstm_cells = arguments.lstm_list_lstm_cells  # Number of cells in each LSTM layer
         self.loss_function = arguments.lstm_loss_function  # Loss function for training
