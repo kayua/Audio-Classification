@@ -134,7 +134,7 @@ class ProcessAST(ClassBalancer, SpectrogramPatcher, WindowGenerator, BaseProcess
             for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
                 try:
                     signal_raw, _ = librosa.load(file_name, sr=self.sample_rate)
-                    label = file_name.split('/')[-2].split('_')[0]
+                    label = self.__get_label__(file_name)
 
                     for (start, end) in self.generate_windows(signal_raw):
                         if len(signal_raw[start:end]) == self.window_size:

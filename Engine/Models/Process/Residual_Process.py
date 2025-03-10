@@ -89,7 +89,7 @@ class ResidualProcess(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
 
                 # Load the audio signal
                 raw_signal, _ = librosa.load(file_name, sr=self.sample_rate)
-                label = file_name.split('/')[-2].split('_')[0]  # Extract label from the file path
+                label = self.__get_label__(file_name)  # Extract label from the file path
 
                 # Segment the audio into windows
                 for (start, end) in self.generate_windows(raw_signal):

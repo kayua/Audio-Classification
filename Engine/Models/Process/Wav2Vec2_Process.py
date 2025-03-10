@@ -113,7 +113,7 @@ class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
                 raw_signal, _ = librosa.load(file_name, sr=self.sample_rate)
 
                 # Extract label from file name (assumes directory structure encodes label)
-                label = int(file_name.split('/')[-2].split('_')[0])
+                label = self.__get_label__(file_name)
 
                 # Segment the signal using sliding windows
                 for (start, end) in self.generate_windows(raw_signal):

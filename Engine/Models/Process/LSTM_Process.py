@@ -111,7 +111,7 @@ class ProcessLSTM(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
                     # Load the audio signal
                     raw_signal, _ = librosa.load(file_name, sr=self.sample_rate)
                     # Extract label from the file path (assumes label is part of directory structure)
-                    label = file_name.split('/')[-2].split('_')[0]
+                    label = self.__get_label__(file_name)
 
                     # Segment the audio into windows
                     for (start, end) in self.generate_windows(raw_signal):

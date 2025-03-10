@@ -83,3 +83,9 @@ class BaseProcess:
             normalized_signal = numpy.zeros_like(signal_segments)
 
         return normalized_signal
+
+
+    @staticmethod
+    def __get_label__(file_name):
+
+        return file_name.split('/')[-2].split('_')[0]
