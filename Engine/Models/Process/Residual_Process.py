@@ -1,4 +1,3 @@
-
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
@@ -9,42 +8,30 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-import logging
-
-from Engine.Models.Process.Base_Process import BaseProcess
-from Engine.Processing.ClassBalance import ClassBalancer
-from Engine.Processing.WindowGenerator import WindowGenerator
-from Tools.Metrics import Metrics
 
 try:
     import os
     import sys
     import glob
+
     import numpy
     import librosa
-    import tensorflow
+    import logging
 
     from tqdm import tqdm
     import librosa.display
-    from tensorflow.keras import Model
-    from sklearn.utils import resample
-    from tensorflow.keras.layers import Conv2D
-    from tensorflow.keras.layers import Flatten
-    from tensorflow.keras.layers import Dense
-    from tensorflow.keras.layers import Input
-    from tensorflow.keras.layers import Dropout
-    from tensorflow.keras.layers import Concatenate
-    from tensorflow.keras.layers import MaxPooling2D
+
+    from Tools.Metrics import Metrics
+
     from sklearn.model_selection import StratifiedKFold
     from sklearn.model_selection import train_test_split
 
-except ImportError as error:
+    from Engine.Processing.ClassBalance import ClassBalancer
+    from Engine.Models.Process.Base_Process import BaseProcess
+    from Engine.Processing.WindowGenerator import WindowGenerator
 
+except ImportError as error:
     print(error)
-    print("1. Install requirements:")
-    print("  pip3 install --upgrade pip")
-    print("  pip3 install -r requirements.txt ")
-    print()
     sys.exit(-1)
 
 

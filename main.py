@@ -57,52 +57,6 @@ class Main(RunScript, PlotterTools):
         self.__start__()
         PlotterTools.__init__(self, self.input_arguments)
 
-    @auto_logger
-    def __autologger__(self):
-        """
-
-            A Logger class designed to manage and configure logging for an application.
-            It supports logging to both console and rotating log files. The log file name is
-            dynamically generated based on the current date and time, and it creates backups of
-            the log file to prevent the log file from growing too large.
-
-            Attributes:
-            ----------
-                @_logger (logging.Logger): The main logger object for logging messages.
-                @_logging_format (str): The format in which log messages are written.
-                @_rotatingFileHandler (logging.Handler): The handler that writes logs to a rotating file.
-                @_consoleHandler (logging.Handler): The handler that writes logs to the console.
-
-        """
-        pass
-
-    @auto_arguments
-    def __start__(self):
-        self.__autologger__()
-        """
-            Arguments Class
-
-            This class manages the configuration and command-line arguments for a machine learning training
-            and evaluation pipeline. It collects arguments from multiple subsystems (AST, Conformer, LSTM,
-            MLP, Residual, Wav2Vec) and consolidates them into a single namespace.
-            
-            Methods
-            -------
-                @__init__() :
-                    Initializes the argument parser, adds arguments from multiple components, parses the
-                    command-line arguments, and logs the final settings.
-
-                @show_all_settings() :
-                    Logs the parsed arguments in a formatted manner for better visibility, including
-                    the command used to launch the script.
-
-                @get_arguments() :
-                    Static method that defines the base arguments required for dataset handling, training,
-                    plotting, and logging.
-
-        """
-        pass
-
     def train_and_collect_metrics(self, model_class):
 
         logging.info(f"Starting training for model {model_class.__name__}.")
@@ -163,7 +117,7 @@ class Main(RunScript, PlotterTools):
                                          file_name_path=output_directory)
 
             logging.info("Plotting and saving loss.")
-            self.plot_and_save_loss(history_dict_list=self.mean_history, path_output=output_directory)
+            self.plot_loss(loss_curve_history_dict_list=self.mean_history, loss_curve_path_output=output_directory)
 
         except Exception as e:
             logging.error(f"Error during plotting or saving results: {str(e)}")
@@ -177,6 +131,40 @@ class Main(RunScript, PlotterTools):
         except Exception as e:
             logging.error(f"Error running the script for PDF generation: {str(e)}")
             raise
+
+    @auto_logger
+    def __autologger__(self):
+        """
+
+            A Logger class designed to manage and configure logging for an application.
+
+            Attributes:
+            ----------
+                @_logger (logging.Logger): The main logger object for logging messages.
+                @_logging_format (str): The format in which log messages are written.
+                @_rotatingFileHandler (logging.Handler): The handler that writes logs to a rotating file.
+                @_consoleHandler (logging.Handler): The handler that writes logs to the console.
+
+        """
+        pass
+
+    @auto_arguments
+    def __start__(self):
+        self.__autologger__()
+        """
+            Arguments Class
+
+            Methods
+            -------
+                @__init__() :
+                    Initializes the argument parser, adds arguments from multiple components
+                @show_all_settings() :
+                    Logs the parsed arguments in a formatted manner for better visibility
+                @get_arguments() :
+                    Static method that defines the base arguments required 
+
+        """
+        pass
 
 
 # Main entry point of the program

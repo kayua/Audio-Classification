@@ -9,55 +9,34 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-import logging
-
-from Engine.Models.Process.Base_Process import BaseProcess
-from Engine.Processing.ClassBalance import ClassBalancer
-from Engine.Processing.WindowGenerator import WindowGenerator
-from Tools.Metrics import Metrics
 
 try:
+
     import os
     import sys
+
     import glob
     import numpy
+
+    import logging
     import librosa
-    import argparse
-    import tensorflow
 
     from tqdm import tqdm
 
+    from Tools.Metrics import Metrics
     from tensorflow.keras import Model
-
-    from tensorflow.keras.layers import Add
-    from tensorflow.keras.layers import Dense
-    from tensorflow.keras.layers import Input
-    from tensorflow.keras.layers import Conv1D
-    from tensorflow.keras.layers import Lambda
-    from tensorflow.keras.layers import Reshape
-    from tensorflow.keras.layers import Flatten
-    from tensorflow.keras.layers import Dropout
-    from tensorflow.keras.layers import Embedding
-    from tensorflow.keras.layers import Activation
-
-    from tensorflow.keras.layers import MultiHeadAttention
-    from tensorflow.keras.layers import LayerNormalization
-    from tensorflow.keras.layers import TimeDistributed
-    from tensorflow.keras.layers import GlobalAveragePooling1D
 
     from sklearn.model_selection import StratifiedKFold
     from sklearn.model_selection import train_test_split
 
-    from sklearn.utils import resample
-
+    from Engine.Processing.ClassBalance import ClassBalancer
+    from Engine.Models.Process.Base_Process import BaseProcess
+    from Engine.Processing.WindowGenerator import WindowGenerator
 
 except ImportError as error:
     print(error)
-    print("1. Install requirements:")
-    print("  pip3 install --upgrade pip")
-    print("  pip3 install -r requirements.txt ")
-    print()
     sys.exit(-1)
+
 
 
 class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess, Metrics):

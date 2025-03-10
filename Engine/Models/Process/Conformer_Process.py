@@ -8,20 +8,30 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-import glob
-import logging
-import os
 
-import librosa
-import numpy
-from sklearn.model_selection import StratifiedKFold, train_test_split
-from tqdm import tqdm
+try:
+    import os
+    import sys
+    import glob
+    import numpy
 
-from Engine.Models.Process.Base_Process import BaseProcess
-from Engine.Processing.ClassBalance import ClassBalancer
-from Engine.Processing.WindowGenerator import WindowGenerator
-from Tools.Metrics import Metrics
+    import logging
+    import librosa
 
+    from tqdm import tqdm
+
+    from Tools.Metrics import Metrics
+
+    from sklearn.model_selection import StratifiedKFold
+    from sklearn.model_selection import train_test_split
+
+    from Engine.Processing.ClassBalance import ClassBalancer
+    from Engine.Models.Process.Base_Process import BaseProcess
+    from Engine.Processing.WindowGenerator import WindowGenerator
+
+except ImportError as error:
+    print(error)
+    sys.exit(-1)
 
 class ProcessConformer(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
     """

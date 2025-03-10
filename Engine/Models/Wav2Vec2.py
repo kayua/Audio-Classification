@@ -8,7 +8,6 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-from Engine.Models.Process.Wav2Vec2_Process import Wav2Vec2Process
 
 try:
 
@@ -43,6 +42,7 @@ try:
     from tensorflow.keras.layers import GlobalAveragePooling1D
     from Engine.Layers.QuantizerLayerMLP import QuantizationLayer
 
+    from Engine.Models.Process.Wav2Vec2_Process import Wav2Vec2Process
 
 except ImportError as error:
     print(error)
