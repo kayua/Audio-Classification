@@ -8,6 +8,7 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+from keras.src import ops
 
 try:
     import sys
@@ -34,7 +35,12 @@ class GELU(Layer):
     ----------------------
     Given an input tensor `X`, the GELU activation is defined as:
 
-        GELU(X) = 0.5 * X * (1 + tanh(sqrt(2/pi) * (X + 0.044715 * X^3)))
+
+        `gelu(x) = x * P(X <= x)` where `P(X) ~ N(0, 1)`,
+        i.e. `gelu(x) = 0.5 * x * (1 + erf(x / sqrt(2)))`.
+
+        GELU weights inputs by their value, rather than gating
+        inputs by their sign as in ReLU.
 
     This formulation provides a close approximation of the true Gaussian CDF-based activation function.
 
@@ -95,5 +101,4 @@ class GELU(Layer):
         ...     print(output.shape)
         >>>     (2, 5)
         """
-        return 0.5 * neural_network_flow * (1 + tf.tanh(tf.sqrt(2 / tf.constant(tf.math.pi)) *
-                                                          (neural_network_flow + 0.044715 * tf.pow(neural_network_flow, 3))))
+        return ops.gelu(neural_network_flow)

@@ -173,11 +173,11 @@ if __name__ == "__main__":
     main.__start__()
 
     available_models = [
+        AudioWav2Vec2,
         Conformer,
         DenseModel,
         AudioLSTM,
         AudioSpectrogramTransformer,
-        AudioWav2Vec2,
         ResidualModel
     ]
 

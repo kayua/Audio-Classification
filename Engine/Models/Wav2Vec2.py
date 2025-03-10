@@ -171,7 +171,6 @@ class AudioWav2Vec2(MaskCreator, Wav2Vec2Process): #, EvaluationProcess):
             - Dense layers for classification.
 
         The model is designed for audio processing tasks, particularly feature extraction
-        from waveforms (e.g., Mel spectrograms).
         """
 
         # Input layer: reshape the input to match the expected format
