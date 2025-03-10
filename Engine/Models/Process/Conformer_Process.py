@@ -113,7 +113,6 @@ class ProcessConformer(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
 
                 except Exception as e:
                     logging.error(f"Error processing file '{file_name}': {e}")
-        print(numpy.array(list_spectrogram).shape)
 
         # Reshape the feature array to the expected dimensions
         array_features = numpy.array(list_spectrogram).reshape(

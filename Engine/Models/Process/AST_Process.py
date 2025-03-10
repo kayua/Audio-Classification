@@ -176,7 +176,7 @@ class ProcessAST(ClassBalancer, SpectrogramPatcher, WindowGenerator, BaseProcess
     def train(self) -> tuple:
 
         history_model = None
-        features, labels = self.load_dataset(self.dataset_directory), None
+        features, labels = self.load_dataset(self.dataset_directory)
         number_patches, metrics_list, confusion_matriz_list, labels = (features.shape[1], [], [],
                                                                        numpy.array(labels).astype(float))
 
