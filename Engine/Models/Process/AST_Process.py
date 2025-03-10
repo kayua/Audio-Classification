@@ -40,13 +40,94 @@ class ProcessAST(ClassBalancer, SpectrogramPatcher, WindowGenerator, BaseProcess
     """
     A class used to build and train an audio classification model.
 
-    Attributes
+    Attributes:
     ----------
-    Various attributes with default values for model parameters.
+        @neural_network_model : model
+            The neural network model (initialized as None).
+        @number_classes : int
+            The number of output classes (e.g., number of audio categories).
+        @sample_rate : int
+            The sample rate of the audio files.
+        @hop_length : int
+            The hop length for the spectrogram computation.
+        @size_fft : int
+            The FFT size for the spectral transformation.
+        @patch_size : int
+            The patch size for splitting the spectrogram.
+        @overlap : int
+            The overlap between the audio windows.
+        @number_epochs : int
+            The number of epochs for model training.
+        @number_splits : int
+            The number of splits for cross-validation.
+        @batch_size : int
+            The batch size for training.
+        @dataset_directory : str
+            Path to the directory where the dataset is stored.
+        @audio_duration : int
+            Fixed audio duration for analysis (default is 10 seconds).
+        @sound_file_format : str
+            The audio file format (e.g., '*.wav').
+        @window_size_fft : int
+            The FFT window size.
+        @window_size_factor : float
+            The window size factor for FFT scaling.
+        @decibel_scale_factor : float
+            The decibel scaling factor for spectrogram conversion.
+        @window_size : int
+            The window size for processing (calculated using hop_length and window_size_factor).
+        @number_filters_spectrogram : int
+            The number of filters for spectrogram computation.
+
+    Methods:
+    -------
+        @__init__(self, arguments)
+            Initializes class parameters based on the provided arguments.
+        @load_data(self, data_dir: str) -> tuple
+            Loads audio file paths and labels from a directory.
+        @load_dataset(self, sub_directories: str = None, file_extension: str = None) -> tuple
+            Loads audio data, extracts features, and prepares labels.
+        @train(self) -> tuple
+        Trains the neural network model using cross-validation and returns training and validation metrics.
+
+    Example:
+    --------
+        >>> arguments = Namespace(number_classes=10,
+        ...               sample_rate=22050,
+        ...               ast_hop_length=512,
+        ...               ast_size_fft=2048,
+        ...               ast_patch_size=16,
+        ...               overlap=256,
+        ...               number_epochs=10,
+        ...               number_splits=5,
+        ...               batch_size=32,
+        ...               dataset_directory='path/to/dataset',
+        ...               file_extension='*.wav',
+        ...               ast_window_size_fft=1024,
+        ...               ast_window_size_factor=4.0,
+        ...               ast_decibel_scale_factor=80,
+        ...               ast_number_filters_spectrogram=64)
+        ...               process_ast = ProcessAST(arguments)
+        ...
+        ...               # Load the data
+        ...               file_paths, labels = process_ast.load_data('path/to/data')
+        ...
+        ...               # Load and process the dataset
+        ...               features, labels = process_ast.load_dataset()
+        ...               # Train the model
+        ...               metrics = process_ast.train()
+        >>>
     """
 
     def __init__(self, arguments):
+        """
+        Initializes the class parameters using the values provided in the arguments.
 
+        Parameters
+        ----------
+        arguments : Namespace
+            Arguments defining the model and audio processing parameters.
+        """
 
         self.neural_network_model = None
 
@@ -62,10 +143,12 @@ class ProcessAST(ClassBalancer, SpectrogramPatcher, WindowGenerator, BaseProcess
         self.dataset_directory = arguments.dataset_directory
 
         self.audio_duration = 10
+
         self.sound_file_format = arguments.file_extension
-        self.decibel_scale_factor = arguments.ast_decibel_scale_factor
         self.window_size_fft = arguments.ast_window_size_fft
         self.window_size_factor = arguments.ast_window_size_factor
+        self.decibel_scale_factor = arguments.ast_decibel_scale_factor
+
         self.window_size = arguments.ast_hop_length * (self.window_size_factor - 1)
         self.number_filters_spectrogram = arguments.ast_number_filters_spectrogram
 
@@ -75,17 +158,21 @@ class ProcessAST(ClassBalancer, SpectrogramPatcher, WindowGenerator, BaseProcess
 
     def load_data(self, data_dir: str) -> tuple:
         """
-        Loads audio file paths and labels from the given directory.
+        Loads the audio file paths and labels from a directory.
 
         Parameters
         ----------
         data_dir : str
-            Directory containing the audio files.
+            Path to the directory containing audio files.
 
         Returns
         -------
         tuple
-            A tuple containing the file paths and labels.
+            A tuple containing the file paths and their corresponding labels.
+
+        Example Usage:
+        --------------
+        file_paths, labels = process_ast.load_data('path/to/data')
         """
         file_paths, labels = [], []
 
@@ -114,22 +201,23 @@ class ProcessAST(ClassBalancer, SpectrogramPatcher, WindowGenerator, BaseProcess
 
     def load_dataset(self, sub_directories: str = None, file_extension: str = None) -> tuple:
         """
-        Loads audio data, extracts features, and prepares labels.
-
-        This method reads audio files from the specified directories, extracts mel spectrogram features,
-        and prepares the corresponding labels. It also supports splitting spectrograms into patches.
+        Loads the audio dataset, extracts spectrogram features, and prepares labels.
 
         Parameters
         ----------
         sub_directories : str, optional
             Path to the directory containing subdirectories of audio files.
         file_extension : str, optional
-            The file extension for audio files (e.g., '*.wav').
+            The audio file extension (e.g., '*.wav').
 
         Returns
         -------
         tuple
-            A tuple containing the feature array and label array.
+            A tuple containing the extracted feature array and corresponding label array.
+
+        Example Usage:
+        --------------
+        features, labels = process_ast.load_dataset(sub_directories='path/to/subdirs', file_extension='*.wav')
         """
         logging.info("Starting to load the dataset...")
         list_spectrogram, list_labels, list_class_path = [], [], []
@@ -186,7 +274,19 @@ class ProcessAST(ClassBalancer, SpectrogramPatcher, WindowGenerator, BaseProcess
 
 
     def train(self) -> tuple:
+        """
+        Trains the neural network model using stratified cross-validation and returns training and validation metrics.
 
+        Returns
+        -------
+        tuple
+            A tuple containing the model's performance metrics, predicted probabilities,
+            true labels, and confusion matrices.
+
+        Example Usage:
+        --------------
+        metrics = process_ast.train()
+        """
         history_model = None
         features, labels = self.load_dataset(self.dataset_directory)
         number_patches, metrics_list, confusion_matriz_list, labels = (features.shape[1], [], [],

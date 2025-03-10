@@ -8,7 +8,6 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-from Engine.Models.Process.Conformer_Process import ProcessConformer
 
 try:
     import sys
@@ -31,6 +30,8 @@ try:
     from Engine.Layers.TransposeLayer import TransposeLayer
 
     from tensorflow.keras.layers import GlobalAveragePooling1D
+
+    from Engine.Models.Process.Conformer_Process import ProcessConformer
 
     from Engine.Layers.ConvolutionalSubsampling import ConvolutionalSubsampling
 

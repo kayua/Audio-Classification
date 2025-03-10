@@ -10,7 +10,6 @@ __credits__ = ['unknown']
 
 
 try:
-
     import os
     import sys
 
@@ -22,9 +21,73 @@ except ImportError as error:
     sys.exit(-1)
 
 class BaseProcess:
+    """
+    A base class for common utility functions used in the audio classification pipeline.
 
-    def __cast_to_dic__(self, metrics_list, probabilities_list, real_labels_list, confusion_matriz_list, history_model):
+    This class contains methods for processing metrics, managing directories, normalizing signals,
+    and extracting labels from file names. It is used as a utility class to assist in the
+    workflow of audio classification tasks.
 
+    Methods
+    -------
+    __cast_to_dic__(self, metrics_list, probabilities_list, real_labels_list, confusion_matriz_list, history_model)
+        Converts the provided lists and the model's training history into a dictionary containing
+        aggregated metrics, confusion matrix, and predicted probabilities.
+
+    __create_dir__(sub_directories, list_class_path)
+        Creates a list of class directories from the given path. It checks if the directories exist
+        and adds them to the list.
+
+    normalization_signal(signal_segments)
+        Normalizes a list of signal segments to a range between 0 and 1.
+
+    __get_label__(file_name)
+        Extracts the label of a given file based on the directory structure of the dataset.
+
+    Example Usage:
+    --------------
+    # Instantiate the BaseProcess class (typically as a superclass)
+    base_process = BaseProcess()
+
+    # Example usage of normalization
+    normalized_signal = base_process.normalization_signal(signal_segments)
+
+    # Example usage of label extraction
+    label = base_process.__get_label__('path/to/audio_file/label_audio.wav')
+    """
+
+    def __cast_to_dic__(self, metrics_list,
+                        probabilities_list, real_labels_list, confusion_matriz_list, history_model):
+        """
+        Converts the provided lists and model's history into a dictionary containing
+        aggregated metrics, confusion matrix,  and predicted probabilities. The function
+        calculates the mean and standard deviation of the metrics for accuracy, precision,
+        recall, and F1 score across all folds in the cross-validation.
+
+        Parameters
+        ----------
+            @metrics_list : list
+                List of dictionaries containing metrics (accuracy, precision, recall, F1 score) for each fold.
+            @probabilities_list : list
+                List of model predicted probabilities for each fold.
+            @real_labels_list : list
+                List of real labels (ground truth) for each fold.
+            @confusion_matriz_list : list
+                List of confusion matrices for each fold.
+            @history_model : object
+                The history object of the model, which stores the training process.
+
+        Returns
+        -------
+        tuple
+            A tuple containing:
+            - mean_metrics: A dictionary with the mean and standard deviation of the accuracy,
+             precision, recall, and F1 score.
+            - model history: A dictionary with model's training history.
+            - mean_confusion_matrices: A dictionary with the average confusion matrix across all folds.
+            - probabilities_predicted: A dictionary containing the predicted probabilities and real labels.
+
+        """
         # Calculate mean metrics across all folds
         mean_metrics = {
             'model_name': self.model_name,
@@ -59,7 +122,28 @@ class BaseProcess:
 
     @staticmethod
     def __create_dir__(sub_directories, list_class_path):
+        """
+        Creates a list of class directories from the given path. Checks if the directories exist
+        and adds them to the provided list of class paths.
 
+        Parameters
+        ----------
+        sub_directories : str
+            Path to the directory containing subdirectories of audio files.
+        list_class_path : list
+            A list to which the subdirectories will be added if they exist.
+
+        Returns
+        -------
+        list
+            The list of subdirectories that exist.
+        None
+            If the provided path does not exist.
+
+        Example Usage:
+        --------------
+        class_paths = base_process.__create_dir__('path/to/data', [])
+        """
         # Check if the directory exists
         if not os.path.exists(sub_directories):
             logging.error(f"Directory '{sub_directories}' does not exist.")
@@ -78,6 +162,23 @@ class BaseProcess:
 
     @staticmethod
     def normalization_signal(signal_segments):
+        """
+        Normalizes a list of signal segments to a range between 0 and 1.
+
+        Parameters
+        ----------
+        signal_segments : list
+            A list or array of audio signal segments to be normalized.
+
+        Returns
+        -------
+        numpy.ndarray
+            A normalized numpy array with values between 0 and 1.
+
+        Example Usage:
+        --------------
+        normalized_signal = base_process.normalization_signal(signal_segments)
+        """
         signal_segments = numpy.abs(numpy.array(signal_segments))
 
         # Normalize each segment
@@ -94,5 +195,24 @@ class BaseProcess:
 
     @staticmethod
     def __get_label__(file_name):
+        """
+        Extracts the label from the file path based on the directory structure.
+
+        The label is assumed to be the first part of the parent directory's name (separated by an underscore).
+
+        Parameters
+        ----------
+            @file_name : str
+                The file path from which the label will be extracted.
+
+        Returns
+        -------
+            @str
+                The label extracted from the file's parent directory.
+
+        Example:
+        --------------
+            label = base_process.__get_label__('path/to/audio_file/label_audio.wav')
+        """
 
         return file_name.split('/')[-2].split('_')[0]

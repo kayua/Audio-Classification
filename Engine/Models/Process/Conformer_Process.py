@@ -36,12 +36,42 @@ except ImportError as error:
 
 class ProcessConformer(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
     """
-    A Conformer model for audio classification, integrating convolutional subsampling, conformer blocks,
-    and a final classification layer.
+    A Conformer model for audio classification, integrating convolutional
+    subsampling, conformer blocks, and a final classification layer.
 
+    This class combines multiple functionalities such as window generation,
+    class balancing, and metric calculation for training and evaluating a
+    Conformer-based model for audio classification tasks.
+
+    Inherits from:
+        - ClassBalancer: Balances classes in the dataset.
+        - WindowGenerator: Generates windows from audio signals.
+        - BaseProcess: Contains utility methods for data loading,
+          normalization, etc.
+        - Metrics: Includes methods for calculating various metrics
+         (accuracy, precision, recall, etc.).
+
+    Methods
+    -------
+        @__init__(self, arguments)
+            Initializes the Conformer model with the provided arguments.
+        @load_data(self, sub_directories: str = None, file_extension: str = None) -> tuple
+            Loads audio data, extracts spectrogram features, and prepares labels.
+        @train(self) -> tuple
+            Trains the Conformer model with cross-validation and returns aggregated
+            metrics, predictions, and confusion matrix.
     """
 
     def __init__(self, arguments):
+        """
+        Initializes the ProcessConformer instance with the given arguments.
+
+        Parameters
+        ----------
+        arguments : object
+            The object containing various configuration parameters for the Conformer
+            model (e.g., batch size, number of epochs, sample rate, etc.).
+        """
 
         self.neural_network_model = None
         self.batch_size = arguments.batch_size
@@ -143,7 +173,28 @@ class ProcessConformer(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
 
 
     def train(self) -> tuple:
+        """
+        Trains the Conformer model with cross-validation and returns aggregated metrics,
+        predictions, and confusion matrix.
 
+        This method performs the following:
+            - Loads and splits data into training/validation and test sets.
+            - Balances the training data (if necessary).
+            - Applies stratified k-fold cross-validation.
+            - Compiles and trains the model.
+            - Calculates metrics such as accuracy, precision, recall, and F1 score.
+            - Aggregates confusion matrices and predicted probabilities.
+
+        Returns
+        -------
+        tuple
+            A tuple containing:
+            - mean_metrics: A dictionary with aggregated metrics for accuracy, precision,
+              recall, and F1 score.
+            - model_history: A dictionary with the model's training history.
+            - mean_confusion_matrices: A dictionary with the mean confusion matrix.
+            - probabilities_predicted: A dictionary with the predicted probabilities and ground truth.
+        """
         history_model = None
         features, labels = self.load_data(self.dataset_directory)
         metrics_list, confusion_matriz_list, labels = [], [], numpy.array(labels).astype(float)

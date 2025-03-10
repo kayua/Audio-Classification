@@ -8,7 +8,6 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-from Engine.Models.Process.Residual_Process import ResidualProcess
 
 try:
     import sys
@@ -26,6 +25,8 @@ try:
 
     from tensorflow.keras.layers import Concatenate
     from tensorflow.keras.layers import MaxPooling2D
+
+    from Engine.Models.Process.Residual_Process import ResidualProcess
 
 except ImportError as error:
 

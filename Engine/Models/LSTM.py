@@ -8,7 +8,6 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-from Engine.Models.Process.LSTM_Process import ProcessLSTM
 
 try:
     import sys
@@ -25,6 +24,7 @@ try:
 
     from tensorflow.keras.layers import Bidirectional
 
+    from Engine.Models.Process.LSTM_Process import ProcessLSTM
     from tensorflow.keras.layers import GlobalAveragePooling1D
 
 
