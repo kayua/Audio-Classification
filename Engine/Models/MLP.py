@@ -203,8 +203,7 @@ class DenseModel(MLPProcess):
         # Train the model using the training data, labels, and validation data (if provided).
         training_history = self.neural_network_model.fit(train_data, train_labels, epochs=epochs,
                                                          batch_size=batch_size,
-                                                         validation_data=validation_data,
-                                                         callbacks=[AimCallback(self.model_name)]
+                                                         validation_data=validation_data
                                                          )
         # Return the training history for further analysis.
         return training_history

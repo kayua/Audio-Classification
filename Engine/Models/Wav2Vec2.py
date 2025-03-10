@@ -271,8 +271,7 @@ class AudioWav2Vec2(MaskCreator, Wav2Vec2Process): #, EvaluationProcess):
         training_history = self.neural_network_model.fit(train_data, train_labels,
                                                          epochs=epochs,
                                                          batch_size=batch_size,
-                                                         validation_data=validation_data,
-                                                         callbacks=[AimCallback(self.model_name)]
+                                                         validation_data=validation_data
                                                          )
         logging.info("Training completed successfully.")
 
