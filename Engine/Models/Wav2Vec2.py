@@ -8,7 +8,6 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-from Engine.Callbacks.CallbackAIM import AimCallback
 
 try:
 
@@ -18,6 +17,7 @@ try:
     import tensorflow
 
     from tensorflow.keras import Model
+    from Engine.Layers.GELU import GELU
 
     from tensorflow.keras.layers import Add
 
@@ -36,6 +36,7 @@ try:
 
     from tensorflow.keras.layers import TimeDistributed
 
+    from Engine.Callbacks.CallbackAIM import AimCallback
     from tensorflow.keras.layers import LayerNormalization
     from tensorflow.keras.layers import MultiHeadAttention
     from Engine.Loss.ContrastiveLoss import ContrastiveLoss
@@ -203,8 +204,10 @@ class AudioWav2Vec2(MaskCreator, Wav2Vec2Process): #, EvaluationProcess):
         transformer_attention = LayerNormalization()(transformer_attention)
 
         # Feed-forward network (fully connected layers)
-        feedforward_network = Dense(self.number_classes, activation="relu")(transformer_attention)
-        feedforward_network = Dense(self.number_classes, activation="relu")(feedforward_network)
+        feedforward_network = Dense(self.number_classes)(transformer_attention)
+        feedforward_network = GELU()(feedforward_network)
+        feedforward_network = Dense(self.number_classes)(feedforward_network)
+        feedforward_network = GELU()(feedforward_network)
 
         # Add the output of the feed-forward network and normalize
         transformer_output = Add()([transformer_attention, feedforward_network])
