@@ -34,7 +34,6 @@ try:
 
     from Engine.Layers.ConvolutionalSubsampling import ConvolutionalSubsampling
 
-
 except ImportError as error:
      print(error)
      sys.exit(-1)

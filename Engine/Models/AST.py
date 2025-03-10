@@ -8,7 +8,6 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-from Engine.Models.Process.AST_Process import ProcessAST
 
 try:
 
@@ -29,6 +28,7 @@ try:
 
     from tensorflow.keras.layers import Embedding
     from tensorflow.keras.layers import Concatenate
+
     from tensorflow.keras.layers import TimeDistributed
 
     from Engine.Layers.CLSTokenLayer import CLSTokenLayer
@@ -36,6 +36,7 @@ try:
     from tensorflow.keras.layers import LayerNormalization
     from tensorflow.keras.layers import MultiHeadAttention
 
+    from Engine.Models.Process.AST_Process import ProcessAST
     from tensorflow.keras.layers import GlobalAveragePooling1D
 
     from Engine.Layers.PositionalEmbeddingsLayer import PositionalEmbeddingsLayer

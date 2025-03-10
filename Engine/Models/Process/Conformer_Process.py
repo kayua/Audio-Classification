@@ -12,6 +12,7 @@ __credits__ = ['unknown']
 try:
     import os
     import sys
+
     import glob
     import numpy
 
