@@ -45,12 +45,12 @@ class QuantizationLayer(Layer):
         **kwargs: Additional keyword arguments passed to the parent Layer class.
 
     Attributes:
-        built (bool): Indicates whether the layer has been built.
+        built_point (bool): Indicates whether the layer has been built.
         reference_points (tf.Variable): A variable representing the reference points (centroids) used
             in the quantization process. These centroids are fixed (non-trainable) and are shared
             between the KNNLayer and the QuantizationLayer.
         knn_layer (KNNLayer): An instance of the KNNLayer that is used to find the nearest clusters (centroids).
-        k (int): The number of clusters to use for quantization. It determines how many centroids
+        number_k_clusters (int): The number of clusters to use for quantization. It determines how many centroids
                  to consider for each input vector.
 
     Example:
@@ -77,10 +77,10 @@ class QuantizationLayer(Layer):
             **kwargs: Additional keyword arguments for the Layer base class.
         """
         super(QuantizationLayer, self).__init__(**kwargs)
-        self.built = None
+        self.built_point = None
         self.reference_points = None
         self.knn_layer = None
-        self.k = number_clusters
+        self.number_k_clusters = number_clusters
 
     def call(self, inputs):
         """
@@ -103,9 +103,9 @@ class QuantizationLayer(Layer):
         reference_points = tensorflow.gather(self.reference_points, indices, batch_dims=1)
 
         # Compute the quantized output by averaging the reference points
-        quantized = tensorflow.reduce_mean(reference_points, axis=1)
+        quantized_weights = tensorflow.reduce_mean(reference_points, axis=1)
 
-        return quantized
+        return quantized_weights
 
     def build(self, input_shape):
         """
@@ -116,7 +116,7 @@ class QuantizationLayer(Layer):
             input_shape (tuple): The shape of the input data.
         """
         # Initialize the KNNLayer with the specified number of clusters
-        self.knn_layer = KNNLayer(number_clusters=self.k)
+        self.knn_layer = KNNLayer(number_clusters=self.number_k_clusters)
 
         # Create and initialize the reference points (centroids)
         self.reference_points = self.knn_layer.add_weight(
@@ -128,7 +128,7 @@ class QuantizationLayer(Layer):
 
         # Build the KNNLayer with the input shape
         self.knn_layer.build(input_shape)
-        self.built = True
+        self.built_point = True
 
     def compute_output_shape(self, input_shape):
         """

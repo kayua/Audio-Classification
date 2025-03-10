@@ -1,12 +1,37 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
+"""
+Audio Classification using Multiple Neural Network Architectures
 
-__author__ = 'unknown'
-__email__ = 'unknown@unknown.com.br'
-__version__ = '{1}.{0}.{0}'
-__initial_data__ = '2024/07/17'
-__last_update__ = '2024/07/26'
-__credits__ = ['unknown']
+This script implements and evaluates multiple neural network architectures for audio classification,
+including Wav2Vec2, MLP, Audio Spectrogram Transformer, Conformer, Residual, and LSTM.
+
+It performs the following tasks:
+    - Training and evaluation of the models
+    - Generation of performance metrics: Accuracy, Precision, Recall, and F1-Score
+    - Generation of Confusion Matrix
+    - Plotting of the ROC Curve
+    - Comparison of models' performance
+    - Automatic generation of a final results report
+
+Example Usage:
+--------------
+Run the script directly from the command line:
+    $ python3 main.py
+
+Requirements:
+-------------
+Ensure that all dependencies are installed using the provided requirements file:
+    $ pip3 install --upgrade pip
+    $ pip3 install -r requirements.txt
+
+Author: Unknown
+Email: unknown@unknown.com.br
+Version: 1.0.0
+Initial Data: 2024/07/17
+Last Update: 2024/07/26
+Credits: Unknown
+"""
 
 import gc
 import logging
@@ -46,9 +71,16 @@ DEFAULT_VERBOSE_LIST = {logging.INFO: 2, logging.DEBUG: 1, logging.WARNING: 2,
 
 
 class Main(RunScript, PlotterTools):
+    """
+    Main Class for Training and Evaluating Audio Classification Models
+
+    This class handles model instantiation, training, metric collection, visualization, and final report generation.
+    """
 
     def __init__(self):
-
+        """
+        Initializes the Main class by setting up lists for metric storage and initializing necessary tools.
+        """
         self.mean_metrics = []
         self.mean_history = []
         self.mean_matrices = []
@@ -58,7 +90,15 @@ class Main(RunScript, PlotterTools):
         PlotterTools.__init__(self, self.input_arguments)
 
     def train_and_collect_metrics(self, model_class):
+        """
+        Trains a given model and collects relevant performance metrics.
 
+        Args:
+            model_class (class): The neural network model class to be instantiated and trained.
+
+        Returns:
+            tuple: Model metrics, training history, confusion matrices, and ROC curve data.
+        """
         logging.info(f"Starting training for model {model_class.__name__}.")
 
         try:
@@ -85,7 +125,13 @@ class Main(RunScript, PlotterTools):
 
 
     def __exec__(self, models, output_directory):
+        """
+        Executes training and evaluation for a list of models.
 
+        Args:
+            models (list): List of model classes to be trained and evaluated.
+            output_directory (str): Directory where results will be saved.
+        """
         logging.info("Starting the training and evaluation process.")
 
         for index, model_class in enumerate(models):
