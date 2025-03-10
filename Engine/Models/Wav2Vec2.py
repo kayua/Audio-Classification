@@ -8,6 +8,7 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+from Engine.Callbacks.CallbackAIM import AimCallback
 
 try:
 
@@ -270,7 +271,9 @@ class AudioWav2Vec2(MaskCreator, Wav2Vec2Process): #, EvaluationProcess):
         training_history = self.neural_network_model.fit(train_data, train_labels,
                                                          epochs=epochs,
                                                          batch_size=batch_size,
-                                                         validation_data=validation_data)
+                                                         validation_data=validation_data,
+                                                         callbacks=[AimCallback(self.model_name)]
+                                                         )
         logging.info("Training completed successfully.")
 
         return training_history

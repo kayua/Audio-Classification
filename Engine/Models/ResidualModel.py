@@ -8,6 +8,7 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+from Engine.Callbacks.CallbackAIM import AimCallback
 
 try:
     import sys
@@ -227,8 +228,9 @@ class ResidualModel(ResidualProcess): #(EvaluationProcess):
         # Train the model with the provided data, labels, and validation data (if available).
         training_history = self.neural_network_model.fit(train_data, train_labels, epochs=epochs,
                                                          batch_size=batch_size,
-                                                         validation_data=validation_data)
-
+                                                         validation_data=validation_data,
+                                                         callbacks=[AimCallback(self.model_name)]
+                                                         )
         # Return the training history object.
         return training_history
 
