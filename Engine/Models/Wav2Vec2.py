@@ -180,7 +180,8 @@ class AudioWav2Vec2(MaskCreator, Wav2Vec2Process): #, EvaluationProcess):
         # Apply convolutional layers to extract features from the input audio
         for number_filters in self.list_filters_encoder:
             neural_network_flow = TimeDistributed(
-                Conv1D(number_filters, self.kernel_size, strides=(2,),
+                Conv1D(number_filters, self.kernel_size, strides=(2,), use_bias=True,
+                       kernel_regularizer=None, bias_regularizer=None, kernel_constraint=None,
                        activation=self.intermediary_layer_activation))(neural_network_flow)
 
         # Flatten the convolutional output to feed into the dense layers
