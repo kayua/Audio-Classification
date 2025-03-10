@@ -15,6 +15,8 @@ import os
 import tensorflow
 
 from Engine.Arguments.Arguments import auto_arguments
+from Engine.Models.AST import AudioSpectrogramTransformer
+from Engine.Models.MLP import DenseModel
 from Engine.Models.ResidualModel import ResidualModel
 from Engine.Models.Wav2Vec2 import AudioWav2Vec2
 from Tools.Logger import auto_logger
@@ -185,8 +187,8 @@ if __name__ == "__main__":
 #        DenseModel,
 #       AudioLSTM,
 #        Conformer,
-#        AudioSpectrogramTransformer,
-        AudioWav2Vec2,
+        AudioSpectrogramTransformer,
+#        AudioWav2Vec2,
 #        ResidualModel
     ]
 

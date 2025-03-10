@@ -20,9 +20,10 @@ from tqdm import tqdm
 from Engine.Models.Process.Base_Process import BaseProcess
 from Engine.Processing.ClassBalance import ClassBalancer
 from Engine.Processing.WindowGenerator import WindowGenerator
+from Tools.Metrics import Metrics
 
 
-class ProcessConformer(ClassBalancer, WindowGenerator, BaseProcess):
+class ProcessConformer(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
     """
     A Conformer model for audio classification, integrating convolutional subsampling, conformer blocks,
     and a final classification layer.
@@ -133,8 +134,7 @@ class ProcessConformer(ClassBalancer, WindowGenerator, BaseProcess):
 
         history_model = None
         features, labels = self.load_data(self.dataset_directory)
-        metrics_list, confusion_matriz_list = [], []
-        labels = numpy.array(labels).astype(float)
+        metrics_list, confusion_matriz_list, labels = [], [], numpy.array(labels).astype(float)
 
         # Split data into train/val and test sets
         features_train_val, features_test, labels_train_val, labels_test = train_test_split(
@@ -151,7 +151,7 @@ class ProcessConformer(ClassBalancer, WindowGenerator, BaseProcess):
 
         for train_indexes, val_indexes in instance_k_fold.split(features_train_val, labels_train_val):
             features_train, features_val = features_train_val[train_indexes], features_train_val[val_indexes]
-            labels_train, labels_val = labels_train_val[train_indexes], labels_train_val[val_indexes]
+            labels_train, labels_validation = labels_train_val[train_indexes], labels_train_val[val_indexes]
 
             # Balance the training set for this fold
             features_train, labels_train = self.balance_class(features_train, labels_train)
@@ -161,16 +161,16 @@ class ProcessConformer(ClassBalancer, WindowGenerator, BaseProcess):
 
             history_model = self.compile_and_train(features_train, labels_train, epochs=self.number_epochs,
                                                    batch_size=self.batch_size,
-                                                   validation_data=(features_val, labels_val))
+                                                   validation_data=(features_val, labels_validation))
 
             model_predictions = self.neural_network_model.predict(features_val)
             predicted_labels = numpy.argmax(model_predictions, axis=1)
 
             probabilities_list.append(model_predictions)
-            real_labels_list.append(labels_val)
+            real_labels_list.append(labels_validation)
 
             # Calculate and store the metrics for this fold
-            metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_val, predicted_labels)
+            metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_validation)
             metrics_list.append(metrics)
             confusion_matriz_list.append(confusion_matrix)
 

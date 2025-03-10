@@ -13,6 +13,7 @@ import logging
 from Engine.Models.Process.Base_Process import BaseProcess
 from Engine.Processing.ClassBalance import ClassBalancer
 from Engine.Processing.WindowGenerator import WindowGenerator
+from Tools.Metrics import Metrics
 
 try:
     import os
@@ -44,7 +45,7 @@ except ImportError as error:
     sys.exit(-1)
 
 
-class ProcessLSTM(ClassBalancer, WindowGenerator, BaseProcess):
+class ProcessLSTM(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
     """
     A Long Short-Term Memory (LSTM) model for audio classification, integrating LSTM layers and a final classification layer.
 
@@ -108,19 +109,19 @@ class ProcessLSTM(ClassBalancer, WindowGenerator, BaseProcess):
                 try:
 
                     # Load the audio signal
-                    signal, _ = librosa.load(file_name, sr=self.sample_rate)
+                    raw_signal, _ = librosa.load(file_name, sr=self.sample_rate)
                     # Extract label from the file path (assumes label is part of directory structure)
                     label = file_name.split('/')[-2].split('_')[0]
 
                     # Segment the audio into windows
-                    for (start, end) in self.generate_windows(signal):
+                    for (start, end) in self.generate_windows(raw_signal):
 
-                        if len(signal[start:end]) == self.window_size:
+                        if len(raw_signal[start:end]) == self.window_size:
 
-                            local_window = len(signal[start:end]) // self.window_size_factor
+                            local_window = len(raw_signal[start:end]) // self.window_size_factor
                             # Divide the window into smaller segments
-                            signal_segments = [signal[i:i + local_window]
-                                               for i in range(0, len(signal[start:end]), local_window)]
+                            signal_segments = [raw_signal[i:i + local_window]
+                                               for i in range(0, len(raw_signal[start:end]), local_window)]
                             list_spectrogram.append(self.normalization_signal(signal_segments))
                             list_labels.append(label)
 
@@ -140,26 +141,29 @@ class ProcessLSTM(ClassBalancer, WindowGenerator, BaseProcess):
 
         history_model = None
         features, labels = self.load_data(self.dataset_directory)
-        metrics_list, confusion_matriz_list = [], []
-        labels = numpy.array(labels).astype(float)
+        metrics_list, confusion_matriz_list, labels = [], [], numpy.array(labels).astype(float)
 
         # Split data into train/val and test sets
-        features_train_val, features_test, labels_train_val, labels_test = train_test_split(
+        features_train_validation, features_test, labels_train_validation, labels_test = train_test_split(
             features, labels, test_size=0.2, stratify=labels, random_state=42
         )
 
         # Balance training/validation set
-        features_train_val, labels_train_val = self.balance_class(features_train_val, labels_train_val)
+        features_train_validation, labels_train_validation\
+            = self.balance_class(features_train_validation, labels_train_validation)
 
         # Stratified k-fold cross-validation on the training/validation set
         instance_k_fold = StratifiedKFold(n_splits=self.number_splits, shuffle=True, random_state=42)
-        list_history_model = []
-        probabilities_list = []
-        real_labels_list = []
+        probabilities_list, real_labels_list = [], []
 
-        for train_indexes, val_indexes in instance_k_fold.split(features_train_val, labels_train_val):
-            features_train, features_val = features_train_val[train_indexes], features_train_val[val_indexes]
-            labels_train, labels_val = labels_train_val[train_indexes], labels_train_val[val_indexes]
+        for train_indexes, validation_indexes in instance_k_fold.split(features_train_validation,
+                                                                       labels_train_validation):
+
+            features_train, features_validation = (features_train_validation[train_indexes],
+                                                   features_train_validation[validation_indexes])
+
+            labels_train, labels_validation = (labels_train_validation[train_indexes],
+                                               labels_train_validation[validation_indexes])
 
             # Balance the training set for this fold
             features_train, labels_train = self.balance_class(features_train, labels_train)
@@ -167,18 +171,19 @@ class ProcessLSTM(ClassBalancer, WindowGenerator, BaseProcess):
             self.build_model()
             self.neural_network_model.summary()
 
-            history_model = self.compile_and_train(features_train, labels_train, epochs=self.number_epochs,
+            history_model = self.compile_and_train(features_train, labels_train,
+                                                   epochs=self.number_epochs,
                                                    batch_size=self.batch_size,
-                                                   validation_data=(features_val, labels_val))
+                                                   validation_data=(features_validation, labels_validation))
 
-            model_predictions = self.neural_network_model.predict(features_val)
+            model_predictions = self.neural_network_model.predict(features_validation)
             predicted_labels = numpy.argmax(model_predictions, axis=1)
 
             probabilities_list.append(model_predictions)
-            real_labels_list.append(labels_val)
+            real_labels_list.append(labels_validation)
 
             # Calculate and store the metrics for this fold
-            metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_val, predicted_labels)
+            metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_validation)
             metrics_list.append(metrics)
             confusion_matriz_list.append(confusion_matrix)
 

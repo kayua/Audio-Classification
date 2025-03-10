@@ -14,6 +14,7 @@ import logging
 from Engine.Models.Process.Base_Process import BaseProcess
 from Engine.Processing.ClassBalance import ClassBalancer
 from Engine.Processing.WindowGenerator import WindowGenerator
+from Tools.Metrics import Metrics
 
 try:
     import os
@@ -59,7 +60,7 @@ except ImportError as error:
     sys.exit(-1)
 
 
-class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess):
+class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
 
     def __init__(self, arguments):
 
@@ -109,17 +110,18 @@ class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess):
             for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
 
                 # Load the audio signal
-                signal, _ = librosa.load(file_name, sr=self.sample_rate)
+                raw_signal, _ = librosa.load(file_name, sr=self.sample_rate)
 
                 # Extract label from file name (assumes directory structure encodes label)
                 label = int(file_name.split('/')[-2].split('_')[0])
 
                 # Segment the signal using sliding windows
-                for (start, end) in self.generate_windows(signal):
+                for (start, end) in self.generate_windows(raw_signal):
 
                     # Check if the windowed signal has the required length
-                    if len(signal[start:end]) == self.window_size:
-                        list_spectrogram.append(self.normalization_signal(signal))
+                    if len(raw_signal[start:end]) == self.window_size:
+
+                        list_spectrogram.append(self.normalization_signal(raw_signal[start:end]))
                         list_labels.append(label)
 
         # Convert lists to numpy arrays for efficient processing
@@ -135,13 +137,11 @@ class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess):
 
     def train(self) -> tuple:
 
-
         features, labels = self.load_data(self.dataset_directory)
-        metrics_list, confusion_matriz_list = [], []
-        labels = numpy.array(labels).astype(float)
+        metrics_list, confusion_matriz_list, labels = [], [], numpy.array(labels).astype(float)
 
         # Split data into train/val and test sets
-        features_train_val, features_test, labels_train_val, labels_test = train_test_split(
+        features_train_validation, features_test, labels_train_validation, labels_test = train_test_split(
             features, labels, test_size=0.2, stratify=labels, random_state=42
         )
 
@@ -150,13 +150,16 @@ class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess):
 
         # Stratified k-fold cross-validation on the training/validation set
         instance_k_fold = StratifiedKFold(n_splits=self.number_splits, shuffle=True, random_state=42)
-        history_model = None
-        probabilities_list = []
-        real_labels_list = []
+        history_model, probabilities_list, real_labels_list = None, [], []
 
-        for train_indexes, val_indexes in instance_k_fold.split(features_train_val, labels_train_val):
-            features_train, features_val = features_train_val[train_indexes], features_train_val[val_indexes]
-            labels_train, labels_val = labels_train_val[train_indexes], labels_train_val[val_indexes]
+        for train_indexes, validation_indexes in instance_k_fold.split(features_train_validation,
+                                                                       labels_train_validation):
+
+            features_train, features_validation = (features_train_validation[train_indexes],
+                                                   features_train_validation[validation_indexes])
+
+            labels_train, labels_validation = (labels_train_validation[train_indexes],
+                                               labels_train_validation[validation_indexes])
 
             # Balance the training set for this fold
             features_train, labels_train = self.balance_class(features_train, labels_train)
@@ -164,19 +167,18 @@ class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess):
             self.build_model()
             self.neural_network_model.summary()
 
-            history_model = self.compile_and_train(features_train, labels_train, epochs=self.number_epochs,
-                                                   batch_size=self.batch_size,
-                                                   validation_data=(features_val, labels_val))
+            history_model = self.compile_and_train(features_train, labels_train,
+                                                   epochs=self.number_epochs, batch_size=self.batch_size,
+                                                   validation_data=(features_validation, labels_validation))
 
-            model_predictions = self.neural_network_model.predict(features_val, batch_size=self.size_batch)
+            model_predictions = self.neural_network_model.predict(features_validation, batch_size=self.batch_size)
             predicted_labels = numpy.argmax(model_predictions, axis=1)
 
             probabilities_list.append(model_predictions)
-            real_labels_list.append(labels_val)
+            real_labels_list.append(labels_validation)
 
             # Calculate and store the metrics for this fold
-            metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_val,
-                                                               predicted_labels)
+            metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_validation)
             metrics_list.append(metrics)
             confusion_matriz_list.append(confusion_matrix)
 

@@ -14,6 +14,7 @@ import logging
 from Engine.Models.Process.Base_Process import BaseProcess
 from Engine.Processing.ClassBalance import ClassBalancer
 from Engine.Processing.WindowGenerator import WindowGenerator
+from Tools.Metrics import Metrics
 
 try:
     import os
@@ -47,7 +48,7 @@ except ImportError as error:
     sys.exit(-1)
 
 
-class ResidualProcess(ClassBalancer, WindowGenerator, BaseProcess):
+class ResidualProcess(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
 
     def __init__(self, arguments):
 
@@ -87,14 +88,14 @@ class ResidualProcess(ClassBalancer, WindowGenerator, BaseProcess):
             for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
 
                 # Load the audio signal
-                signal, _ = librosa.load(file_name, sr=self.sample_rate)
+                raw_signal, _ = librosa.load(file_name, sr=self.sample_rate)
                 label = file_name.split('/')[-2].split('_')[0]  # Extract label from the file path
 
                 # Segment the audio into windows
-                for (start, end) in self.generate_windows(signal):
+                for (start, end) in self.generate_windows(raw_signal):
 
-                    if len(signal[start:end]) == self.window_size:
-                        signal_segment = signal[start:end]
+                    if len(raw_signal[start:end]) == self.window_size:
+                        signal_segment = raw_signal[start:end]
 
                         # Generate a mel spectrogram
                         spectrogram = librosa.feature.melspectrogram(y=signal_segment,
@@ -104,8 +105,8 @@ class ResidualProcess(ClassBalancer, WindowGenerator, BaseProcess):
                                                                      hop_length=self.hop_length)
 
                         # Convert the spectrogram to decibel scale
-                        spectrogram_decibel_scale = librosa.power_to_db(spectrogram, ref=numpy.max)
-                        spectrogram_decibel_scale = (spectrogram_decibel_scale / self.decibel_scale_factor) + 1
+                        spectrogram_decibel_scale = (librosa.power_to_db(spectrogram,
+                                                                         ref=numpy.max) / self.decibel_scale_factor) + 1
                         list_spectrogram.append(spectrogram_decibel_scale)
                         list_labels.append(label)
 
@@ -130,26 +131,29 @@ class ResidualProcess(ClassBalancer, WindowGenerator, BaseProcess):
 
         history_model = None
         features, labels = self.load_data(self.dataset_directory)
-        metrics_list, confusion_matriz_list = [], []
-        labels = numpy.array(labels).astype(float)
+        metrics_list, confusion_matriz_list, labels = [], [], numpy.array(labels).astype(float)
 
         # Split data into train/val and test sets
-        features_train_val, features_test, labels_train_val, labels_test = train_test_split(
+        features_train_validation, features_test, labels_train_validation, labels_test = train_test_split(
             features, labels, test_size=0.2, stratify=labels, random_state=42
         )
 
         # Balance training/validation set
-        features_train_val, labels_train_val = self.balance_class(features_train_val, labels_train_val)
+        features_train_validation, labels_train_validation\
+            = self.balance_class(features_train_validation, labels_train_validation)
 
         # Stratified k-fold cross-validation on the training/validation set
         instance_k_fold = StratifiedKFold(n_splits=self.number_splits, shuffle=True, random_state=42)
-        probabilities_list = []
-        real_labels_list = []
+        probabilities_list, real_labels_list = [], []
 
-        for train_indexes, val_indexes in instance_k_fold.split(features_train_val, labels_train_val):
+        for train_indexes, validation_indexes in instance_k_fold.split(features_train_validation,
+                                                                       labels_train_validation):
 
-            features_train, features_val = features_train_val[train_indexes], features_train_val[val_indexes]
-            labels_train, labels_val = labels_train_val[train_indexes], labels_train_val[val_indexes]
+            features_train, features_validation = (features_train_validation[train_indexes],
+                                                   features_train_validation[validation_indexes])
+
+            labels_train, labels_validation = (labels_train_validation[train_indexes],
+                                               labels_train_validation[validation_indexes])
 
             # Balance the training set for this fold
             features_train, labels_train = self.balance_class(features_train, labels_train)
@@ -157,18 +161,19 @@ class ResidualProcess(ClassBalancer, WindowGenerator, BaseProcess):
             self.build_model()
             self.neural_network_model.summary()
 
-            history_model = self.compile_and_train(features_train, labels_train, epochs=self.number_epochs,
+            history_model = self.compile_and_train(features_train, labels_train,
+                                                   epochs=self.number_epochs,
                                                    batch_size=self.batch_size,
-                                                   validation_data=(features_val, labels_val))
+                                                   validation_data=(features_validation, labels_validation))
 
-            model_predictions = self.neural_network_model.predict(features_val)
+            model_predictions = self.neural_network_model.predict(features_validation)
             predicted_labels = numpy.argmax(model_predictions, axis=1)
 
             probabilities_list.append(model_predictions)
-            real_labels_list.append(labels_val)
+            real_labels_list.append(labels_validation)
 
             # Calculate and store the metrics for this fold
-            metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_val, predicted_labels)
+            metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_validation)
             metrics_list.append(metrics)
             confusion_matriz_list.append(confusion_matrix)
 
