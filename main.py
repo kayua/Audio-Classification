@@ -16,6 +16,8 @@ import tensorflow
 
 from Engine.Arguments.Arguments import auto_arguments
 from Engine.Models.AST import AudioSpectrogramTransformer
+from Engine.Models.Conformer import Conformer
+from Engine.Models.LSTM import AudioLSTM
 from Engine.Models.MLP import DenseModel
 from Engine.Models.ResidualModel import ResidualModel
 from Engine.Models.Wav2Vec2 import AudioWav2Vec2
@@ -112,8 +114,8 @@ class Main(RunScript, PlotterTools):
             # Train the model and collect results
             instance.build_model()
             model_metrics, model_history, model_matrices, model_roc_list = instance.train()
-            #logging.info( f"Training completed for model '{model_class.__name__}'."
-            #              f" Collected metrics, history, matrices, and ROC data.")11
+            logging.info( f"Training completed for model '{model_class.__name__}'."
+                          f" Collected metrics, history, matrices, and ROC data.")
 
         except Exception as e:
             logging.error(f"Error during training of model '{model_class.__name__}': {e}")
@@ -124,29 +126,28 @@ class Main(RunScript, PlotterTools):
             gc.collect()
             logging.info(f"Garbage collection complete after training model '{model_class.__name__}'.")
 
-        return [], [], [], []
 
-        # return model_metrics, model_history, model_matrices, model_roc_list
+        return model_metrics, model_history, model_matrices, model_roc_list
 
 
     def __exec__(self, models, output_directory):
 
         logging.info("Starting the training and evaluation process.")
 
-        for i, model_class in enumerate(models):
-            logging.debug(f"Training model {i + 1}/{len(models)}: {model_class.__name__}")
+        for index, model_class in enumerate(models):
+            logging.debug(f"Training model {index + 1}/{len(models)}: {model_class.__name__}")
 
             try:
                 metrics, history, matrices, roc_list = self.train_and_collect_metrics(model_class=model_class)
 
-                # self.mean_metrics.append(metrics)
-                # self.mean_history.append(history)
-                # self.mean_matrices.append(matrices)
-                #
-                # logging.info(f"Model {model_class.__name__} training completed. Metrics collected.")
-                #
-                # self.plot_roc_curve(roc_list, "Results/")
-                # logging.info(f"ROC curve plotted for {model_class.__name__}.")
+                self.mean_metrics.append(metrics)
+                self.mean_history.append(history)
+                self.mean_matrices.append(matrices)
+
+                logging.info(f"Model {model_class.__name__} training completed. Metrics collected.")
+
+                self.plot_roc_curve(roc_list, "Results/")
+                logging.info(f"ROC curve plotted for {model_class.__name__}.")
 
             except Exception as e:
                 logging.error(f"Error during training of model {model_class.__name__}: {str(e)}")
@@ -184,12 +185,12 @@ if __name__ == "__main__":
     main.__start__()
 
     available_models = [
-#        DenseModel,
-#       AudioLSTM,
-#        Conformer,
+        Conformer,
+        DenseModel,
+        AudioLSTM,
         AudioSpectrogramTransformer,
-#        AudioWav2Vec2,
-#        ResidualModel
+        AudioWav2Vec2,
+        ResidualModel
     ]
 
     main.__exec__(available_models, "Results")

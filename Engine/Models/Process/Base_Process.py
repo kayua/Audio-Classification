@@ -21,14 +21,14 @@ class BaseProcess:
         # Calculate mean metrics across all folds
         mean_metrics = {
             'model_name': self.model_name,
-            'Acc.': {'value': numpy.mean([metric['Accuracy'] for metric in metrics_list]),
-                     'std': numpy.std([metric['Accuracy'] for metric in metrics_list])},
-            'Prec.': {'value': numpy.mean([metric['Precision'] for metric in metrics_list]),
-                      'std': numpy.std([metric['Precision'] for metric in metrics_list])},
-            'Rec.': {'value': numpy.mean([metric['Recall'] for metric in metrics_list]),
-                     'std': numpy.std([metric['Recall'] for metric in metrics_list])},
-            'F1.': {'value': numpy.mean([metric['F1-Score'] for metric in metrics_list]),
-                    'std': numpy.std([metric['F1-Score'] for metric in metrics_list])},
+            'Acc.': {'value': numpy.mean([metric['accuracy'] for metric in metrics_list]),
+                     'std': numpy.std([metric['accuracy'] for metric in metrics_list])},
+            'Prec.': {'value': numpy.mean([metric['precision'] for metric in metrics_list]),
+                      'std': numpy.std([metric['precision'] for metric in metrics_list])},
+            'Rec.': {'value': numpy.mean([metric['recall'] for metric in metrics_list]),
+                     'std': numpy.std([metric['recall'] for metric in metrics_list])},
+            'F1.': {'value': numpy.mean([metric['f1_score'] for metric in metrics_list]),
+                    'std': numpy.std([metric['f1_score'] for metric in metrics_list])},
         }
 
         probabilities_predicted = {

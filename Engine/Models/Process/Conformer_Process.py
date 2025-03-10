@@ -108,16 +108,18 @@ class ProcessConformer(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
 
                             # Append spectrogram and label
                             list_spectrogram.append(spectrogram_decibel_scale)
+
                             list_labels.append(label)
 
                 except Exception as e:
                     logging.error(f"Error processing file '{file_name}': {e}")
+        print(numpy.array(list_spectrogram).shape)
 
         # Reshape the feature array to the expected dimensions
         array_features = numpy.array(list_spectrogram).reshape(
             len(list_spectrogram),
             self.number_filters_spectrogram,
-            self.window_size // self.hop_length,  # Time frames depend on hop length
+            (self.window_size // self.hop_length) + 1,  # Time frames depend on hop length
             1
         )
 
