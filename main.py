@@ -33,31 +33,37 @@ Last Update: 2024/07/26
 Credits: Unknown
 """
 
-import gc
-import logging
-import os
+try:
 
-import tensorflow
+    import gc
+    import os
+    import sys
 
-from Engine.Arguments.Arguments import auto_arguments
-from Engine.Models.AST import AudioSpectrogramTransformer
-from Engine.Models.Conformer import Conformer
-from Engine.Models.LSTM import AudioLSTM
-from Engine.Models.MLP import DenseModel
-from Engine.Models.ResidualModel import ResidualModel
-from Engine.Models.Wav2Vec2 import AudioWav2Vec2
-from Tools.Logger import auto_logger
-from Tools.PlotterTools import PlotterTools
-from Tools.RunScript import RunScript
+    import logging
+    import tensorflow
 
-# try:
+    from Tools.Logger import auto_logger
+    from Tools.RunScript import RunScript
 
-# except ImportError as error:
-#     print(error)
-#     print("1. Install requirements:")
-#     print("  pip3 install --upgrade pip")
-#     print("  pip3 install -r requirements.txt")
-#     sys.exit(-1)
+    from Engine.Models.LSTM import AudioLSTM
+    from Engine.Models.MLP import DenseModel
+
+    from Tools.PlotterTools import PlotterTools
+    from Engine.Models.Conformer import Conformer
+    from Engine.Models.Wav2Vec2 import AudioWav2Vec2
+
+    from Engine.Arguments.Arguments import auto_arguments
+    from Engine.Models.ResidualModel import ResidualModel
+
+    from Engine.Models.AST import AudioSpectrogramTransformer
+
+except ImportError as error:
+
+    print(error)
+    print("1. Install requirements:")
+    print("  pip3 install --upgrade pip")
+    print("  pip3 install -r requirements.txt")
+    sys.exit(-1)
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
