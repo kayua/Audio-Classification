@@ -181,8 +181,9 @@ class AudioWav2Vec2(MaskCreator, Wav2Vec2Process): #, EvaluationProcess):
         for number_filters in self.list_filters_encoder:
             neural_network_flow = TimeDistributed(
                 Conv1D(number_filters, self.kernel_size, strides=(2,), use_bias=True,
-                       kernel_regularizer=None, bias_regularizer=None, kernel_constraint=None,
-                       activation=self.intermediary_layer_activation))(neural_network_flow)
+                       kernel_regularizer=None, bias_regularizer=None, kernel_constraint=None))(neural_network_flow)
+            neural_network_flow = TimeDistributed(GELU())(neural_network_flow)
+            neural_network_flow = TimeDistributed(LayerNormalization())(neural_network_flow)
 
         # Flatten the convolutional output to feed into the dense layers
         flatten_flow = TimeDistributed(Flatten())(neural_network_flow)
@@ -205,6 +206,7 @@ class AudioWav2Vec2(MaskCreator, Wav2Vec2Process): #, EvaluationProcess):
         # Feed-forward network (fully connected layers)
         feedforward_network = Dense(self.number_classes)(transformer_attention)
         feedforward_network = GELU()(feedforward_network)
+
         feedforward_network = Dense(self.number_classes)(feedforward_network)
         feedforward_network = GELU()(feedforward_network)
 
@@ -257,7 +259,8 @@ class AudioWav2Vec2(MaskCreator, Wav2Vec2Process): #, EvaluationProcess):
         neural_network_flow = Flatten()(self.neural_network_model.output[0])
 
         # Step 4: Add a Dense layer with the number of classes and specified activation function
-        neural_network_flow = Dense(self.number_classes, activation=self.last_layer_activation)(neural_network_flow)
+        neural_network_flow = Dense(self.number_classes)(neural_network_flow)
+        neural_network_flow = GELU()(neural_network_flow)
         logging.info(f"Added Dense layer with {self.number_classes} classes and '{self.last_layer_activation}' activation.")
 
         # Step 5: Recreate the model with new output
