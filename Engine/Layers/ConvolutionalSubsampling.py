@@ -13,8 +13,8 @@ try:
 
     import tensorflow
 
-    from tensorflow.keras.layers import Conv2D
     from tensorflow.keras.layers import Layer
+    from tensorflow.keras.layers import Conv2D
 
 except ImportError as error:
     print(error)

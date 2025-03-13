@@ -8,11 +8,13 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
-from keras.src import ops
 
 try:
     import sys
-    import tensorflow as tf
+    import tensorflow
+
+    from keras.src import ops
+
     from tensorflow.keras.layers import Layer
 
 except ImportError as error:
@@ -77,7 +79,7 @@ class GELU(Layer):
         """
         super(GELU, self).__init__(**kwargs)
 
-    def call(self, neural_network_flow: tf.Tensor) -> tf.Tensor:
+    def call(self, neural_network_flow: tensorflow.Tensor) -> tensorflow.Tensor:
         """
         Applies the GELU activation function to the input tensor.
 
