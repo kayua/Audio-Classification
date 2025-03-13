@@ -104,3 +104,7 @@ class GELU(Layer):
         >>>     (2, 5)
         """
         return ops.gelu(neural_network_flow)
+
+    def compute_output_shape(self, input_shape):
+        # GELU does not alter the shape, so the output shape is the same as the input shape
+        return input_shape
