@@ -297,9 +297,8 @@ class ProcessAST(ClassBalancer, SpectrogramPatcher, WindowGenerator, BaseProcess
             features, labels, test_size=0.2, stratify=labels, random_state=42
         )
 
-#        # Balance training/validation set
-#        features_train_validation, labels_train_validation = self.balance_class(features_train_validation,
-#                                                                                labels_train_validation)
+        # Balance test set
+        features_test, labels_test = self.balance_class(features_test, labels_test)
 
         # Stratified k-fold cross-validation on the training/validation set
         instance_k_fold = StratifiedKFold(n_splits=self.number_splits, shuffle=True, random_state=42)
@@ -326,11 +325,11 @@ class ProcessAST(ClassBalancer, SpectrogramPatcher, WindowGenerator, BaseProcess
                                                    batch_size=self.batch_size,
                                                    validation_data=(features_validation, labels_validation))
 
-            model_predictions = self.neural_network_model.predict(features_validation)
+            model_predictions = self.neural_network_model.predict(features_test)
             predicted_labels = numpy.argmax(model_predictions, axis=1)
 
             probabilities_list.append(model_predictions)
-            real_labels_list.append(labels_validation)
+            real_labels_list.append(labels_test)
 
             # Calculate and store the metrics for this fold
             metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_validation)
