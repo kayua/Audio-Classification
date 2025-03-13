@@ -200,21 +200,24 @@ class ProcessConformer(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
         metrics_list, confusion_matriz_list, labels = [], [], numpy.array(labels).astype(float)
 
         # Split data into train/val and test sets
-        features_train_val, features_test, labels_train_val, labels_test = train_test_split(
+        features_train_validation, features_test, labels_train_validation, labels_test = train_test_split(
             features, labels, test_size=0.2, stratify=labels, random_state=42
         )
 
-        # Balance training/validation set
-        features_train_val, labels_train_val = self.balance_class(features_train_val, labels_train_val)
+        # Balance evaluation set
+        features_test, labels_test = self.balance_class(features_test, labels_test)
 
         # Stratified k-fold cross-validation on the training/validation set
         instance_k_fold = StratifiedKFold(n_splits=self.number_splits, shuffle=True, random_state=42)
-        probabilities_list = []
-        real_labels_list = []
+        probabilities_list, real_labels_list = [], []
 
-        for train_indexes, val_indexes in instance_k_fold.split(features_train_val, labels_train_val):
-            features_train, features_val = features_train_val[train_indexes], features_train_val[val_indexes]
-            labels_train, labels_validation = labels_train_val[train_indexes], labels_train_val[val_indexes]
+        for train_indexes, val_indexes in instance_k_fold.split(features_train_validation, labels_train_validation):
+
+            features_train, features_validation = (features_train_validation[train_indexes],
+                                                   features_train_validation[val_indexes])
+
+            labels_train, labels_validation = (labels_train_validation[train_indexes],
+                                               labels_train_validation[val_indexes])
 
             # Balance the training set for this fold
             features_train, labels_train = self.balance_class(features_train, labels_train)
@@ -224,13 +227,13 @@ class ProcessConformer(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
 
             history_model = self.compile_and_train(features_train, labels_train, epochs=self.number_epochs,
                                                    batch_size=self.batch_size,
-                                                   validation_data=(features_val, labels_validation))
+                                                   validation_data=(features_validation, labels_validation))
 
-            model_predictions = self.neural_network_model.predict(features_val)
+            model_predictions = self.neural_network_model.predict(features_test)
             predicted_labels = numpy.argmax(model_predictions, axis=1)
 
             probabilities_list.append(model_predictions)
-            real_labels_list.append(labels_validation)
+            real_labels_list.append(labels_test)
 
             # Calculate and store the metrics for this fold
             metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_validation)
