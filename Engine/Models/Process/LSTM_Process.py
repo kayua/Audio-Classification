@@ -134,9 +134,8 @@ class ProcessLSTM(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
         metrics_list, confusion_matriz_list, labels = [], [], numpy.array(labels).astype(float)
 
         # Split data into train/val and test sets
-        features_train_validation, features_test, labels_train_validation, labels_test = train_test_split(
-            features, labels, test_size=0.2, stratify=labels, random_state=42
-        )
+        features_train_validation, features_test, labels_train_validation, labels_test\
+            = train_test_split(features, labels, test_size=0.2, stratify=labels, random_state=42)
 
         #Balance evaluation set
         features_test, labels_test = self.balance_class(features_test, labels_test)
