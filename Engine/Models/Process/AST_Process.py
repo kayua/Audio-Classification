@@ -297,9 +297,9 @@ class ProcessAST(ClassBalancer, SpectrogramPatcher, WindowGenerator, BaseProcess
             features, labels, test_size=0.2, stratify=labels, random_state=42
         )
 
-        # Balance training/validation set
-        features_train_validation, labels_train_validation = self.balance_class(features_train_validation,
-                                                                                labels_train_validation)
+#        # Balance training/validation set
+#        features_train_validation, labels_train_validation = self.balance_class(features_train_validation,
+#                                                                                labels_train_validation)
 
         # Stratified k-fold cross-validation on the training/validation set
         instance_k_fold = StratifiedKFold(n_splits=self.number_splits, shuffle=True, random_state=42)
