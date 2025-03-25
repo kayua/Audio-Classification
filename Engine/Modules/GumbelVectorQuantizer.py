@@ -15,7 +15,7 @@ try:
 
     import tensorflow
 
-    from keras import Model
+    from keras import Model, Layer
 
     from tensorflow.keras.layers import Dense
 
@@ -24,7 +24,7 @@ except ImportError as error:
     sys.exit(-1)
 
 
-class GumbelVectorQuantizer(Model):
+class GumbelVectorQuantizer(Layer):
     """
     A Gumbel-Softmax based Vector Quantizer for neural networks, typically used for
     discretization of continuous representations in the context of generative models.
@@ -48,7 +48,7 @@ class GumbelVectorQuantizer(Model):
         code_book (tf.Tensor): The learnable codebook that contains the code vectors.
     """
 
-    def __init__(self, config):
+    def __init__(self):
         """
         Initializes the GumbelVectorQuantizer model with the configuration parameters.
 
@@ -61,10 +61,10 @@ class GumbelVectorQuantizer(Model):
                     - gumbel_init_temperature (float): Initial temperature for the Gumbel-Softmax distribution.
         """
         super().__init__()
-        self.number_groups = config.num_code_vector_groups
-        self.number_vectors = config.num_code_vectors_per_group
-        self.code_vector_size = config.code_vector_size // self.number_groups
-        self.temperature = config.gumbel_init_temperature
+        self.number_groups = 4
+        self.number_vectors = 16
+        self.code_vector_size = 16 // 4
+        self.temperature = 0.2
 
         self.linear = Dense(self.number_groups * self.number_vectors)
         self.code_book = self.add_weight(
