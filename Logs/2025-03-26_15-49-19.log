@@ -1,0 +1,71 @@
+2025-03-26 15:49:19,987	***	Command:
+	main.py
+
+2025-03-26 15:49:19,987	***	Settings:
+2025-03-26 15:49:19,987	***		batch_size                          : 32
+2025-03-26 15:49:19,988	***		dataset_directory                   : Dataset/
+2025-03-26 15:49:19,988	***		file_extension                      : *.wav
+2025-03-26 15:49:19,988	***		loss                                : sparse_categorical_crossentropy
+2025-03-26 15:49:19,988	***		number_classes                      : 5
+2025-03-26 15:49:19,988	***		number_epochs                       : 2
+2025-03-26 15:49:19,988	***		number_splits                       : 2
+2025-03-26 15:49:19,988	***		output_directory                    : Results/
+2025-03-26 15:49:19,988	***		overlap                             : 2
+2025-03-26 15:49:19,988	***		plot_bar_width                      : 0.15
+2025-03-26 15:49:19,988	***		plot_cap_size                       : 10
+2025-03-26 15:49:19,988	***		plot_height                         : 8
+2025-03-26 15:49:19,988	***		plot_width                          : 14
+2025-03-26 15:49:19,989	***		residual_convolutional_padding      : same
+2025-03-26 15:49:19,989	***		residual_decibel_scale_factor       : 80
+2025-03-26 15:49:19,989	***		residual_dropout_rate               : 0.1
+2025-03-26 15:49:19,989	***		residual_filters_per_block          : [16, 32, 64, 96]
+2025-03-26 15:49:19,989	***		residual_hop_length                 : 256
+2025-03-26 15:49:19,989	***		residual_input_dimension            : (513, 40, 1)
+2025-03-26 15:49:19,989	***		residual_intermediary_activation    : relu
+2025-03-26 15:49:19,989	***		residual_last_layer_activation      : softmax
+2025-03-26 15:49:19,989	***		residual_loss_function              : sparse_categorical_crossentropy
+2025-03-26 15:49:19,989	***		residual_number_filters_spectrogram : 512
+2025-03-26 15:49:19,989	***		residual_number_layers              : 4
+2025-03-26 15:49:19,989	***		residual_optimizer_function         : adam
+2025-03-26 15:49:19,989	***		residual_overlap                    : 2
+2025-03-26 15:49:19,989	***		residual_size_convolutional_filters : (3, 3)
+2025-03-26 15:49:19,990	***		residual_size_pooling               : (2, 2)
+2025-03-26 15:49:19,990	***		residual_window_size                : 1024
+2025-03-26 15:49:19,990	***		residual_window_size_factor         : 40
+2025-03-26 15:49:19,990	***		roc_curve_axis_label_font_size      : 12
+2025-03-26 15:49:19,990	***		roc_curve_color_map                 : magma
+2025-03-26 15:49:19,990	***		roc_curve_diagonal_line             : True
+2025-03-26 15:49:19,990	***		roc_curve_figure_size               : (8, 6)
+2025-03-26 15:49:19,990	***		roc_curve_grid                      : True
+2025-03-26 15:49:19,990	***		roc_curve_legend_font_size          : 10
+2025-03-26 15:49:19,990	***		roc_curve_line_width                : 2
+2025-03-26 15:49:19,990	***		roc_curve_marker_style              : o
+2025-03-26 15:49:19,990	***		roc_curve_show_plot                 : False
+2025-03-26 15:49:19,990	***		roc_curve_title_font_size           : 14
+2025-03-26 15:49:19,990	***		sample_rate                         : 8000
+2025-03-26 15:49:19,991	***		verbosity                           : 20
+2025-03-26 15:49:19,991	***	
+2025-03-26 15:49:19,991	***	Starting the training and evaluation process.
+2025-03-26 15:49:19,991	***	Starting the training and evaluation process.
+2025-03-26 15:49:19,991	***	Starting training for model ResidualModel.
+2025-03-26 15:49:19,991	***	Starting training for model ResidualModel.
+2025-03-26 15:49:19,991	***	Instantiated model class 'ResidualModel'.
+2025-03-26 15:49:19,991	***	Instantiated model class 'ResidualModel'.
+2025-03-26 15:49:21,061	***	Starting data loading process.
+2025-03-26 15:49:21,061	***	Starting data loading process.
+2025-03-26 15:49:21,061	***	Reading subdirectories in 'Dataset/'...
+2025-03-26 15:49:21,061	***	Reading subdirectories in 'Dataset/'...
+2025-03-26 15:49:21,062	***	Processing directory: Dataset/4
+2025-03-26 15:49:21,062	***	Processing directory: Dataset/4
+2025-03-26 15:51:03,173	***	Processing directory: Dataset/2
+2025-03-26 15:51:03,173	***	Processing directory: Dataset/2
+2025-03-26 15:51:13,744	***	Processing directory: Dataset/1
+2025-03-26 15:51:13,744	***	Processing directory: Dataset/1
+2025-03-26 15:54:29,270	***	Processing directory: Dataset/0
+2025-03-26 15:54:29,270	***	Processing directory: Dataset/0
+2025-03-26 15:59:05,159	***	Processing directory: Dataset/3
+2025-03-26 15:59:05,159	***	Processing directory: Dataset/3
+2025-03-26 15:59:22,101	***	Reshaping feature array.
+2025-03-26 15:59:22,101	***	Reshaping feature array.
+2025-03-26 15:59:24,803	***	Data loading complete.
+2025-03-26 15:59:24,803	***	Data loading complete.

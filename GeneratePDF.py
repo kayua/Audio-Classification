@@ -9,24 +9,15 @@ __last_update__ = '2024/07/26'
 __credits__ = ['unknown']
 
 
-try:
-    import os
-    import sys
-    import pdfkit
-    import logging
-    import argparse
-    import markdown
 
-except ImportError as error:
-    print(error)
-    print("1. Install requirements:")
-    print("  pip3 install --upgrade pip")
-    print("  pip3 install -r requirements.txt")
-    sys.exit(-1)
+import os
+import sys
+import pdfkit
+import logging
+import argparse
+import markdown as markdown
 
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def convert_markdown_to_html(markdown_file_path, html_file_path):
     """

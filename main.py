@@ -4,7 +4,7 @@
 Audio Classification using Multiple Neural Network Architectures
 
 This script implements and evaluates multiple neural network architectures for audio classification,
-including Wav2Vec2, MLP, Audio Spectrogram Transformer, Conformer, Residual, and LSTM.
+including only Residual model
 
 It performs the following tasks:
     - Training and evaluation of the models
@@ -25,7 +25,7 @@ Ensure that all dependencies are installed using the provided requirements file:
     $ pip3 install --upgrade pip
     $ pip3 install -r requirements.txt
 
-Author: Unknown
+Author: Kayuã and Thais with tests 
 Email: unknown@unknown.com.br
 Version: 1.0.0
 Initial Data: 2024/07/17
@@ -45,17 +45,10 @@ try:
     from Tools.Logger import auto_logger
     from Tools.RunScript import RunScript
 
-    from Engine.Models.LSTM import AudioLSTM
-    from Engine.Models.MLP import DenseModel
-
     from Tools.PlotterTools import PlotterTools
-    from Engine.Models.Conformer import Conformer
-    from Engine.Models.Wav2Vec2 import AudioWav2Vec2
-
     from Engine.Arguments.Arguments import auto_arguments
     from Engine.Models.ResidualModel import ResidualModel
 
-    from Engine.Models.AST import AudioSpectrogramTransformer
 
 except ImportError as error:
 
@@ -93,7 +86,7 @@ class Main(RunScript, PlotterTools):
         self.list_roc_curve = []
 
         self.__start__()
-        PlotterTools.__init__(self, self.input_arguments)
+#        PlotterTools.__init__(self, self.input_arguments)
 
     def train_and_collect_metrics(self, model_class):
         """
@@ -225,11 +218,6 @@ if __name__ == "__main__":
     main.__start__()
 
     available_models = [
-        AudioWav2Vec2,
-        Conformer,
-        DenseModel,
-        AudioLSTM,
-        AudioSpectrogramTransformer,
         ResidualModel
     ]
 

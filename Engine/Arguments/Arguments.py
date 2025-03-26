@@ -15,23 +15,12 @@ try:
     import logging
     import argparse
 
-    from Engine.Arguments.ArgumentsAST import add_ast_arguments
-    from Engine.Arguments.ArgumentsMLP import add_mlp_arguments
 
-    from Engine.Arguments.ArgumentsLSTM import add_lstm_arguments
 
     from Engine.Arguments.ArgumentsResidual import add_residual_arguments
 
-    from Engine.Arguments.ArgumentsConformer import add_conformer_arguments
-    from Engine.Arguments.ArgumentsWav2Vec2 import add_wav_to_vec_arguments
-
     from Engine.Arguments.ArgumentsROCPlotter import add_roc_plotter_arguments
 
-    from Engine.Arguments.ArgumentsLossPlotter import add_loss_plotter_arguments
-
-    from Engine.Arguments.ArgumentsConfusionMatrix import add_confusion_matrix_arguments
-
-    from Engine.Arguments.ArgumentsComparativeMetrics import add_comparative_metrics_plotter_arguments
 
 except ImportError as error:
     print(error)
@@ -48,7 +37,7 @@ DEFAULT_BATCH_SIZE = 32
 DEFAULT_NUMBER_SPLITS = 2
 DEFAULT_SAMPLE_RATE = 8000
 DEFAULT_OVERLAP = 2
-DEFAULT_NUMBER_CLASSES = 4
+DEFAULT_NUMBER_CLASSES = 5
 DEFAULT_PLOT_WIDTH = 14
 DEFAULT_PLOT_HEIGHT = 8
 DEFAULT_PLOT_BAR_WIDTH = 0.15
@@ -119,15 +108,7 @@ class Arguments:
         self.input_arguments = self.get_arguments()
 
         # Append additional arguments related to specific architectures
-        self.input_arguments = add_ast_arguments(self.input_arguments)
-        self.input_arguments = add_conformer_arguments(self.input_arguments)
-        self.input_arguments = add_lstm_arguments(self.input_arguments)
-        self.input_arguments = add_mlp_arguments(self.input_arguments)
         self.input_arguments = add_residual_arguments(self.input_arguments)
-        self.input_arguments = add_wav_to_vec_arguments(self.input_arguments)
-        self.input_arguments = add_comparative_metrics_plotter_arguments(self.input_arguments)
-        self.input_arguments = add_confusion_matrix_arguments(self.input_arguments)
-        self.input_arguments = add_loss_plotter_arguments(self.input_arguments)
         self.input_arguments = add_roc_plotter_arguments(self.input_arguments)
         # Parse the combined set of arguments
         self.input_arguments = self.input_arguments.parse_args()
