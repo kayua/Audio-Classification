@@ -10,7 +10,7 @@ __credits__ = ['unknown']
 
 # MIT License
 #
-# Copyright (c) 2025 Synthetic Ocean AI
+# Copyright (c) 2025 unknown
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal

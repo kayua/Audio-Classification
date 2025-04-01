@@ -10,7 +10,7 @@ __credits__ = ['unknown']
 
 # MIT License
 #
-# Copyright (c) 2025 Synthetic Ocean AI
+# Copyright (c) 2025 unknown
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,11 +30,8 @@ __credits__ = ['unknown']
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import glob
 
-from tqdm import tqdm
 
-from Engine.Processing.WindowGenerator import WindowGenerator
 
 try:
     import os
@@ -44,6 +41,11 @@ try:
 
     import logging
     import librosa
+    import glob
+
+    from tqdm import tqdm
+
+    from Engine.Processing.WindowGenerator import WindowGenerator
 
 except ImportError as error:
     print(error)
