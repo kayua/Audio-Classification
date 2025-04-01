@@ -20,7 +20,7 @@
 | **OPTIMIZER_FUNCTION**     | `adam` | Optimizer function |
 
 ## Residual Topology
-The Residual Model, shown in Figure 1, has been proposed for audio classification tasks, in which input data—such as audio frames or spectrogram images—is first  segmented using a sliding time window and subsequently normalized [Paim et al. 2024].  The model begins with a two-dimensional convolutional layer that extracts local features,  Window Size/2 followed by a series of residual blocks. These residual blocks deepen the network and help  mitigate the vanishing gradient problem, thereby improving training efficiency in deeper  architectures. After feature extraction, a max pooling layer reduces the spatial dimensionality, and a dense (fully connected) layer performs the final classification, producing  a probability distribution over the target classes.
+**Residual Model** has been proposed for audio classification tasks, in which input data—such as audio frames or spectrogram images—is first  segmented using a sliding time window and subsequently normalized [Paim et al. 2024].  The model begins with a two-dimensional convolutional layer that extracts local features,  Window Size/2 followed by a series of residual blocks. These residual blocks deepen the network and help  mitigate the vanishing gradient problem, thereby improving training efficiency in deeper  architectures. After feature extraction, a max pooling layer reduces the spatial dimensionality, and a dense (fully connected) layer performs the final classification, producing  a probability distribution over the target classes.
 <table>
     <tbody>
         <tr>
@@ -60,25 +60,7 @@ The Residual Model, shown in Figure 1, has been proposed for audio classificatio
 
 
 ## Multilayer Perceptron Topology
-
-The **Multilayer Perceptron (MLP)** is one of the most essential architectures in machine learning, serving as the backbone of many deep learning models. It consists of three main components:  
-
-- **🟢 Input Layer** – Receives raw data for processing.  
-- **🔵 Hidden Layers** – Where the magic happens! These layers apply transformations that enable the network to learn complex, non-linear relationships.  
-- **🔴 Output Layer** – Produces the final predictions based on learned patterns.  
-
-### 🧠 How It Works  
-
-Each **neuron** in the network:  
-✅ Receives input signals 📩  
-✅ Computes a weighted sum ➕  
-✅ Passes the result through a non-linear activation function 🔄  
-✅ Sends the transformed output to the next layer 🚀  
-
-The **connections between neurons** are defined by **weights**, which are dynamically adjusted during training using **backpropagation**. This process helps the model minimize prediction errors and optimize performance over time.  
-
-MLPs are the foundation of deep learning, making them a powerful tool for tackling complex problems such as image recognition, natural language processing, and predictive analytics. 🏆🔥  
-
+**Multilayer Perceptron (MLP)** represents a foundational architecture in machine  learning. It is composed of an input layer, one or more hidden layers, and an output layer, forming a fully connected network. Each unit, or neuron, receives input signals, applies a  weighted sum and non-linear transformation, and transmits the result forward through the  network. The hidden layers are where most of the computation takes place, enabling the  MLP to model complex, non-linear relationships in the data. The connections between  neurons are characterized by weights, which are adjusted during training through back-  propagation to minimize prediction error.
 
 <table>
     <tbody>
@@ -111,7 +93,7 @@ MLPs are the foundation of deep learning, making them a powerful tool for tackli
 | **WINDOW_SIZE_FACTOR**  | 40     | Scaling factor for window size |
 
 ## Long Short-Term Memory Topology
-Long Short-Term Memory (LSTM) is widely employed for sequential data  processing, including tasks such as language modeling and time series analysis [Hochreiter and Schmidhuber 1997]. LSTM cells are designed with internal gating mechanisms—input, forget, and output gates—that regulate information flow and allow the  network to capture long-term dependencies. As input sequences are processed, each cell  updates its internal state and transmits output to subsequent cells, maintaining a dynamic  memory across time steps. This structure enables LSTMs to retain relevant information  while filtering out noise or less significant data
+**Long Short-Term Memory (LSTM)** is widely employed for sequential data  processing, including tasks such as language modeling and time series analysis [Hochreiter and Schmidhuber 1997]. LSTM cells are designed with internal gating mechanisms—input, forget, and output gates—that regulate information flow and allow the  network to capture long-term dependencies. As input sequences are processed, each cell  updates its internal state and transmits output to subsequent cells, maintaining a dynamic  memory across time steps. This structure enables LSTMs to retain relevant information  while filtering out noise or less significant data
 <table>
     <tbody>
         <tr>
@@ -144,7 +126,7 @@ Long Short-Term Memory (LSTM) is widely employed for sequential data  processing
 | **WINDOW_SIZE_FACTOR**  | 40     | Scaling factor for window size |
 
 ## Conformer Topology
-Conformer model, whose reference implementation considered in this  research is shown in Figure 4, is specifically designed for audio signal processing tasks,  such as automatic speech recognition [Gulati et al. 2020]. It begins with a data augmentation step using SpecAugment, followed by convolutional subsampling to reduce the temporal resolution while preserving salient features. The subsampled input is transformed  via a linear layer and passed through a dropout layer to reduce the risk of overfitting. The  core of the model consists of a series of Conformer blocks, which integrate convolutional  modules with transformer-based self-attention. This hybrid design enables the model to  effectively capture both local patterns and global dependencies, making it well-suited for  complex audio modeling tasks.
+**Conformer** model, whose reference implementation considered in this  research  is specifically designed for audio signal processing tasks,  such as automatic speech recognition [Gulati et al. 2020]. It begins with a data augmentation step using SpecAugment, followed by convolutional subsampling to reduce the temporal resolution while preserving salient features. The subsampled input is transformed  via a linear layer and passed through a dropout layer to reduce the risk of overfitting. The  core of the model consists of a series of Conformer blocks, which integrate convolutional  modules with transformer-based self-attention. This hybrid design enables the model to  effectively capture both local patterns and global dependencies, making it well-suited for  complex audio modeling tasks.
 
 <table>
     <tbody>
@@ -203,7 +185,7 @@ Conformer model, whose reference implementation considered in this  research is 
 ## Parameters
 ### General Settings
 
-The Audio Spectrogram Transformer (AST), introduced by [Gong et al. 2021],  adapts the transformer architecture for audio classification tasks. It operates by segmenting the input spectrogram into overlapping patches, which are linearly projected and enriched with positional and class embeddings. These patches are then fed into a Transformer encoder, which models the sequence through self-attention mechanisms. The encoder output is finally passed through a linear layer to produce class predictions. By  leveraging the global attention capabilities of transformers, AST can capture both local  and contextual features within audio data. Figure 3b shows a view of the basic architectural model, as we implemented in our evaluation.
+**Audio Spectrogram Transformer (AST)**, introduced by [Gong et al. 2021],  adapts the transformer architecture for audio classification tasks. It operates by segmenting the input spectrogram into overlapping patches, which are linearly projected and enriched with positional and class embeddings. These patches are then fed into a Transformer encoder, which models the sequence through self-attention mechanisms. The encoder output is finally passed through a linear layer to produce class predictions. By  leveraging the global attention capabilities of transformers, AST can capture both local  and contextual features within audio data. Figure 3b shows a view of the basic architectural model, as we implemented in our evaluation.
 
 ## Model Architecture
 
