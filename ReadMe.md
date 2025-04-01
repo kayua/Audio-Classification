@@ -18,6 +18,59 @@
 
 </div>
 ---
+## 🚀 Install and Run 
+
+Please follow the instructions below to set up the environment and install the required dependencies.
+
+### 1. (Optional) Set up a virtual environment:
+```bash
+python3 -m venv ~/Python3venv/SyntheticOcean
+source ~/Python3venv/SyntheticOcean/bin/activate
+```
+
+### 2. Install the dependencies:
+```bash
+pip3 install --upgrade pip
+pip3 install -r requirements.txt
+```
+
+### 3. Clone the Synthetic Ocean repository:
+```bash
+git clone https://github.com/kayua/SynDataGen.git
+cd SynDataGen
+```
+
+### 4. Install the current release:
+```bash
+pip install .
+```
+## 📌 System Requirements  
+
+To ensure optimal performance, your environment should meet the following requirements:  
+
+## 🖥️ Hardware Requirements  
+| Component  | Minimum Requirement  | Recommended  |
+|------------|----------------------|-------------|
+| **Processor** | Any modern x86_64 CPU | Multi-core CPU (Intel i5/Ryzen 5 or better) |
+| **Memory (RAM)** | 4GB | 8GB or more |
+| **Storage** | 10GB free disk space | SSD with 20GB free |
+| **GPU (Optional)** | CUDA-compatible GPU | NVIDIA GPU with CUDA 11+ |**
+
+## ⚙️ Software Requirements  
+| Component  | Required Version  | Notes |
+|------------|------------------|-------|
+| **Operating System** | Ubuntu 22.04 (or compatible) | Linux-based distributions only |
+| **Python** | 3.8.10 or higher | Virtual environment recommended |
+| **Docker** | 27.2.1 | Required for containerized execution |
+| **Git** | Latest version | Required for version control |
+| **CUDA (Optional)** | 11.0 or higher | Required for GPU acceleration |
+
+📌 **Note:** GPU support is optional but recommended for high-performance tasks. Running without a GPU will rely on CPU processing, which may impact execution speed.
+
+
+
+
+
 # Sound classification - Neural Network Models
 ---------------------
 This repository contains the implemented code for the classification of mosquito audios using deep neural networks. It includes state-of-the-art algorithms and advanced techniques employed in the study, providing a robust basis for the analysis and categorization of complex acoustic patterns. 
