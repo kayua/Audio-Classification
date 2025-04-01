@@ -19,14 +19,18 @@
 </div>
 ---
 
+# 📖 About <a name="about"></a>
+
+This repository contains implementations of deep neural networks for mosquito audio classification, including Residual, Conformer, AudioSpectrogramTransformer, LSTM, and MLP architectures. It leverages state-of-the-art algorithms and advanced techniques to analyze and categorize complex acoustic patterns. The library supports GPU acceleration and includes all necessary components for model evaluation.
+
 ## 🚀 Install and Run 
 
 Please follow the instructions below to set up the environment and install the required dependencies.
 
 ### 1. (Optional) Set up a virtual environment:
 ```bash
-python3 -m venv ~/Python3venv/SyntheticOcean
-source ~/Python3venv/SyntheticOcean/bin/activate
+python3 -m venv ~/Python3venv/Mosquitoes-Classification-Models
+source ~/Python3venv/Mosquitoes-Classification-Models/bin/activate
 ```
 
 ### 2. Install the dependencies:
@@ -37,8 +41,8 @@ pip3 install -r requirements.txt
 
 ### 3. Clone the Synthetic Ocean repository:
 ```bash
-git clone https://github.com/kayua/SynDataGen.git
-cd SynDataGen
+git clone https://github.com/kayua/Mosquitoes-Classification-Models.git
+cd Mosquitoes-Classification-Models
 ```
 
 ### 4. Install the current release:
@@ -71,30 +75,10 @@ To ensure optimal performance, your environment should meet the following requir
 
 
 
-
-# Sound classification - Neural Network Models
----------------------
-This repository contains the implemented code for the classification of mosquito audios using deep neural networks. It includes state-of-the-art algorithms and advanced techniques employed in the study, providing a robust basis for the analysis and categorization of complex acoustic patterns. 
-
-
 ![Spectrogramas](Layout/AudioSegments.png?raw=true "")
 [View original publication](https://www.sciencedirect.com/science/article/pii/S1746809424004002)
 
 The code made available aims to facilitate the replication of the experiments and the application of state-of-the-art methodologies in audio processing and bioacoustics. The implementation contains the definitions of the models, layers, blocks and loss functions necessary for the correct functioning of the models, as well as an evaluation framework that allows the analysis of the models' performance.
-
----------------------
-## Neural Network Topologies
-
-This repository contains the implementation and evaluation of six distinct deep neural network topologies for audio recognition. Each topology was developed for the analysis and identification of specific acoustic patterns in the audio emitted by mosquito wings, providing a robust technical basis for the comparative evaluation of the proposed solutions. Below are listed each of the topologies present in this repository, as well as their structure and original work.
-
-### Original Papers:
-
-1. Audio Spectrogram Transformer [https://arxiv.org/abs/2104.01778]
-2. Long Short Term Memory [https://www.bioinf.jku.at/publications/older/2604.pdf]
-3. Conformer [https://arxiv.org/abs/2005.08100]
-4. Wav2Vec2 [https://arxiv.org/abs/2006.11477]
-5. Residual [https://doi.org/10.1016/j.bspc.2024.106342]
-6. MLP [https://ieeexplore.ieee.org/document/8942209]
 
 ---------------------
 ## Models:
