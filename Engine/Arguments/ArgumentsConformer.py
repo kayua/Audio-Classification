@@ -39,7 +39,7 @@ except ImportError as error:
     print(error)
     sys.exit(-1)
 
-DEFAULT_OVERLAP = 2
+DEFAULT_OVERLAP = 1
 DEFAULT_KERNEL_SIZE = 3
 DEFAULT_SIZE_KERNEL = 3
 DEFAULT_SIZE_BATCH = 32

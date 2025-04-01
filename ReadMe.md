@@ -148,61 +148,6 @@ A tabela abaixo apresenta os parâmetros padrão utilizados no projeto, organiza
 
 ---
 
-## General Settings
-
-| Parameter              | Value  | Description |
-|------------------------|--------|-------------|
-| **OVERLAP**           | 2      | Overlap factor for processing |
-| **SAMPLE_RATE**       | 8000   | Audio sample rate in Hz |
-| **FILE_EXTENSION**    | `*.wav` | Expected file format |
-| **MAX_LENGTH**        | 100    | Maximum sequence length |
-
-## Model Architecture
-
-| Parameter                       | Value  | Description |
-|---------------------------------|--------|-------------|
-| **NUMBER_HEADS**               | 4      | Number of attention heads |
-| **NUMBER_CONFORMER_BLOCKS**    | 4      | Number of Conformer blocks |
-| **LAST_LAYER_ACTIVATION**      | `softmax` | Activation function for output layer |
-| **INPUT_DIMENSION**            | (80, 40) | Input feature dimension |
-
-## Spectrogram & Feature Processing
-
-| Parameter                      | Value  | Description |
-|--------------------------------|--------|-------------|
-| **WINDOW_SIZE**               | 1024   | Window size for STFT |
-| **HOP_LENGTH**                | 256    | Hop length for STFT |
-| **NUMBER_FILTERS_SPECTROGRAM** | 80     | Number of filters in spectrogram processing |
-| **DECIBEL_SCALE_FACTOR**       | 80     | Scale factor for decibel conversion |
-| **WINDOW_SIZE_FACTOR**        | 40     | Scaling factor for window size |
-
-## Training Configuration
-
-| Parameter                  | Value  | Description |
-|----------------------------|--------|-------------|
-| **SIZE_BATCH**             | 32     | Batch size for training |
-| **NUMBER_EPOCHS**          | 10     | Number of training epochs |
-| **DROPOUT_RATE**           | 0.2    | Dropout rate for regularization |
-| **DROPOUT_DECAY**          | 0.2    | Dropout decay rate |
-| **LOSS_FUNCTION**          | `sparse_categorical_crossentropy` | Loss function used |
-| **OPTIMIZER_FUNCTION**     | `adam` | Optimizer function |
-
-## Classification Parameters
-
-| Parameter            | Value  | Description |
-|----------------------|--------|-------------|
-| **NUMBER_CLASSES**  | 4      | Number of output classes |
-
-## Additional Parameters
-
-| Parameter                  | Value  | Description |
-|----------------------------|--------|-------------|
-| **NUMBER_SPLITS**          | 5      | Number of data splits |
-| **KERNEL_SIZE**            | 3      | Size of the convolutional kernel |
-| **SIZE_KERNEL**            | 3      | Alternative kernel size parameter |
-| **EMBEDDING_DIMENSION**    | 64     | Embedding vector dimensionality |
-
----
 
 
 
@@ -265,57 +210,6 @@ Definition of general parameters used for the evaluation. The parameters were ch
 | **Sample Rate**            | Sample rate of sounds                | [8000]                    |
 | **Segment Length**         | Length of sound segment              | [40, 60]                  |
 
-
-
-
-## General Settings
-
-| Parameter              | Value  | Description |
-|------------------------|--------|-------------|
-| **OVERLAP**           | 2      | Overlap factor for processing |
-| **SAMPLE_RATE**       | 8000   | Audio sample rate in Hz |
-| **FILE_EXTENSION**    | `*.wav` | Expected file format |
-
-## Model Architecture
-
-| Parameter                          | Value          | Description |
-|------------------------------------|---------------|-------------|
-| **INPUT_DIMENSION**                | (40, 256)     | Input feature dimension |
-| **LIST_LSTM_CELLS**                | [128, 129]    | Number of LSTM cells per layer |
-| **INTERMEDIARY_LAYER_ACTIVATION**  | `tanh`        | Activation function for intermediary layers |
-| **RECURRENT_ACTIVATION**           | `sigmoid`     | Activation function for recurrent connections |
-| **LAST_LAYER_ACTIVATION**          | `softmax`     | Activation function for output layer |
-
-## Spectrogram & Feature Processing
-
-| Parameter                | Value  | Description |
-|--------------------------|--------|-------------|
-| **WINDOW_SIZE**         | 1024   | Window size for STFT |
-| **HOP_LENGTH**          | 256    | Hop length for STFT |
-| **DECIBEL_SCALE_FACTOR** | 80     | Scale factor for decibel conversion |
-| **WINDOW_SIZE_FACTOR**  | 40     | Scaling factor for window size |
-
-## Training Configuration
-
-| Parameter                  | Value  | Description |
-|----------------------------|--------|-------------|
-| **SIZE_BATCH**             | 32     | Batch size for training |
-| **NUMBER_EPOCHS**          | 10     | Number of training epochs |
-| **DROPOUT_RATE**           | 0.1    | Dropout rate for regularization |
-| **LOSS_FUNCTION**          | `sparse_categorical_crossentropy` | Loss function used |
-| **OPTIMIZER_FUNCTION**     | `adam` | Optimizer function |
-
-## Classification Parameters
-
-| Parameter            | Value  | Description |
-|----------------------|--------|-------------|
-| **NUMBER_CLASSES**  | 4      | Number of output classes |
-
-## Additional Parameters
-
-| Parameter          | Value  | Description |
-|--------------------|--------|-------------|
-| **NUMBER_SPLITS** | 5      | Number of data splits |
 
 ---
 ## General Settings

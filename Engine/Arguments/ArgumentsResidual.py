@@ -41,7 +41,7 @@ except ImportError as error:
     sys.exit(-1)
 
 
-DEFAULT_OVERLAP = 2
+DEFAULT_OVERLAP = 1
 
 DEFAULT_SIZE_BATCH = 32
 DEFAULT_HOP_LENGTH = 256

@@ -136,11 +136,6 @@ class ROCPlotter:
         if not isinstance(roc_curve_line_width, int) or roc_curve_line_width <= 0:
             raise ValueError("roc_curve_line_width must be a positive integer.")
 
-        # Validate marker style
-        valid_marker_styles = ['o', 's', '^', 'D', 'P', '*', '+', 'x']
-
-        if not isinstance(roc_curve_marker_style, str) or roc_curve_marker_style not in valid_marker_styles:
-            raise ValueError(f"Invalid marker style. Available options are: {', '.join(valid_marker_styles)}.")
 
         # Validate colormap
         if not isinstance(roc_curve_cmap, str) or roc_curve_cmap not in plt.colormaps():
