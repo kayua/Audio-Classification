@@ -69,8 +69,8 @@ This repository contains the implementation and evaluation of six distinct deep 
             <th width="20%">MLP Topology</th>
         </tr>
         <tr>
-            <td><img src="Layout/feedforward_model.png"></td>
             <td><img src="Layout/residual_model.png"></td>
+            <td><img src="Layout/feedforward_model.png"></td>
         </tr>
     </tbody>
 </table>
