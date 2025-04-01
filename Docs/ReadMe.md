@@ -11,13 +11,13 @@
 
 ### Training Configuration
 
-| Parameter              | Value  | Description |
-|------------------------|--------|-------------|
-| SIZE BATCH             | 32     | Batch size for training |
-| **NUMBER_EPOCHS**      | 10     | Number of training epochs |
-| **DROPOUT_RATE**       | 0.1    | Dropout rate for regularization |
-| **LOSS_FUNCTION**      | `crossentropy` | Loss function used |
-| **OPTIMIZER_FUNCTION** | `adam` | Optimizer function |
+| Parameter          | Value  | Description |
+|--------------------|--------|-------------|
+| Size Batch         | 32     | Batch size for training |
+| Number Epochs      | 10     | Number of training epochs |
+| Dropout Rate       | 0.1    | Dropout rate for regularization |
+| Loss Function      | `crossentropy` | Loss function used |
+| Optimizer Function | `adam` | Optimizer function |
 
 ## Residual Topology
 **Residual Model** has been proposed for audio classification tasks, in which input data—such as audio frames or spectrogram images—is first  segmented using a sliding time window and subsequently normalized [Paim et al. 2024].  The model begins with a two-dimensional convolutional layer that extracts local features,  Window Size/2 followed by a series of residual blocks. These residual blocks deepen the network and help  mitigate the vanishing gradient problem, thereby improving training efficiency in deeper  architectures. After feature extraction, a max pooling layer reduces the spatial dimensionality, and a dense (fully connected) layer performs the final classification, producing  a probability distribution over the target classes.
