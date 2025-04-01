@@ -59,16 +59,18 @@ This repository contains the implementation and evaluation of six distinct deep 
             <td><img src="Layout/conformer_model.png"></td>
         </tr>
     </tbody>
+
+</table>
+
+<table>
     <tbody>
         <tr>
-            <th width="20%">Wav2Vec2 Topology</th>
             <th width="20%">Residual Topology</th>
             <th width="20%">MLP Topology</th>
         </tr>
         <tr>
-            <td><img src="Layout/Wav2Vec2-Model.png"></td>
-            <td><img src="Layout/residual_model.png></td>
             <td><img src="Layout/feedforward_model.png"></td>
+            <td><img src="Layout/residual_model.png"></td>
         </tr>
     </tbody>
 </table>
