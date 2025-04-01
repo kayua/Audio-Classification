@@ -3,6 +3,7 @@ The following documentation provides a comprehensive overview of the architectur
 
 ## General Settings
 
+
 | Parameter      | Value  | Description |
 |----------------|--------|-------------|
 | Overleap       | 2      | Overlap factor for processing |
