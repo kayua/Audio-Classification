@@ -3,11 +3,11 @@
 
 ## General Settings
 
-| Parameter              | Value  | Description |
-|------------------------|--------|-------------|
-| **OVERLAP**           | 2      | Overlap factor for processing |
-| **SAMPLE_RATE**       | 8000   | Audio sample rate in Hz |
-| **FILE_EXTENSION**    | `*.wav` | Expected file format |
+| Parameter      | Value  | Description |
+|----------------|--------|-------------|
+| Overleap       | 2      | Overlap factor for processing |
+| Sample Rate    | 8000   | Audio sample rate in Hz |
+| File Extension | `*.wav` | Expected file format |
 
 ### Training Configuration
 
