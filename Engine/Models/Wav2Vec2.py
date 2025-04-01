@@ -8,6 +8,8 @@ __initial_data__ = '2024/07/17'
 __last_update__ = '2024/07/17'
 __credits__ = ['unknown']
 
+from Engine.Layers.MaskTimeLayer import TimeMasking
+from Engine.Modules.GumbelVectorQuantizer import GumbelVectorQuantizer
 
 try:
 
@@ -36,7 +38,6 @@ try:
 
     from tensorflow.keras.layers import TimeDistributed
 
-    from Engine.Callbacks.CallbackAIM import AimCallback
     from tensorflow.keras.layers import LayerNormalization
     from tensorflow.keras.layers import MultiHeadAttention
     from Engine.Loss.ContrastiveLoss import ContrastiveLoss
@@ -179,9 +180,11 @@ class AudioWav2Vec2(MaskCreator, Wav2Vec2Process): #, EvaluationProcess):
 
         # Apply convolutional layers to extract features from the input audio
         for number_filters in self.list_filters_encoder:
-            neural_network_flow = TimeDistributed(
-                Conv1D(number_filters, self.kernel_size, strides=(2,), use_bias=True,
-                       kernel_regularizer=None, bias_regularizer=None, kernel_constraint=None))(neural_network_flow)
+            neural_network_flow = TimeDistributed(Conv1D(number_filters,
+                                                         self.kernel_size, strides=(2,), use_bias=True,
+                                                         kernel_regularizer=None, bias_regularizer=None,
+                                                         kernel_constraint=None))(neural_network_flow)
+
             neural_network_flow = TimeDistributed(GELU())(neural_network_flow)
             neural_network_flow = TimeDistributed(LayerNormalization())(neural_network_flow)
 
@@ -193,14 +196,17 @@ class AudioWav2Vec2(MaskCreator, Wav2Vec2Process): #, EvaluationProcess):
                                             activation=self.intermediary_layer_activation))(flatten_flow)
 
         # Create causal mask for the transformer attention
-        causal_mask = self.create_mask(128)
+        time_masking = TimeMasking(mask_time_prob=0.2, number_mask_time_steps=5)(dense_layer)
+
+        print(time_masking)
+        exit()
 
         # Transformer block with multi-head attention
         transformer_attention = MultiHeadAttention(num_heads=self.number_heads,
-                                                   key_dim=4)(dense_layer, dense_layer, attention_mask=causal_mask)
+                                                   key_dim=4)(time_masking, time_masking)
 
         # Add residual connection and normalize using LayerNormalization
-        transformer_attention = Add()([dense_layer, transformer_attention])
+        transformer_attention = Add()([time_masking, transformer_attention])
         transformer_attention = LayerNormalization()(transformer_attention)
 
         # Feed-forward network (fully connected layers)
@@ -215,11 +221,16 @@ class AudioWav2Vec2(MaskCreator, Wav2Vec2Process): #, EvaluationProcess):
         transformer_output = LayerNormalization()(transformer_output)
 
         # Quantization layer for feature compression
-        quantize_layer = TimeDistributed(QuantizationLayer(4), name="Quantization")(dense_layer)
 
+        print(transformer_output)
+
+        # Gumbel Vector Quantization layer for feature compression
+        quantized_output, perplexity = GumbelVectorQuantizer()(dense_layer, 128)
+        exit()
         # Create the Keras model
-        self.neural_network_model = Model(inputs=inputs, outputs=[transformer_output, quantize_layer],
+        self.neural_network_model = Model(inputs=inputs, outputs=[transformer_output, quantized_output],
                                           name=self.model_name)
+
 
         # Compile the model with the specified optimizer, loss function, and metrics
         self.neural_network_model.compile(optimizer=self.optimizer_function, loss=ContrastiveLoss(margin=0.5),
@@ -227,6 +238,7 @@ class AudioWav2Vec2(MaskCreator, Wav2Vec2Process): #, EvaluationProcess):
 
         self.neural_network_model.summary()
 
+        exit()
     def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,
                           batch_size: int, validation_data: tuple = None) -> tensorflow.keras.callbacks.History:
         """

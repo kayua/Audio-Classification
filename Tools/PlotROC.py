@@ -282,7 +282,7 @@ class ROCPlotter:
         file_name_path : str
             Path where the plot will be saved.
         """
-        file_path = f"{file_name_path}ROC_{model_name}.png"
+        file_path = f"{file_name_path}ROC_{model_name}.pdf"
         if self.roc_curve_show_plot:
             plt.show()
             logging.debug(f"ROC curve displayed for {model_name}.")

@@ -231,7 +231,7 @@ class ComparativeMetricsPlotter:
         file_name : str
             The base name for the saved plot file.
         """
-        output_path = f'{file_name}metrics.png'
+        output_path = f'{file_name}metrics.pdf'
         if self._comparative_metrics_show_plot:
             plt.show()
         else:

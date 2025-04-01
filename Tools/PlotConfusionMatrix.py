@@ -243,7 +243,7 @@ class ConfusionMatrixPlotter:
         plt.tight_layout()
 
         # Define the file path to save the plot
-        file_path = f"{file_name_path}matrix_{index + 1}.png"
+        file_path = f"{file_name_path}matrix_{index + 1}.pdf"
 
         # If show_plot is True, display the plot; otherwise, save the plot as a file
         if self._confusion_matrix_show_plot:

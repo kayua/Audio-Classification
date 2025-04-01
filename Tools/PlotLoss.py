@@ -255,7 +255,7 @@ class PlotLossCurve:
         Args:
             model_name (str): The name of the model to generate the file name for the plot.
         """
-        file_path = f'{loss_curve_path_output}{model_name}_loss.png'
+        file_path = f'{loss_curve_path_output}{model_name}_loss.pdf'
         plt.savefig(file_path)
         plt.close()  # Close the plot to free memory
         logging.info(f"Loss plot saved for model '{model_name}' at {file_path}")
