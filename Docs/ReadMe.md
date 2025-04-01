@@ -1,4 +1,15 @@
 
+
+
+## General Settings
+
+| Parameter              | Value  | Description |
+|------------------------|--------|-------------|
+| **OVERLAP**           | 2      | Overlap factor for processing |
+| **SAMPLE_RATE**       | 8000   | Audio sample rate in Hz |
+| **FILE_EXTENSION**    | `*.wav` | Expected file format |
+
+
 ## Residual Topology
 The Residual Model, shown in Figure 1, has been proposed for audio classification tasks, in which input data—such as audio frames or spectrogram images—is first  segmented using a sliding time window and subsequently normalized [Paim et al. 2024].  The model begins with a two-dimensional convolutional layer that extracts local features,  Window Size/2 followed by a series of residual blocks. These residual blocks deepen the network and help  mitigate the vanishing gradient problem, thereby improving training efficiency in deeper  architectures. After feature extraction, a max pooling layer reduces the spatial dimensionality, and a dense (fully connected) layer performs the final classification, producing  a probability distribution over the target classes.
 <table>
@@ -14,13 +25,6 @@ The Residual Model, shown in Figure 1, has been proposed for audio classificatio
 
 
 ## Parameters
-### General Settings
-
-| Parameter              | Value  | Description |
-|------------------------|--------|-------------|
-| **OVERLAP**           | 2      | Overlap factor for processing |
-| **SAMPLE_RATE**       | 8000   | Audio sample rate in Hz |
-| **FILE_EXTENSION**    | `*.wav` | Expected file format |
 
 ### Model Architecture
 
@@ -88,14 +92,6 @@ propagation to minimize prediction error.
 </table>
 
 ## Parameters
-### General Settings
-
-| Parameter              | Value  | Description |
-|------------------------|--------|-------------|
-| **OVERLAP**           | 2      | Overlap factor for processing |
-| **SAMPLE_RATE**       | 8000   | Audio sample rate in Hz |
-| **FILE_EXTENSION**    | `*.wav` | Expected file format |
-
 ### Model Architecture
 
 | Parameter                          | Value          | Description |
@@ -150,14 +146,6 @@ Long Short-Term Memory (LSTM) is widely employed for sequential data  processing
 </table>
 
 ## Parameters
-### General Settings
-
-| Parameter              | Value  | Description |
-|------------------------|--------|-------------|
-| **OVERLAP**           | 2      | Overlap factor for processing |
-| **SAMPLE_RATE**       | 8000   | Audio sample rate in Hz |
-| **FILE_EXTENSION**    | `*.wav` | Expected file format |
-
 ### Model Architecture
 
 | Parameter                          | Value          | Description |
@@ -215,15 +203,6 @@ Conformer model, whose reference implementation considered in this  research is 
 </table>
 
 ## Parameters
-### General Settings
-
-| Parameter              | Value  | Description |
-|------------------------|--------|-------------|
-| **OVERLAP**           | 2      | Overlap factor for processing |
-| **SAMPLE_RATE**       | 8000   | Audio sample rate in Hz |
-| **FILE_EXTENSION**    | `*.wav` | Expected file format |
-| **MAX_LENGTH**        | 100    | Maximum sequence length |
-
 ### Model Architecture
 
 | Parameter                       | Value  | Description |
@@ -251,7 +230,7 @@ Conformer model, whose reference implementation considered in this  research is 
 | **NUMBER_EPOCHS**          | 10     | Number of training epochs |
 | **DROPOUT_RATE**           | 0.2    | Dropout rate for regularization |
 | **DROPOUT_DECAY**          | 0.2    | Dropout decay rate |
-| **LOSS_FUNCTION**          | `sparse_categorical_crossentropy` | Loss function used |
+| **LOSS_FUNCTION**          | `crossentropy` | Loss function used |
 | **OPTIMIZER_FUNCTION**     | `adam` | Optimizer function |
 
 ### Classification Parameters
@@ -286,24 +265,7 @@ Conformer model, whose reference implementation considered in this  research is 
 ## Parameters
 ### General Settings
 
-The Audio Spectrogram Transformer (AST), introduced by [Gong et al. 2021],
-adapts the transformer architecture for audio classification tasks. It operates by segment-
-ing the input spectrogram into overlapping patches, which are linearly projected and en-
-riched with positional and class embeddings. These patches are then fed into a Trans-
-former encoder, which models the sequence through self-attention mechanisms. The en-
-coder output is finally passed through a linear layer to produce class predictions. By
-leveraging the global attention capabilities of transformers, AST can capture both local
-and contextual features within audio data. Figure 3b shows a view of the basic architec-
-tural model, as we implemented in our evaluation.
-
-
-## General Settings
-
-| Parameter              | Value  | Description |
-|------------------------|--------|-------------|
-| **OVERLAP**           | 2      | Overlap factor for processing |
-| **SAMPLE_RATE**       | 8000   | Audio sample rate in Hz |
-| **FILE_EXTENSION**    | `*.wav` | Expected file format |
+The Audio Spectrogram Transformer (AST), introduced by [Gong et al. 2021],  adapts the transformer architecture for audio classification tasks. It operates by segmenting the input spectrogram into overlapping patches, which are linearly projected and enriched with positional and class embeddings. These patches are then fed into a Transformer encoder, which models the sequence through self-attention mechanisms. The encoder output is finally passed through a linear layer to produce class predictions. By  leveraging the global attention capabilities of transformers, AST can capture both local  and contextual features within audio data. Figure 3b shows a view of the basic architectural model, as we implemented in our evaluation.
 
 ## Model Architecture
 
@@ -333,7 +295,7 @@ tural model, as we implemented in our evaluation.
 | **SIZE_BATCH**             | 8      | Batch size for training |
 | **NUMBER_EPOCHS**          | 10     | Number of training epochs |
 | **DROPOUT_RATE**           | 0.2    | Dropout rate for regularization |
-| **LOSS_FUNCTION**          | `sparse_categorical_crossentropy` | Loss function used |
+| **LOSS_FUNCTION**          | `crossentropy` | Loss function used |
 | **OPTIMIZER_FUNCTION**     | `adam` | Optimizer function |
 | **NORMALIZATION_EPSILON**  | 1e-6   | Epsilon value for normalization |
 
