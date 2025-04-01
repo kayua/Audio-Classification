@@ -9,6 +9,15 @@
 | **SAMPLE_RATE**       | 8000   | Audio sample rate in Hz |
 | **FILE_EXTENSION**    | `*.wav` | Expected file format |
 
+### Training Configuration
+
+| Parameter                  | Value  | Description |
+|----------------------------|--------|-------------|
+| **SIZE_BATCH**             | 32     | Batch size for training |
+| **NUMBER_EPOCHS**          | 10     | Number of training epochs |
+| **DROPOUT_RATE**           | 0.1    | Dropout rate for regularization |
+| **LOSS_FUNCTION**          | `crossentropy` | Loss function used |
+| **OPTIMIZER_FUNCTION**     | `adam` | Optimizer function |
 
 ## Residual Topology
 The Residual Model, shown in Figure 1, has been proposed for audio classification tasks, in which input data—such as audio frames or spectrogram images—is first  segmented using a sliding time window and subsequently normalized [Paim et al. 2024].  The model begins with a two-dimensional convolutional layer that extracts local features,  Window Size/2 followed by a series of residual blocks. These residual blocks deepen the network and help  mitigate the vanishing gradient problem, thereby improving training efficiency in deeper  architectures. After feature extraction, a max pooling layer reduces the spatial dimensionality, and a dense (fully connected) layer performs the final classification, producing  a probability distribution over the target classes.
@@ -49,15 +58,6 @@ The Residual Model, shown in Figure 1, has been proposed for audio classificatio
 | **WINDOW_SIZE_FACTOR**  | 40     | Scaling factor for window size |
 | **NUMBER_FILTERS_SPECTROGRAM** | 512 | Number of spectrogram filters |
 
-### Training Configuration
-
-| Parameter                  | Value  | Description |
-|----------------------------|--------|-------------|
-| **SIZE_BATCH**             | 32     | Batch size for training |
-| **NUMBER_EPOCHS**          | 10     | Number of training epochs |
-| **DROPOUT_RATE**           | 0.1    | Dropout rate for regularization |
-| **LOSS_FUNCTION**          | `crossentropy` | Loss function used |
-| **OPTIMIZER_FUNCTION**     | `adam` | Optimizer function |
 
 ## Multilayer Perceptron Topology
 Multilayer Perceptron (MLP) represents a foundational architecture in machine
@@ -98,16 +98,6 @@ propagation to minimize prediction error.
 | **DECIBEL_SCALE_FACTOR** | 80     | Scale factor for decibel conversion |
 | **WINDOW_SIZE_FACTOR**  | 40     | Scaling factor for window size |
 
-### Training Configuration
-
-| Parameter                  | Value  | Description |
-|----------------------------|--------|-------------|
-| **SIZE_BATCH**             | 32     | Batch size for training |
-| **NUMBER_EPOCHS**          | 10     | Number of training epochs |
-| **DROPOUT_RATE**           | 0.1    | Dropout rate for regularization |
-| **LOSS_FUNCTION**          | `crossentropy` | Loss function used |
-| **OPTIMIZER_FUNCTION**     | `adam` | Optimizer function |
-
 ## Long Short-Term Memory Topology
 Long Short-Term Memory (LSTM) is widely employed for sequential data  processing, including tasks such as language modeling and time series analysis [Hochreiter and Schmidhuber 1997]. LSTM cells are designed with internal gating mechanisms—input, forget, and output gates—that regulate information flow and allow the  network to capture long-term dependencies. As input sequences are processed, each cell  updates its internal state and transmits output to subsequent cells, maintaining a dynamic  memory across time steps. This structure enables LSTMs to retain relevant information  while filtering out noise or less significant data
 <table>
@@ -140,23 +130,6 @@ Long Short-Term Memory (LSTM) is widely employed for sequential data  processing
 | **HOP_LENGTH**          | 256    | Hop length for STFT |
 | **DECIBEL_SCALE_FACTOR** | 80     | Scale factor for decibel conversion |
 | **WINDOW_SIZE_FACTOR**  | 40     | Scaling factor for window size |
-
-### Training Configuration
-
-| Parameter                  | Value  | Description |
-|----------------------------|--------|-------------|
-| **SIZE_BATCH**             | 32     | Batch size for training |
-| **NUMBER_EPOCHS**          | 10     | Number of training epochs |
-| **DROPOUT_RATE**           | 0.1    | Dropout rate for regularization |
-| **LOSS_FUNCTION**          | `sparse_categorical_crossentropy` | Loss function used |
-| **OPTIMIZER_FUNCTION**     | `adam` | Optimizer function |
-
-### Additional Parameters
-
-| Parameter          | Value  | Description |
-|--------------------|--------|-------------|
-| **NUMBER_SPLITS** | 5      | Number of data splits |
-
 
 ## Conformer Topology
 Conformer model, whose reference implementation considered in this  research is shown in Figure 4, is specifically designed for audio signal processing tasks,  such as automatic speech recognition [Gulati et al. 2020]. It begins with a data augmentation step using SpecAugment, followed by convolutional subsampling to reduce the temporal resolution while preserving salient features. The subsampled input is transformed  via a linear layer and passed through a dropout layer to reduce the risk of overfitting. The  core of the model consists of a series of Conformer blocks, which integrate convolutional  modules with transformer-based self-attention. This hybrid design enables the model to  effectively capture both local patterns and global dependencies, making it well-suited for  complex audio modeling tasks.
@@ -191,17 +164,6 @@ Conformer model, whose reference implementation considered in this  research is 
 | **NUMBER_FILTERS_SPECTROGRAM** | 80     | Number of filters in spectrogram processing |
 | **DECIBEL_SCALE_FACTOR**       | 80     | Scale factor for decibel conversion |
 | **WINDOW_SIZE_FACTOR**        | 40     | Scaling factor for window size |
-
-### Training Configuration
-
-| Parameter                  | Value  | Description |
-|----------------------------|--------|-------------|
-| **SIZE_BATCH**             | 32     | Batch size for training |
-| **NUMBER_EPOCHS**          | 10     | Number of training epochs |
-| **DROPOUT_RATE**           | 0.2    | Dropout rate for regularization |
-| **DROPOUT_DECAY**          | 0.2    | Dropout decay rate |
-| **LOSS_FUNCTION**          | `crossentropy` | Loss function used |
-| **OPTIMIZER_FUNCTION**     | `adam` | Optimizer function |
 
 ### Additional Parameters
 
@@ -251,17 +213,6 @@ The Audio Spectrogram Transformer (AST), introduced by [Gong et al. 2021],  adap
 | **DECIBEL_SCALE_FACTOR**   | 80     | Scale factor for decibel conversion |
 | **SIZE_PATCH**             | (16,16) | Patch size for spectrogram processing |
 | **WINDOW_SIZE_FACTOR**     | 40     | Scaling factor for window size |
-
-## Training Configuration
-
-| Parameter                  | Value  | Description |
-|----------------------------|--------|-------------|
-| **SIZE_BATCH**             | 8      | Batch size for training |
-| **NUMBER_EPOCHS**          | 10     | Number of training epochs |
-| **DROPOUT_RATE**           | 0.2    | Dropout rate for regularization |
-| **LOSS_FUNCTION**          | `crossentropy` | Loss function used |
-| **OPTIMIZER_FUNCTION**     | `adam` | Optimizer function |
-| **NORMALIZATION_EPSILON**  | 1e-6   | Epsilon value for normalization |
 
 ## Additional Parameters
 
