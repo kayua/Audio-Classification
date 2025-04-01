@@ -1,3 +1,4 @@
+# (RESULTADOS APENAS TESTE FUNCIONAL!) README.MD Gerador automáticamente
 # Sound classification - Neural Network Models
 ---------------------
 This repository contains the implemented code for the classification of mosquito audios using deep neural networks. It includes state-of-the-art algorithms and advanced techniques employed in the study, providing a robust basis for the analysis and categorization of complex acoustic patterns. 
