@@ -2,8 +2,9 @@
 The following documentation provides a comprehensive overview of the architecture, parameters, and other relevant specifications of the neural network topologies available in this library. The selection of hyperparameters is based on an estimated performance trade-off and may not necessarily represent the optimal configuration for each topology under all conditions. The presented network architectures have been specifically adapted for audio processing and classification, ensuring their suitability for the given task. Furthermore, the versions employed in the evaluations correspond to lightweight (lite) variants, characterized by a reduced number of parameters. These models have been carefully adjusted to balance computational efficiency and task-specific performance requirements.
 
 ## General Settings
+The following parameters are global and applicable to all models. These global parameters define configurations related to audio input and processing, as well as training-specific settings for the models.
 
-
+### Input Samples
 | Parameter      | Value  | Description |
 |----------------|--------|-------------|
 | Overleap       | 2      | Overlap factor for processing |
