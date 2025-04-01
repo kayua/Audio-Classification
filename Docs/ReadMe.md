@@ -36,7 +36,7 @@ The following parameters are global and applicable to all models. These global p
 
 
 ## Parameters
-
+The parameters listed below are intrinsically associated with the model or the input feature and are uniquely defined for each specific implementation. These parameters influence the behavior and performance of the model, ensuring that each implementation is tailored to its respective configuration and requirements.
 ### Model Architecture
 
 | Parameter                | Value              | Description |
@@ -76,6 +76,7 @@ The following parameters are global and applicable to all models. These global p
 </table>
 
 ## Parameters
+The parameters listed below are intrinsically associated with the model or the input feature and are uniquely defined for each specific implementation. These parameters influence the behavior and performance of the model, ensuring that each implementation is tailored to its respective configuration and requirements.
 ### Model Architecture
 
 | Parameter                     | Value          | Description |
@@ -108,6 +109,7 @@ The following parameters are global and applicable to all models. These global p
 </table>
 
 ## Parameters
+The parameters listed below are intrinsically associated with the model or the input feature and are uniquely defined for each specific implementation. These parameters influence the behavior and performance of the model, ensuring that each implementation is tailored to its respective configuration and requirements.
 ### Model Architecture
 
 | Parameter                          | Value          | Description |
@@ -142,6 +144,7 @@ The following parameters are global and applicable to all models. These global p
 </table>
 
 ## Parameters
+The parameters listed below are intrinsically associated with the model or the input feature and are uniquely defined for each specific implementation. These parameters influence the behavior and performance of the model, ensuring that each implementation is tailored to its respective configuration and requirements.
 ### Model Architecture
 
 | Parameter                       | Value  | Description |
@@ -184,6 +187,7 @@ The following parameters are global and applicable to all models. These global p
 </table>
 
 ## Parameters
+The parameters listed below are intrinsically associated with the model or the input feature and are uniquely defined for each specific implementation. These parameters influence the behavior and performance of the model, ensuring that each implementation is tailored to its respective configuration and requirements.
 ### General Settings
 
 **Audio Spectrogram Transformer (AST)**, introduced by [Gong et al. 2021],  adapts the transformer architecture for audio classification tasks. It operates by segmenting the input spectrogram into overlapping patches, which are linearly projected and enriched with positional and class embeddings. These patches are then fed into a Transformer encoder, which models the sequence through self-attention mechanisms. The encoder output is finally passed through a linear layer to produce class predictions. By  leveraging the global attention capabilities of transformers, AST can capture both local  and contextual features within audio data. Figure 3b shows a view of the basic architectural model, as we implemented in our evaluation.
