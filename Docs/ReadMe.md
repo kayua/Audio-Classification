@@ -60,14 +60,26 @@ The Residual Model, shown in Figure 1, has been proposed for audio classificatio
 
 
 ## Multilayer Perceptron Topology
-Multilayer Perceptron (MLP) represents a foundational architecture in machine
-learning. It is composed of an input layer, one or more hidden layers, and an output layer,
-forming a fully connected network. Each unit, or neuron, receives input signals, applies a
-weighted sum and non-linear transformation, and transmits the result forward through the
-network. The hidden layers are where most of the computation takes place, enabling the
-MLP to model complex, non-linear relationships in the data. The connections between
-neurons are characterized by weights, which are adjusted during training through back-
-propagation to minimize prediction error.
+
+The **Multilayer Perceptron (MLP)** is one of the most essential architectures in machine learning, serving as the backbone of many deep learning models. It consists of three main components:  
+
+- **🟢 Input Layer** – Receives raw data for processing.  
+- **🔵 Hidden Layers** – Where the magic happens! These layers apply transformations that enable the network to learn complex, non-linear relationships.  
+- **🔴 Output Layer** – Produces the final predictions based on learned patterns.  
+
+### 🧠 How It Works  
+
+Each **neuron** in the network:  
+✅ Receives input signals 📩  
+✅ Computes a weighted sum ➕  
+✅ Passes the result through a non-linear activation function 🔄  
+✅ Sends the transformed output to the next layer 🚀  
+
+The **connections between neurons** are defined by **weights**, which are dynamically adjusted during training using **backpropagation**. This process helps the model minimize prediction errors and optimize performance over time.  
+
+MLPs are the foundation of deep learning, making them a powerful tool for tackling complex problems such as image recognition, natural language processing, and predictive analytics. 🏆🔥  
+
+
 <table>
     <tbody>
         <tr>
