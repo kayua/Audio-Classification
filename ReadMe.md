@@ -1,4 +1,22 @@
 [![ml-intro](Layout/Layout.png)]()
+<div align="center">
+
+  <img src="https://img.shields.io/badge/status-active-success.svg" />
+  <img src="https://img.shields.io/badge/python-3.2%2B-blue.svg" />
+  <img src="https://img.shields.io/badge/GPU-Supported-brightgreen.svg" />
+  <img src="https://img.shields.io/badge/docs-API_Reference-blue.svg" />
+  <img src="https://img.shields.io/badge/license-MIT-blue.svg" />
+  <img src="https://img.shields.io/badge/open%20source-yes-green.svg" />
+  <div>
+        <img src="https://img.shields.io/github/stars/seu-usuario/seu-repo.svg?style=social" />
+        <img src="https://img.shields.io/github/forks/seu-usuario/seu-repo.svg?style=social" />
+        <a href="https://github.com/kayua/SynDataGen/actions?query=branch%3Amain">
+            <img src="https://github.com/kayua/SynDataGen/actions/workflows/release.yml/badge.svg?branch=main" />
+        </a>
+</div>
+
+
+</div>
 # Sound classification - Neural Network Models
 ---------------------
 This repository contains the implemented code for the classification of mosquito audios using deep neural networks. It includes state-of-the-art algorithms and advanced techniques employed in the study, providing a robust basis for the analysis and categorization of complex acoustic patterns. 
