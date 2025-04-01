@@ -75,6 +75,81 @@ This repository contains the implementation and evaluation of six distinct deep 
     </tbody>
 </table>
 
+
+# Configuration Parameters
+
+A tabela abaixo apresenta os parâmetros padrão utilizados no projeto, organizados por categoria para melhor compreensão.
+
+## General Settings
+
+| Parameter              | Value  | Description |
+|------------------------|--------|-------------|
+| **OVERLAP**           | 2      | Overlap factor for processing |
+| **SAMPLE_RATE**       | 8000   | Audio sample rate in Hz |
+| **FILE_EXTENSION**    | `*.wav` | Expected file format |
+
+## Model Architecture
+
+| Parameter                  | Value  | Description |
+|----------------------------|--------|-------------|
+| **NUMBER_BLOCKS**          | 2      | Number of transformer blocks |
+| **NUMBER_HEADS**           | 2      | Number of attention heads |
+| **HEAD_SIZE**              | 64     | Size of each attention head |
+| **INTERMEDIARY_ACTIVATION** | `relu` | Activation function for intermediate layers |
+| **LAST_LAYER_ACTIVATION**   | `softmax` | Activation function for output layer |
+
+## Spectrogram & Patch Processing
+
+| Parameter                  | Value  | Description |
+|----------------------------|--------|-------------|
+| **SIZE_FFT**               | 1024   | FFT window size |
+| **HOP_LENGTH**             | 512    | Hop length for STFT |
+| **NUMBER_FILTERS_SPECTROGRAM** | 512 | Number of filters in spectrogram processing |
+| **DECIBEL_SCALE_FACTOR**   | 80     | Scale factor for decibel conversion |
+| **SIZE_PATCH**             | (16,16) | Patch size for spectrogram processing |
+| **WINDOW_SIZE_FACTOR**     | 40     | Scaling factor for window size |
+
+## Training Configuration
+
+| Parameter                  | Value  | Description |
+|----------------------------|--------|-------------|
+| **SIZE_BATCH**             | 8      | Batch size for training |
+| **NUMBER_EPOCHS**          | 10     | Number of training epochs |
+| **DROPOUT_RATE**           | 0.2    | Dropout rate for regularization |
+| **LOSS_FUNCTION**          | `sparse_categorical_crossentropy` | Loss function used |
+| **OPTIMIZER_FUNCTION**     | `adam` | Optimizer function |
+| **NORMALIZATION_EPSILON**  | 1e-6   | Epsilon value for normalization |
+
+## Classification Parameters
+
+| Parameter            | Value  | Description |
+|----------------------|--------|-------------|
+| **NUMBER_CLASSES**  | 4      | Number of output classes |
+
+## Additional Parameters
+
+| Parameter                  | Value  | Description |
+|----------------------------|--------|-------------|
+| **NUMBER_SPLITS**          | 5      | Number of data splits |
+| **AUDIO_DURATION**         | 10     | Audio clip duration in seconds |
+| **NUMBER_FILTERS**         | 64     | Number of convolutional filters |
+| **PROJECTION_DIMENSION**   | 16     | Dimensionality of projection layer |
+
+---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Experimental Evaluation
 ---------------------
 ### Dataset for Experiments RAW
