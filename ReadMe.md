@@ -17,6 +17,7 @@
 
 
 </div>
+---
 # Sound classification - Neural Network Models
 ---------------------
 This repository contains the implemented code for the classification of mosquito audios using deep neural networks. It includes state-of-the-art algorithms and advanced techniques employed in the study, providing a robust basis for the analysis and categorization of complex acoustic patterns. 
@@ -53,9 +54,9 @@ This repository contains the implementation and evaluation of six distinct deep 
             <th width="20%">Conformer Topology</th>
         </tr>
         <tr>
-            <td><img src="Layout/AST-Model.png"></td>
-            <td><img src="Layout/LSTM-Model.png"></td>
-            <td><img src="Layout/Conformer-Model.png"></td>
+            <td><img src="Layout/ast_model.png"></td>
+            <td><img src="Layout/lstm_model.png"></td>
+            <td><img src="Layout/conformer_model.png"></td>
         </tr>
     </tbody>
     <tbody>
@@ -66,8 +67,8 @@ This repository contains the implementation and evaluation of six distinct deep 
         </tr>
         <tr>
             <td><img src="Layout/Wav2Vec2-Model.png"></td>
-            <td><img src="Layout/Residual-Model.png"></td>
-            <td><img src="Layout/MultiLayerPerceptron-Model.png"></td>
+            <td><img src="Layout/residual_model.png></td>
+            <td><img src="Layout/feedforward_model.png"></td>
         </tr>
     </tbody>
 </table>
