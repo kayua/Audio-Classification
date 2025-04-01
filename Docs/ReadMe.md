@@ -200,7 +200,7 @@ Long Short-Term Memory (LSTM) is widely employed for sequential data  processing
 | **NUMBER_SPLITS** | 5      | Number of data splits |
 
 
-## Long Short-Term Memory Topology
+## Conformer Topology
 Conformer model, whose reference implementation considered in this  research is shown in Figure 4, is specifically designed for audio signal processing tasks,  such as automatic speech recognition [Gulati et al. 2020]. It begins with a data augmentation step using SpecAugment, followed by convolutional subsampling to reduce the temporal resolution while preserving salient features. The subsampled input is transformed  via a linear layer and passed through a dropout layer to reduce the risk of overfitting. The  core of the model consists of a series of Conformer blocks, which integrate convolutional  modules with transformer-based self-attention. This hybrid design enables the model to  effectively capture both local patterns and global dependencies, making it well-suited for  complex audio modeling tasks.
 
 <table>
@@ -269,4 +269,85 @@ Conformer model, whose reference implementation considered in this  research is 
 | **SIZE_KERNEL**            | 3      | Alternative kernel size parameter |
 | **EMBEDDING_DIMENSION**    | 64     | Embedding vector dimensionality |
 
----
+
+### Audio Spectrogram Transformer (AST) Topology
+
+<table>
+    <tbody>
+        <tr>
+            <th width="20%">Audio Spectrogram Transformer Topology</th>
+        </tr>
+        <tr>
+            <td><img src="../Layout/ast_model.png"></td>
+        </tr>
+    </tbody>
+</table>
+
+## Parameters
+### General Settings
+
+The Audio Spectrogram Transformer (AST), introduced by [Gong et al. 2021],
+adapts the transformer architecture for audio classification tasks. It operates by segment-
+ing the input spectrogram into overlapping patches, which are linearly projected and en-
+riched with positional and class embeddings. These patches are then fed into a Trans-
+former encoder, which models the sequence through self-attention mechanisms. The en-
+coder output is finally passed through a linear layer to produce class predictions. By
+leveraging the global attention capabilities of transformers, AST can capture both local
+and contextual features within audio data. Figure 3b shows a view of the basic architec-
+tural model, as we implemented in our evaluation.
+
+
+## General Settings
+
+| Parameter              | Value  | Description |
+|------------------------|--------|-------------|
+| **OVERLAP**           | 2      | Overlap factor for processing |
+| **SAMPLE_RATE**       | 8000   | Audio sample rate in Hz |
+| **FILE_EXTENSION**    | `*.wav` | Expected file format |
+
+## Model Architecture
+
+| Parameter                  | Value  | Description |
+|----------------------------|--------|-------------|
+| **NUMBER_BLOCKS**          | 2      | Number of transformer blocks |
+| **NUMBER_HEADS**           | 2      | Number of attention heads |
+| **HEAD_SIZE**              | 64     | Size of each attention head |
+| **INTERMEDIARY_ACTIVATION** | `relu` | Activation function for intermediate layers |
+| **LAST_LAYER_ACTIVATION**   | `softmax` | Activation function for output layer |
+
+## Spectrogram & Patch Processing
+
+| Parameter                  | Value  | Description |
+|----------------------------|--------|-------------|
+| **SIZE_FFT**               | 1024   | FFT window size |
+| **HOP_LENGTH**             | 512    | Hop length for STFT |
+| **NUMBER_FILTERS_SPECTROGRAM** | 512 | Number of filters in spectrogram processing |
+| **DECIBEL_SCALE_FACTOR**   | 80     | Scale factor for decibel conversion |
+| **SIZE_PATCH**             | (16,16) | Patch size for spectrogram processing |
+| **WINDOW_SIZE_FACTOR**     | 40     | Scaling factor for window size |
+
+## Training Configuration
+
+| Parameter                  | Value  | Description |
+|----------------------------|--------|-------------|
+| **SIZE_BATCH**             | 8      | Batch size for training |
+| **NUMBER_EPOCHS**          | 10     | Number of training epochs |
+| **DROPOUT_RATE**           | 0.2    | Dropout rate for regularization |
+| **LOSS_FUNCTION**          | `sparse_categorical_crossentropy` | Loss function used |
+| **OPTIMIZER_FUNCTION**     | `adam` | Optimizer function |
+| **NORMALIZATION_EPSILON**  | 1e-6   | Epsilon value for normalization |
+
+## Classification Parameters
+
+| Parameter            | Value  | Description |
+|----------------------|--------|-------------|
+| **NUMBER_CLASSES**  | 4      | Number of output classes |
+
+## Additional Parameters
+
+| Parameter                  | Value  | Description |
+|----------------------------|--------|-------------|
+| **NUMBER_SPLITS**          | 5      | Number of data splits |
+| **AUDIO_DURATION**         | 10     | Audio clip duration in seconds |
+| **NUMBER_FILTERS**         | 64     | Number of convolutional filters |
+| **PROJECTION_DIMENSION**   | 16     | Dimensionality of projection layer |
