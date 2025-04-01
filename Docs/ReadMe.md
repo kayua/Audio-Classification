@@ -59,18 +59,6 @@ The Residual Model, shown in Figure 1, has been proposed for audio classificatio
 | **LOSS_FUNCTION**          | `crossentropy` | Loss function used |
 | **OPTIMIZER_FUNCTION**     | `adam` | Optimizer function |
 
-### Classification Parameters
-
-| Parameter            | Value  | Description |
-|----------------------|--------|-------------|
-| **NUMBER_CLASSES**  | 4      | Number of output classes |
-
-### Additional Parameters
-
-| Parameter          | Value  | Description |
-|--------------------|--------|-------------|
-| **NUMBER_SPLITS** | 5      | Number of data splits |
-
 ## Multilayer Perceptron Topology
 Multilayer Perceptron (MLP) represents a foundational architecture in machine
 learning. It is composed of an input layer, one or more hidden layers, and an output layer,
@@ -120,18 +108,6 @@ propagation to minimize prediction error.
 | **LOSS_FUNCTION**          | `crossentropy` | Loss function used |
 | **OPTIMIZER_FUNCTION**     | `adam` | Optimizer function |
 
-### Classification Parameters
-
-| Parameter            | Value  | Description |
-|----------------------|--------|-------------|
-| **NUMBER_CLASSES**  | 4      | Number of output classes |
-
-### Additional Parameters
-
-| Parameter          | Value  | Description |
-|--------------------|--------|-------------|
-| **NUMBER_SPLITS** | 5      | Number of data splits |
-
 ## Long Short-Term Memory Topology
 Long Short-Term Memory (LSTM) is widely employed for sequential data  processing, including tasks such as language modeling and time series analysis [Hochreiter and Schmidhuber 1997]. LSTM cells are designed with internal gating mechanisms—input, forget, and output gates—that regulate information flow and allow the  network to capture long-term dependencies. As input sequences are processed, each cell  updates its internal state and transmits output to subsequent cells, maintaining a dynamic  memory across time steps. This structure enables LSTMs to retain relevant information  while filtering out noise or less significant data
 <table>
@@ -174,12 +150,6 @@ Long Short-Term Memory (LSTM) is widely employed for sequential data  processing
 | **DROPOUT_RATE**           | 0.1    | Dropout rate for regularization |
 | **LOSS_FUNCTION**          | `sparse_categorical_crossentropy` | Loss function used |
 | **OPTIMIZER_FUNCTION**     | `adam` | Optimizer function |
-
-### Classification Parameters
-
-| Parameter            | Value  | Description |
-|----------------------|--------|-------------|
-| **NUMBER_CLASSES**  | 4      | Number of output classes |
 
 ### Additional Parameters
 
@@ -232,12 +202,6 @@ Conformer model, whose reference implementation considered in this  research is 
 | **DROPOUT_DECAY**          | 0.2    | Dropout decay rate |
 | **LOSS_FUNCTION**          | `crossentropy` | Loss function used |
 | **OPTIMIZER_FUNCTION**     | `adam` | Optimizer function |
-
-### Classification Parameters
-
-| Parameter            | Value  | Description |
-|----------------------|--------|-------------|
-| **NUMBER_CLASSES**  | 4      | Number of output classes |
 
 ### Additional Parameters
 
@@ -298,12 +262,6 @@ The Audio Spectrogram Transformer (AST), introduced by [Gong et al. 2021],  adap
 | **LOSS_FUNCTION**          | `crossentropy` | Loss function used |
 | **OPTIMIZER_FUNCTION**     | `adam` | Optimizer function |
 | **NORMALIZATION_EPSILON**  | 1e-6   | Epsilon value for normalization |
-
-## Classification Parameters
-
-| Parameter            | Value  | Description |
-|----------------------|--------|-------------|
-| **NUMBER_CLASSES**  | 4      | Number of output classes |
 
 ## Additional Parameters
 
