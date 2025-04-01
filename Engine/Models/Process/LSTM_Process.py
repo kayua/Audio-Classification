@@ -171,7 +171,7 @@ class ProcessLSTM(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
             real_labels_list.append(labels_test)
 
             # Calculate and store the metrics for this fold
-            metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_validation)
+            metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_test)
             metrics_list.append(metrics)
             confusion_matriz_list.append(confusion_matrix)
 

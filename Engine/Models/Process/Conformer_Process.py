@@ -4,9 +4,31 @@
 __author__ = 'unknown'
 __email__ = 'unknown@unknown.com.br'
 __version__ = '{1}.{0}.{0}'
-__initial_data__ = '2024/07/17'
-__last_update__ = '2024/07/17'
+__initial_data__ = '2025/04/1'
+__last_update__ = '2025/04/1'
 __credits__ = ['unknown']
+
+# MIT License
+#
+# Copyright (c) 2025 Synthetic Ocean AI
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 
 try:
@@ -230,13 +252,15 @@ class ProcessConformer(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
                                                    validation_data=(features_validation, labels_validation))
 
             model_predictions = self.neural_network_model.predict(features_test)
+
             predicted_labels = numpy.argmax(model_predictions, axis=1)
 
             probabilities_list.append(model_predictions)
             real_labels_list.append(labels_test)
 
             # Calculate and store the metrics for this fold
-            metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_validation)
+            metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_test)
+
             metrics_list.append(metrics)
             confusion_matriz_list.append(confusion_matrix)
 

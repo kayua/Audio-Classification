@@ -4,13 +4,36 @@
 __author__ = 'unknown'
 __email__ = 'unknown@unknown.com.br'
 __version__ = '{1}.{0}.{0}'
-__initial_data__ = '2022/06/01'
-__last_update__ = '2023/08/03'
+__initial_data__ = '2025/04/1'
+__last_update__ = '2025/04/1'
 __credits__ = ['unknown']
+
+# MIT License
+#
+# Copyright (c) 2025 Synthetic Ocean AI
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 try:
     import sys
-    import numpy as np
+    import numpy
+
     from Engine.Exception.MetricsException import MeanSquareEError
 
 
@@ -89,7 +112,7 @@ class MeanSquareError:
             raise MeanSquareEError("Prediction Error:", "Error: The predicted_labels argument should be "
                                                         "an array but was received a None value")
         # Check if predicted_labels is not a numpy array
-        elif not isinstance(predicted_labels, np.ndarray):
+        elif not isinstance(predicted_labels, numpy.ndarray):
             # Raise an MeanSquareEError with an error message
             raise MeanSquareEError("Prediction Error:", "Error: The predicted_labels argument should be an"
                                                         " array but was received an invalid type")
@@ -102,7 +125,7 @@ class MeanSquareError:
             raise MeanSquareEError("Prediction Error:", "Error: The true_labels argument should be an array"
                                                         " but was received a None value")
         # Check if true_labels is not a numpy array
-        elif not isinstance(true_labels, np.ndarray):
+        elif not isinstance(true_labels, numpy.ndarray):
             # Raise an MeanSquareEError with an error message
             raise MeanSquareEError("Prediction Error:", "Error: The true_labels argument should be an array"
                                                         " but was received an invalid type")
@@ -117,13 +140,13 @@ class MeanSquareError:
                                                         "dimensions")
 
         # Check if all elements in predicted_labels are 0 or 1
-        if not np.all(np.logical_or(predicted_labels == 0, predicted_labels == 1)):
+        if not numpy.all(numpy.logical_or(predicted_labels == 0, predicted_labels == 1)):
             # Raise an MeanSquareEError with an error message
             raise MeanSquareEError("Prediction Error:", "Error: The predicted_labels argument must be an"
                                                         " array composed of values 0 and 1, but given different values")
 
         # Check if all elements in true_labels are 0 or 1
-        if not np.all(np.logical_or(true_labels == 0, true_labels == 1)):
+        if not numpy.all(numpy.logical_or(true_labels == 0, true_labels == 1)):
             # Raise an MeanSquareEError with an error message
             raise MeanSquareEError("Prediction Error:", "Error: The true_labels argument must be an array"
                                                         " composed of values 0 and 1, but given different values")
