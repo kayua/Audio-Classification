@@ -3,7 +3,7 @@
 
 __author__ = 'unknown'
 __email__ = 'unknown@unknown.com.br'
-__version__ = '{1}.{0}.{0}'
+__version__ = '{1}.{0}.{1}'
 __initial_data__ = '2025/04/1'
 __last_update__ = '2025/04/1'
 __credits__ = ['unknown']
@@ -31,24 +31,21 @@ __credits__ = ['unknown']
 # SOFTWARE.
 
 
-
 try:
     import sys
+    import json
+    import logging
+    from pathlib import Path
 
     import numpy
-    import logging
-
     import matplotlib.pyplot as plt
     from sklearn.metrics import auc
-
     from sklearn.metrics import roc_curve
-
     from sklearn.preprocessing import label_binarize
 
 except ImportError as error:
     print(error)
     sys.exit(-1)
-
 
 
 class ROCPlotter:
@@ -58,6 +55,12 @@ class ROCPlotter:
     This class provides a method to plot the Receiver Operating Characteristic (ROC) curve and calculate
     the Area Under the Curve (AUC) for each class. The method supports plotting for multi-class classification
     by binarizing the ground truth labels.
+
+    Features:
+        - Increased font sizes by 50% for better readability
+        - Save plot data to JSON for reproducibility
+        - Load and plot from JSON files
+        - Comprehensive data persistence including ROC curves and AUC values
 
     Parameters:
     ----------
@@ -72,12 +75,12 @@ class ROCPlotter:
         @roc_curve_show_plot : bool, optional
             Whether to display the plot interactively (default is False).
         @roc_curve_title_font_size : int, optional
-            Font size for the plot title (default is 14).
+            Font size for the plot title. Automatically increased by 50%.
         @roc_curve_axis_label_font_size : int, optional
-            Font size for the axis labels (default is 12).
+            Font size for the axis labels. Automatically increased by 50%.
         @roc_curve_legend_font_size : int, optional
-            Font size for the legend (default is 10).
-        @groc_curve_rid : bool, optional
+            Font size for the legend. Automatically increased by 50%.
+        @roc_curve_grid : bool, optional
             Whether to display the grid (default is True).
         @roc_curve_diagonal_line : bool, optional
             Whether to plot the diagonal line (default is True).
@@ -85,13 +88,27 @@ class ROCPlotter:
     Example:
     -------
         >>> # python3
-        ...     roc_plotter = ROCPlotter()
+        ...     roc_plotter = ROCPlotter(
+        ...         roc_curve_figure_size=(10, 8),
+        ...         roc_curve_line_width=2,
+        ...         roc_curve_marker_style='o',
+        ...         roc_curve_cmap='Blues',
+        ...         roc_curve_show_plot=False,
+        ...         roc_curve_title_font_size=14,
+        ...         roc_curve_axis_label_font_size=12,
+        ...         roc_curve_legend_font_size=10,
+        ...         roc_curve_grid=True,
+        ...         roc_curve_diagonal_line=True
+        ...     )
         ...     probabilities_predicted = {
-        ...     'model_name': 'MyModel',
-        ...     'predicted': np.array([[0.1, 0.9], [0.8, 0.2], [0.4, 0.6]]),
-        ...     'ground_truth': np.array([1, 0, 1])
+        ...         'model_name': 'MyModel',
+        ...         'predicted': numpy.array([[0.1, 0.9], [0.8, 0.2], [0.4, 0.6]]),
+        ...         'ground_truth': numpy.array([1, 0, 1])
         ...     }
-        ...     roc_plotter.plot_roc_curve(probabilities_predicted, file_name_path='roc_curve/', show_plot=True)
+        ...     roc_plotter.plot_roc_curve(probabilities_predicted, file_name_path='roc_curve/')
+        ...
+        ...     # Later, reload and plot from JSON
+        ...     ROCPlotter.plot_from_json_static('roc_curve/ROC_MyModel_data.json', 'new_roc/')
         >>>
     """
 
@@ -102,28 +119,30 @@ class ROCPlotter:
         """
         Initialize the ROCPlotter with customizable plotting options.
 
+        NOTE: Font sizes are automatically increased by 50% for better readability.
+
         Parameters
         ----------
-        @roc_curve_figure_size : tuple, optional
-            Size of the figure (default is (8, 6)).
-        @roc_curve_line_width : int, optional
-            Line width of the ROC curve (default is 2).
-        @roc_curve_marker_style : str, optional
-            Style of markers on the ROC curve (default is 'o').
-        @roc_curve_cmap : str, optional
-            Color map for the ROC curve (default is 'Blues').
-        @roc_curve_show_plot : bool, optional
-            Whether to display the plot interactively (default is False).
-        @roc_curve_title_font_size : int, optional
-            Font size for the plot title (default is 14).
-        @roc_curve_axis_label_font_size : int, optional
-            Font size for the axis labels (default is 12).
-        @roc_curve_legend_font_size : int, optional
-            Font size for the legend (default is 10).
-        @roc_curve_grid : bool, optional
-            Whether to display the grid (default is True).
-        @roc_curve_diagonal_line : bool, optional
-            Whether to plot the diagonal line (default is True).
+        @roc_curve_figure_size : tuple
+            Size of the figure.
+        @roc_curve_line_width : int
+            Line width of the ROC curve.
+        @roc_curve_marker_style : str
+            Style of markers on the ROC curve.
+        @roc_curve_cmap : str
+            Color map for the ROC curve.
+        @roc_curve_show_plot : bool
+            Whether to display the plot interactively.
+        @roc_curve_title_font_size : int
+            Font size for the plot title (will be increased by 50%).
+        @roc_curve_axis_label_font_size : int
+            Font size for the axis labels (will be increased by 50%).
+        @roc_curve_legend_font_size : int
+            Font size for the legend (will be increased by 50%).
+        @roc_curve_grid : bool
+            Whether to display the grid.
+        @roc_curve_diagonal_line : bool
+            Whether to plot the diagonal line.
         """
 
         # Validate figure size
@@ -136,7 +155,6 @@ class ROCPlotter:
         # Validate line width
         if not isinstance(roc_curve_line_width, int) or roc_curve_line_width <= 0:
             raise ValueError("roc_curve_line_width must be a positive integer.")
-
 
         # Validate colormap
         if not isinstance(roc_curve_cmap, str) or roc_curve_cmap not in plt.colormaps():
@@ -166,15 +184,23 @@ class ROCPlotter:
         if not isinstance(roc_curve_diagonal_line, bool):
             raise ValueError("roc_curve_diagonal_line must be a boolean value.")
 
-        # Initialize instance variables with provided or default values
+        # Store original font sizes for JSON serialization
+        self._original_title_font_size = roc_curve_title_font_size
+        self._original_axis_label_font_size = roc_curve_axis_label_font_size
+        self._original_legend_font_size = roc_curve_legend_font_size
+
+        # Initialize instance variables with provided values
         self.roc_curve_figure_size = roc_curve_figure_size
         self.roc_curve_line_width = roc_curve_line_width
         self.roc_curve_marker_style = roc_curve_marker_style
         self.roc_curve_cmap = roc_curve_cmap
         self.roc_curve_show_plot = roc_curve_show_plot
-        self.roc_curve_title_font_size = roc_curve_title_font_size
-        self.roc_curve_axis_label_font_size = roc_curve_axis_label_font_size
-        self.roc_curve_legend_font_size = roc_curve_legend_font_size
+
+        # Apply 50% increase to all font sizes
+        self.roc_curve_title_font_size = int(roc_curve_title_font_size * 1.5)
+        self.roc_curve_axis_label_font_size = int(roc_curve_axis_label_font_size * 1.5)
+        self.roc_curve_legend_font_size = int(roc_curve_legend_font_size * 1.5)
+
         self.roc_curve_grid = roc_curve_grid
         self.roc_curve_diagonal_line = roc_curve_diagonal_line
 
@@ -233,7 +259,7 @@ class ROCPlotter:
 
         Returns
         -------
-        dict, dict
+        dict, dict, dict
             Dictionaries containing the false positive rates, true positive rates, and AUC for each class.
         """
         false_positive_r = {}
@@ -245,6 +271,187 @@ class ROCPlotter:
             roc_auc[index] = auc(false_positive_r[index], true_positive_r[index])
 
         return false_positive_r, true_positive_r, roc_auc
+
+    def _save_roc_data_to_json(self, model_name, y_score, y_true, false_positive_r, true_positive_r,
+                               roc_auc, file_name_path):
+        """
+        Saves all ROC plot data and configuration to a JSON file for reproducibility.
+
+        Parameters
+        ----------
+            model_name : str
+                The name of the model
+            y_score : array
+                Predicted probabilities for each class
+            y_true : array
+                Ground truth labels
+            false_positive_r : dict
+                False positive rates for each class
+            true_positive_r : dict
+                True positive rates for each class
+            roc_auc : dict
+                AUC values for each class
+            file_name_path : str
+                The output directory path
+        """
+        # Convert numpy arrays to lists for JSON serialization
+        roc_data = {
+            "model_name": model_name,
+            "data": {
+                "predicted_probabilities": y_score.tolist(),
+                "ground_truth": y_true.tolist(),
+                "number_of_classes": y_score.shape[1],
+                "number_of_samples": y_score.shape[0]
+            },
+            "roc_curves": {
+                str(i): {
+                    "false_positive_rate": false_positive_r[i].tolist(),
+                    "true_positive_rate": true_positive_r[i].tolist(),
+                    "auc": float(roc_auc[i])
+                }
+                for i in range(y_score.shape[1])
+            },
+            "plot_configuration": {
+                "figure_size": list(self.roc_curve_figure_size),
+                "line_width": self.roc_curve_line_width,
+                "marker_style": self.roc_curve_marker_style,
+                "colormap": self.roc_curve_cmap,
+                "show_plot": self.roc_curve_show_plot,
+                "title_font_size_original": self._original_title_font_size,
+                "axis_label_font_size_original": self._original_axis_label_font_size,
+                "legend_font_size_original": self._original_legend_font_size,
+                "title_font_size_actual": self.roc_curve_title_font_size,
+                "axis_label_font_size_actual": self.roc_curve_axis_label_font_size,
+                "legend_font_size_actual": self.roc_curve_legend_font_size,
+                "grid": self.roc_curve_grid,
+                "diagonal_line": self.roc_curve_diagonal_line
+            },
+            "metadata": {
+                "font_increase_applied": "50%",
+                "average_auc": float(numpy.mean([roc_auc[i] for i in range(y_score.shape[1])])),
+                "min_auc": float(min([roc_auc[i] for i in range(y_score.shape[1])])),
+                "max_auc": float(max([roc_auc[i] for i in range(y_score.shape[1])]))
+            }
+        }
+
+        json_file_path = f'{file_name_path}ROC_{model_name}_data.json'
+
+        with open(json_file_path, 'w', encoding='utf-8') as json_file:
+            json.dump(roc_data, json_file, indent=4, ensure_ascii=False)
+
+        logging.info(f"ROC data saved to JSON: {json_file_path}")
+
+    @classmethod
+    def load_from_json(cls, json_file_path):
+        """
+        Creates a ROCPlotter instance from a JSON file containing plot configuration.
+
+        Parameters
+        ----------
+            json_file_path : str
+                Path to the JSON file with plot configuration
+
+        Returns
+        -------
+            ROCPlotter
+                A new instance configured from the JSON file
+
+        Example:
+            >>> plotter = ROCPlotter.load_from_json("ROC_MyModel_data.json")
+            >>> plotter.plot_roc_curve(probabilities_predicted, "./output/")
+        """
+        logging.info(f"Loading ROC plot configuration from JSON: {json_file_path}")
+
+        with open(json_file_path, 'r', encoding='utf-8') as json_file:
+            roc_data = json.load(json_file)
+
+        config = roc_data['plot_configuration']
+
+        # Create instance using original font sizes (will be increased by 50% automatically)
+        instance = cls(
+            roc_curve_figure_size=tuple(config['figure_size']),
+            roc_curve_line_width=config['line_width'],
+            roc_curve_marker_style=config['marker_style'],
+            roc_curve_cmap=config['colormap'],
+            roc_curve_show_plot=config['show_plot'],
+            roc_curve_title_font_size=config['title_font_size_original'],
+            roc_curve_axis_label_font_size=config['axis_label_font_size_original'],
+            roc_curve_legend_font_size=config['legend_font_size_original'],
+            roc_curve_grid=config['grid'],
+            roc_curve_diagonal_line=config['diagonal_line']
+        )
+
+        logging.info("ROCPlotter instance created from JSON configuration")
+        return instance
+
+    def plot_from_json(self, json_file_path, output_path):
+        """
+        Loads ROC plot data from a JSON file and generates the plot.
+
+        This is a convenience method that loads both the configuration and data from JSON,
+        then generates the plot. Useful for reproducing plots later.
+
+        Parameters
+        ----------
+            json_file_path : str
+                Path to the JSON file containing plot data
+            output_path : str
+                Directory where the plot should be saved
+
+        Example:
+            >>> plotter = ROCPlotter(...configuration...)
+            >>> plotter.plot_from_json("ROC_MyModel_data.json", "./output/")
+        """
+        logging.info(f"Loading and plotting ROC from JSON: {json_file_path}")
+
+        with open(json_file_path, 'r', encoding='utf-8') as json_file:
+            roc_data = json.load(json_file)
+
+        model_name = roc_data['model_name']
+        data = roc_data['data']
+
+        # Ensure output path exists
+        Path(output_path).mkdir(parents=True, exist_ok=True)
+
+        # Reconstruct the probabilities_predicted dictionary
+        probabilities_predicted = {
+            'model_name': model_name,
+            'predicted': numpy.array(data['predicted_probabilities']),
+            'ground_truth': numpy.array(data['ground_truth'])
+        }
+
+        # Plot using the loaded data (don't save JSON again)
+        self.plot_roc_curve(probabilities_predicted, output_path, save_json=False)
+
+        logging.info(f"ROC plot recreated from JSON for model '{model_name}'")
+
+    @staticmethod
+    def plot_from_json_static(json_file_path, output_path):
+        """
+        Static method to load configuration and data from JSON and plot in one step.
+
+        This method creates a ROCPlotter instance from the JSON configuration,
+        then immediately plots the data. Most convenient for one-off plotting from saved data.
+
+        Parameters
+        ----------
+            json_file_path : str
+                Path to the JSON file containing plot data and configuration
+            output_path : str
+                Directory where the plot should be saved
+
+        Example:
+            >>> ROCPlotter.plot_from_json_static("ROC_MyModel_data.json", "./output/")
+        """
+        logging.info(f"Static ROC plotting from JSON: {json_file_path}")
+
+        # Load the instance from JSON
+        plotter = ROCPlotter.load_from_json(json_file_path)
+
+        # Plot using the loaded instance
+        plotter.plot_from_json(json_file_path, output_path)
+
+        logging.info("Static ROC plot from JSON completed")
 
     def _roc_curve_plot_single(self, fpr, tpr, auc_score, class_index):
         """
@@ -266,7 +473,7 @@ class ROCPlotter:
 
     def _roc_curve_add_plot_details(self, model_name):
         """
-        Add title, labels, legend, and grid to the plot.
+        Add title, labels, legend, and grid to the plot with increased font sizes.
 
         Parameters
         ----------
@@ -304,15 +511,17 @@ class ROCPlotter:
         if self.roc_curve_show_plot:
             plt.show()
             logging.debug(f"ROC curve displayed for {model_name}.")
-
         else:
-            plt.savefig(file_path)
+            plt.savefig(file_path, bbox_inches='tight')
             plt.close()
             logging.info(f"ROC curve saved to {file_path}.")
 
-    def plot_roc_curve(self, probabilities_predicted, file_name_path):
+    def plot_roc_curve(self, probabilities_predicted, file_name_path, save_json=True):
         """
         Plots the ROC curve and calculates AUC for each class based on the predicted probabilities.
+
+        This method generates and saves the ROC plots. Additionally, all plot data is saved
+        to JSON for reproducibility.
 
         Parameters
         ----------
@@ -323,8 +532,13 @@ class ROCPlotter:
             - 'ground_truth': The ground truth labels.
         file_name_path : str
             Path to save the ROC curve plot.
+        save_json : bool, optional
+            If True, saves plot data to JSON files. Default is True.
         """
         logging.info("Starting to plot ROC curve.")
+
+        # Ensure output path exists
+        Path(file_name_path).mkdir(parents=True, exist_ok=True)
 
         try:
             # Process the input data
@@ -337,6 +551,11 @@ class ROCPlotter:
 
             # Calculate ROC and AUC for each class
             false_positive_r, true_positive_r, roc_auc = self._roc_curve_calculate_roc_auc(y_true_bin, y_score)
+
+            # Save plot data to JSON if enabled
+            if save_json:
+                self._save_roc_data_to_json(model_name, y_score, y_true, false_positive_r,
+                                            true_positive_r, roc_auc, file_name_path)
 
             # Plot the ROC curves for each class
             plt.figure(figsize=self.roc_curve_figure_size)

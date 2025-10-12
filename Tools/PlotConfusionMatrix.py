@@ -3,7 +3,7 @@
 
 __author__ = 'unknown'
 __email__ = 'unknown@unknown.com.br'
-__version__ = '{1}.{0}.{0}'
+__version__ = '{1}.{0}.{1}'
 __initial_data__ = '2025/04/1'
 __last_update__ = '2025/04/1'
 __credits__ = ['unknown']
@@ -33,14 +33,14 @@ __credits__ = ['unknown']
 
 try:
     import sys
-    import numpy
-
-    import seaborn
+    import json
     import logging
+    from pathlib import Path
 
+    import numpy
+    import seaborn
     import matplotlib.cm as cm
     import matplotlib.pyplot as plt
-
 
 except ImportError as error:
     print(error)
@@ -56,6 +56,12 @@ class ConfusionMatrixPlotter:
     multiple customization options like figure size, colormap, font sizes, axis tick label rotation,
     color bar options, annotation format, and the option to display or save the plot.
 
+    Features:
+        - Increased font sizes by 50% for better readability
+        - Save plot data to JSON for reproducibility
+        - Load and plot from JSON files
+        - Comprehensive data persistence including confusion matrices and metrics
+
     Arguments:
     ---------
         @confusion_matrix_fig_size : tuple, optional
@@ -63,11 +69,11 @@ class ConfusionMatrixPlotter:
         @confusion_matrix_cmap : str, optional
             Colormap for the confusion matrix (default is 'Blues').
         @confusion_matrix_annot_font_size : int, optional
-            Font size for the annotations (default is 10).
+            Font size for the annotations. Automatically increased by 50%.
         @confusion_matrix_label_font_size : int, optional
-            Font size for the axis labels (default is 12).
+            Font size for the axis labels. Automatically increased by 50%.
         @confusion_matrix_title_font_size : int, optional
-            Font size for the plot title (default is 14).
+            Font size for the plot title. Automatically increased by 50%.
         @confusion_matrix_show_plot : bool, optional
             Whether to display the plot interactively (default is False).
         @confusion_matrix_colorbar : bool, optional
@@ -82,23 +88,33 @@ class ConfusionMatrixPlotter:
     Example:
     -------
         >>> # python3
-        ...     cm_plotter = ConfusionMatrixPlotter()
+        ...     cm_plotter = ConfusionMatrixPlotter(
+        ...         confusion_matrix_figure_size=(8, 8),
+        ...         confusion_matrix_cmap='Blues',
+        ...         confusion_matrix_annot_font_size=10,
+        ...         confusion_matrix_label_font_size=12,
+        ...         confusion_matrix_title_font_size=14,
+        ...         confusion_matrix_show_plot=False,
+        ...         confusion_matrix_colorbar=True,
+        ...         confusion_matrix_annot_kws=None,
+        ...         confusion_matrix_fmt='d',
+        ...         confusion_matrix_rotation=45
+        ...     )
         ...     cm_list = [
-        ...     {
-        ...     'confusion_matrix': [[50, 10], [5, 35]],
-        ...     'class_names': ['Class A', 'Class B'],
-        ...     'title': 'Model 1'
-        ...     },
-        ...     {
-        ...     'confusion_matrix': [[30, 20], [10, 40]],
-        ...     'class_names': ['Class A', 'Class B'],
-        ...     'title': 'Model 2'
-        ...     }
+        ...         {
+        ...             'confusion_matrix': [[50, 10], [5, 35]],
+        ...             'class_names': ['Class A', 'Class B'],
+        ...             'title': 'Model 1'
+        ...         }
         ...     ]
-        >>>     cm_plotter.plot_confusion_matrices(cm_list, file_name_path='confusion_matrices/', show_plot=True)
+        ...     cm_plotter.plot_confusion_matrices(cm_list, file_name_path='confusion_matrices/')
+        ...
+        ...     # Later, reload and plot from JSON
+        ...     ConfusionMatrixPlotter.plot_from_json_static('confusion_matrices/matrix_1_data.json', 'new_cm/')
+        >>>
     """
 
-    def __init__(self, confusion_matrix_figure_size:tuple, confusion_matrix_cmap: str,
+    def __init__(self, confusion_matrix_figure_size: tuple, confusion_matrix_cmap: str,
                  confusion_matrix_annot_font_size: int, confusion_matrix_label_font_size: int,
                  confusion_matrix_title_font_size: int, confusion_matrix_show_plot: bool,
                  confusion_matrix_colorbar: bool, confusion_matrix_annot_kws: None,
@@ -106,28 +122,30 @@ class ConfusionMatrixPlotter:
         """
         Initialize the ConfusionMatrixPlotter with customizable plotting options.
 
+        NOTE: Font sizes are automatically increased by 50% for better readability.
+
         Parameters
         ----------
-        @confusion_matrix_fig_size : tuple, optional
-            Size of the figure (default is (5, 5)).
-        @confusion_matrix_cmap : str, optional
-            Colormap for the confusion matrix (default is 'Blues').
-        @confusion_matrix_annot_font_size : int, optional
-            Font size for the annotations (default is 10).
-        @confusion_matrix_label_font_size : int, optional
-            Font size for the axis labels (default is 12).
-        @confusion_matrix_title_font_size : int, optional
-            Font size for the plot title (default is 14).
-        @confusion_matrix_show_plot : bool, optional
-            Whether to display the plot interactively (default is False).
-        @confusion_matrix_colorbar : bool, optional
-            Whether to display the color bar (default is True).
-        @confusion_matrix_annot_kws : dict, optional
-            Additional keyword arguments for annotations (default is None).
-        @confusion_matrix_fmt : str, optional
-            Format for annotations (default is 'd', for integers).
-        @confusion_matrix_rotation : int, optional
-            Rotation angle for x and y axis labels (default is 45).
+        @confusion_matrix_figure_size : tuple
+            Size of the figure.
+        @confusion_matrix_cmap : str
+            Colormap for the confusion matrix.
+        @confusion_matrix_annot_font_size : int
+            Font size for the annotations (will be increased by 50%).
+        @confusion_matrix_label_font_size : int
+            Font size for the axis labels (will be increased by 50%).
+        @confusion_matrix_title_font_size : int
+            Font size for the plot title (will be increased by 50%).
+        @confusion_matrix_show_plot : bool
+            Whether to display the plot interactively.
+        @confusion_matrix_colorbar : bool
+            Whether to display the color bar.
+        @confusion_matrix_annot_kws : dict
+            Additional keyword arguments for annotations.
+        @confusion_matrix_fmt : str
+            Format for annotations.
+        @confusion_matrix_rotation : int
+            Rotation angle for x and y axis labels.
         """
 
         # Validate figure size
@@ -143,7 +161,6 @@ class ConfusionMatrixPlotter:
 
         try:
             cm.get_cmap(confusion_matrix_cmap)  # Check if the colormap is valid
-
         except ValueError:
             raise ValueError(f"Invalid colormap name: {confusion_matrix_cmap}. Please provide a valid colormap.")
 
@@ -177,19 +194,26 @@ class ConfusionMatrixPlotter:
         if not isinstance(confusion_matrix_rotation, int) or not (0 <= confusion_matrix_rotation <= 90):
             raise ValueError("Rotation angle must be an integer between 0 and 90.")
 
-        # Initialize instance variables with provided or default values
-        self._confusion_matrix_figure_size = confusion_matrix_figure_size  # Size of the figure to be plotted
-        self._confusion_matrix_cmap = confusion_matrix_cmap  # Color map for the heatmap
-        self._confusion_matrix_annot_font_size = confusion_matrix_annot_font_size  # Font size for annotations
-        self._confusion_matrix_label_font_size = confusion_matrix_label_font_size  # Font size for axis labels
-        self._confusion_matrix_title_font_size = confusion_matrix_title_font_size  # Font size for plot title
-        self._confusion_matrix_show_plot = confusion_matrix_show_plot  # Whether to show the plot interactively
-        self._confusion_matrix_colorbar = confusion_matrix_colorbar  # Whether to display the color bar
-        self._confusion_matrix_annot_kws = confusion_matrix_annot_kws\
-            if confusion_matrix_annot_kws is not None else {"size": self._confusion_matrix_annot_font_size}  # Annotation keyword
+        # Store original font sizes for JSON serialization
+        self._original_annot_font_size = confusion_matrix_annot_font_size
+        self._original_label_font_size = confusion_matrix_label_font_size
+        self._original_title_font_size = confusion_matrix_title_font_size
 
-        self._confusion_matrix_fmt = confusion_matrix_fmt  # Format string for annotations (e.g., integers or floating point)
-        self._confusion_matrix_rotation = confusion_matrix_rotation  # Rotation for axis labels (default is 45 degrees)
+        # Initialize instance variables with provided or default values
+        self._confusion_matrix_figure_size = confusion_matrix_figure_size
+        self._confusion_matrix_cmap = confusion_matrix_cmap
+
+        # Apply 50% increase to all font sizes
+        self._confusion_matrix_annot_font_size = int(confusion_matrix_annot_font_size * 1.5)
+        self._confusion_matrix_label_font_size = int(confusion_matrix_label_font_size * 1.5)
+        self._confusion_matrix_title_font_size = int(confusion_matrix_title_font_size * 1.5)
+
+        self._confusion_matrix_show_plot = confusion_matrix_show_plot
+        self._confusion_matrix_colorbar = confusion_matrix_colorbar
+        self._confusion_matrix_annot_kws = confusion_matrix_annot_kws \
+            if confusion_matrix_annot_kws is not None else {"size": self._confusion_matrix_annot_font_size}
+        self._confusion_matrix_fmt = confusion_matrix_fmt
+        self._confusion_matrix_rotation = confusion_matrix_rotation
 
     @staticmethod
     def _process_confusion_matrix(confusion_matrix_dict):
@@ -210,17 +234,237 @@ class ConfusionMatrixPlotter:
         str
             The title for the confusion matrix plot.
         """
-        # Convert confusion matrix to a NumPy array for easy manipulation
         confusion_matrix = numpy.array(confusion_matrix_dict["confusion_matrix"])
-        # Get class names
         class_names = confusion_matrix_dict["class_names"]
-        # Get plot title (if not provided, default to "Confusion Matrix")
         title = confusion_matrix_dict.get("title", "Confusion Matrix")
         return confusion_matrix, class_names, title
 
+    @staticmethod
+    def _calculate_metrics(confusion_matrix):
+        """
+        Calculate common classification metrics from confusion matrix.
+
+        Parameters
+        ----------
+        confusion_matrix : numpy.ndarray
+            The confusion matrix.
+
+        Returns
+        -------
+        dict
+            Dictionary containing accuracy, precision, recall, and f1-score per class.
+        """
+        metrics = {}
+
+        # Overall accuracy
+        total = numpy.sum(confusion_matrix)
+        correct = numpy.trace(confusion_matrix)
+        metrics['accuracy'] = float(correct / total) if total > 0 else 0.0
+
+        # Per-class metrics
+        n_classes = confusion_matrix.shape[0]
+        metrics['per_class'] = {}
+
+        for i in range(n_classes):
+            tp = confusion_matrix[i, i]
+            fp = numpy.sum(confusion_matrix[:, i]) - tp
+            fn = numpy.sum(confusion_matrix[i, :]) - tp
+            tn = total - tp - fp - fn
+
+            # Precision
+            precision = float(tp / (tp + fp)) if (tp + fp) > 0 else 0.0
+            # Recall
+            recall = float(tp / (tp + fn)) if (tp + fn) > 0 else 0.0
+            # F1-score
+            f1 = float(2 * precision * recall / (precision + recall)) if (precision + recall) > 0 else 0.0
+
+            metrics['per_class'][i] = {
+                'precision': precision,
+                'recall': recall,
+                'f1_score': f1,
+                'support': int(numpy.sum(confusion_matrix[i, :]))
+            }
+
+        # Macro averages
+        precisions = [metrics['per_class'][i]['precision'] for i in range(n_classes)]
+        recalls = [metrics['per_class'][i]['recall'] for i in range(n_classes)]
+        f1_scores = [metrics['per_class'][i]['f1_score'] for i in range(n_classes)]
+
+        metrics['macro_avg'] = {
+            'precision': float(numpy.mean(precisions)),
+            'recall': float(numpy.mean(recalls)),
+            'f1_score': float(numpy.mean(f1_scores))
+        }
+
+        return metrics
+
+    def _save_confusion_matrix_to_json(self, confusion_matrix, class_names, title, index, file_name_path):
+        """
+        Saves confusion matrix data and configuration to a JSON file for reproducibility.
+
+        Parameters
+        ----------
+        confusion_matrix : numpy.ndarray
+            The confusion matrix
+        class_names : list
+            The class labels
+        title : str
+            The title of the confusion matrix
+        index : int
+            Index of the confusion matrix
+        file_name_path : str
+            The output directory path
+        """
+        # Calculate metrics
+        metrics = self._calculate_metrics(confusion_matrix)
+
+        cm_data = {
+            "title": title,
+            "matrix_index": index + 1,
+            "confusion_matrix": confusion_matrix.tolist(),
+            "class_names": class_names,
+            "matrix_shape": list(confusion_matrix.shape),
+            "metrics": metrics,
+            "plot_configuration": {
+                "figure_size": list(self._confusion_matrix_figure_size),
+                "colormap": self._confusion_matrix_cmap,
+                "annot_font_size_original": self._original_annot_font_size,
+                "label_font_size_original": self._original_label_font_size,
+                "title_font_size_original": self._original_title_font_size,
+                "annot_font_size_actual": self._confusion_matrix_annot_font_size,
+                "label_font_size_actual": self._confusion_matrix_label_font_size,
+                "title_font_size_actual": self._confusion_matrix_title_font_size,
+                "show_plot": self._confusion_matrix_show_plot,
+                "colorbar": self._confusion_matrix_colorbar,
+                "annotation_format": self._confusion_matrix_fmt,
+                "rotation": self._confusion_matrix_rotation
+            },
+            "metadata": {
+                "font_increase_applied": "50%",
+                "total_predictions": int(numpy.sum(confusion_matrix)),
+                "number_of_classes": len(class_names)
+            }
+        }
+
+        json_file_path = f'{file_name_path}matrix_{index + 1}_data.json'
+
+        with open(json_file_path, 'w', encoding='utf-8') as json_file:
+            json.dump(cm_data, json_file, indent=4, ensure_ascii=False)
+
+        logging.info(f"Confusion matrix data saved to JSON: {json_file_path}")
+
+    @classmethod
+    def load_from_json(cls, json_file_path):
+        """
+        Creates a ConfusionMatrixPlotter instance from a JSON file containing plot configuration.
+
+        Parameters
+        ----------
+        json_file_path : str
+            Path to the JSON file with plot configuration
+
+        Returns
+        -------
+        ConfusionMatrixPlotter
+            A new instance configured from the JSON file
+
+        Example:
+            >>> plotter = ConfusionMatrixPlotter.load_from_json("matrix_1_data.json")
+            >>> plotter.plot_confusion_matrices(cm_list, "./output/")
+        """
+        logging.info(f"Loading confusion matrix configuration from JSON: {json_file_path}")
+
+        with open(json_file_path, 'r', encoding='utf-8') as json_file:
+            cm_data = json.load(json_file)
+
+        config = cm_data['plot_configuration']
+
+        # Create instance using original font sizes (will be increased by 50% automatically)
+        instance = cls(
+            confusion_matrix_figure_size=tuple(config['figure_size']),
+            confusion_matrix_cmap=config['colormap'],
+            confusion_matrix_annot_font_size=config['annot_font_size_original'],
+            confusion_matrix_label_font_size=config['label_font_size_original'],
+            confusion_matrix_title_font_size=config['title_font_size_original'],
+            confusion_matrix_show_plot=config['show_plot'],
+            confusion_matrix_colorbar=config['colorbar'],
+            confusion_matrix_annot_kws=None,
+            confusion_matrix_fmt=config['annotation_format'],
+            confusion_matrix_rotation=config['rotation']
+        )
+
+        logging.info("ConfusionMatrixPlotter instance created from JSON configuration")
+        return instance
+
+    def plot_from_json(self, json_file_path, output_path):
+        """
+        Loads confusion matrix data from a JSON file and generates the plot.
+
+        This is a convenience method that loads both the configuration and data from JSON,
+        then generates the plot. Useful for reproducing plots later.
+
+        Parameters
+        ----------
+        json_file_path : str
+            Path to the JSON file containing plot data
+        output_path : str
+            Directory where the plot should be saved
+
+        Example:
+            >>> plotter = ConfusionMatrixPlotter(...configuration...)
+            >>> plotter.plot_from_json("matrix_1_data.json", "./output/")
+        """
+        logging.info(f"Loading and plotting confusion matrix from JSON: {json_file_path}")
+
+        with open(json_file_path, 'r', encoding='utf-8') as json_file:
+            cm_data = json.load(json_file)
+
+        # Ensure output path exists
+        Path(output_path).mkdir(parents=True, exist_ok=True)
+
+        # Reconstruct the confusion matrix list
+        cm_list = [{
+            'confusion_matrix': cm_data['confusion_matrix'],
+            'class_names': cm_data['class_names'],
+            'title': cm_data['title']
+        }]
+
+        # Plot using the loaded data (don't save JSON again)
+        self.plot_confusion_matrices(cm_list, output_path, save_json=False)
+
+        logging.info(f"Confusion matrix recreated from JSON: {cm_data['title']}")
+
+    @staticmethod
+    def plot_from_json_static(json_file_path, output_path):
+        """
+        Static method to load configuration and data from JSON and plot in one step.
+
+        This method creates a ConfusionMatrixPlotter instance from the JSON configuration,
+        then immediately plots the data. Most convenient for one-off plotting from saved data.
+
+        Parameters
+        ----------
+        json_file_path : str
+            Path to the JSON file containing plot data and configuration
+        output_path : str
+            Directory where the plot should be saved
+
+        Example:
+            >>> ConfusionMatrixPlotter.plot_from_json_static("matrix_1_data.json", "./output/")
+        """
+        logging.info(f"Static confusion matrix plotting from JSON: {json_file_path}")
+
+        # Load the instance from JSON
+        plotter = ConfusionMatrixPlotter.load_from_json(json_file_path)
+
+        # Plot using the loaded instance
+        plotter.plot_from_json(json_file_path, output_path)
+
+        logging.info("Static confusion matrix plot from JSON completed")
+
     def _plot_single_confusion_matrix(self, confusion_matrix, class_names, title, index, file_name_path):
         """
-        Plot and save or display a single confusion matrix.
+        Plot and save or display a single confusion matrix with increased font sizes.
 
         Parameters
         ----------
@@ -241,16 +485,16 @@ class ConfusionMatrixPlotter:
         # Create the heatmap using seaborn's heatmap function
         ax = seaborn.heatmap(
             confusion_matrix,
-            annot=True,  # Annotate each cell with its value
-            fmt=self._confusion_matrix_fmt,  # Format of the annotation (integer or float)
-            cmap=self._confusion_matrix_cmap,  # Color map for the heatmap
-            xticklabels=class_names,  # Class names for x-axis
-            yticklabels=class_names,  # Class names for y-axis
-            annot_kws=self._confusion_matrix_annot_kws,  # Additional annotation options (like font size)
-            cbar=self._confusion_matrix_colorbar  # Show or hide the color bar
+            annot=True,
+            fmt=self._confusion_matrix_fmt,
+            cmap=self._confusion_matrix_cmap,
+            xticklabels=class_names,
+            yticklabels=class_names,
+            annot_kws=self._confusion_matrix_annot_kws,
+            cbar=self._confusion_matrix_colorbar
         )
 
-        # Customize the axis labels and title
+        # Customize the axis labels and title with increased font sizes
         ax.set_xlabel('Predicted Labels', fontsize=self._confusion_matrix_label_font_size)
         ax.set_ylabel('True Labels', fontsize=self._confusion_matrix_label_font_size)
         ax.set_title(title, fontsize=self._confusion_matrix_title_font_size)
@@ -267,18 +511,20 @@ class ConfusionMatrixPlotter:
 
         # If show_plot is True, display the plot; otherwise, save the plot as a file
         if self._confusion_matrix_show_plot:
-            plt.show()  # Display the plot interactively
+            plt.show()
             logging.debug(f"Confusion matrix {index + 1} displayed on screen.")
         else:
-            plt.savefig(file_path)  # Save the plot to a file
+            plt.savefig(file_path, bbox_inches='tight')
             logging.debug(f"Confusion matrix {index + 1} saved to {file_path}.")
 
         # Close the plot to free up memory
         plt.close()
 
-    def plot_confusion_matrices(self, confusion_matrix_list, file_name_path):
+    def plot_confusion_matrices(self, confusion_matrix_list, file_name_path, save_json=True):
         """
         Plot confusion matrices for a list of models and save them as images.
+
+        Additionally, all plot data is saved to JSON for reproducibility.
 
         Parameters
         ----------
@@ -289,25 +535,32 @@ class ConfusionMatrixPlotter:
             - 'title' (optional): Title for the matrix plot.
         file_name_path : str
             Path to save the confusion matrix images.
+        save_json : bool, optional
+            If True, saves plot data to JSON files. Default is True.
         """
         logging.info("Starting confusion matrix plotting process.")
+
+        # Ensure output path exists
+        Path(file_name_path).mkdir(parents=True, exist_ok=True)
 
         # Iterate over each confusion matrix in the list
         for index, confusion_matrix_dict in enumerate(confusion_matrix_list):
             try:
-                # Process the confusion matrix and extract data (matrix, class names, title)
+                # Process the confusion matrix and extract data
                 confusion_matrix, class_names, title = self._process_confusion_matrix(confusion_matrix_dict)
 
                 logging.info(f"Plotting confusion matrix {index + 1}: {title}")
+
+                # Save to JSON if enabled
+                if save_json:
+                    self._save_confusion_matrix_to_json(confusion_matrix, class_names, title, index, file_name_path)
 
                 # Call the function to plot and save/display the confusion matrix
                 self._plot_single_confusion_matrix(confusion_matrix, class_names, title, index, file_name_path)
 
             except KeyError as e:
-                # Handle missing keys in the input dictionary
                 logging.error(f"Missing key in confusion matrix dictionary: {e}")
             except Exception as e:
-                # Handle any other errors that occur during the plotting process
                 logging.error(f"Error occurred while plotting confusion matrix {index + 1}: {e}")
                 raise
 
