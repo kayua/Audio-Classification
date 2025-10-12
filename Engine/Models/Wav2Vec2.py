@@ -222,9 +222,6 @@ class AudioWav2Vec2(MaskCreator, Wav2Vec2Process): #, EvaluationProcess):
         # Create causal mask for the transformer attention
         time_masking = TimeMasking(mask_time_prob=0.2, number_mask_time_steps=5)(dense_layer)
 
-        print(time_masking)
-        exit()
-
         # Transformer block with multi-head attention
         transformer_attention = MultiHeadAttention(num_heads=self.number_heads,
                                                    key_dim=4)(time_masking, time_masking)
@@ -250,7 +247,7 @@ class AudioWav2Vec2(MaskCreator, Wav2Vec2Process): #, EvaluationProcess):
 
         # Gumbel Vector Quantization layer for feature compression
         quantized_output, perplexity = GumbelVectorQuantizer()(dense_layer, 128)
-        exit()
+
         # Create the Keras model
         self.neural_network_model = Model(inputs=inputs, outputs=[transformer_output, quantized_output],
                                           name=self.model_name)
