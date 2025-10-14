@@ -116,7 +116,7 @@ class GumbelVectorQuantizer(Layer):
 
         return perplexity
 
-    def call(self, hidden_states, lengths):
+    def call(self, hidden_state):
         """
         Performs the forward pass of the Gumbel-Softmax vector quantization.
 
@@ -133,6 +133,8 @@ class GumbelVectorQuantizer(Layer):
                 - code_vectors (tf.Tensor): Quantized code vectors. Shape: (B, L, D2)
                 - perplexity (tf.Tensor): Perplexity of the codebook. Shape: (G, V)
         """
+
+        hidden_states, lengths = hidden_state
         batch_size, length, _ = tensorflow.shape(hidden_states)
 
         # Project hidden states to the codebook space
