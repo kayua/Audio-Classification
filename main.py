@@ -256,10 +256,6 @@ if __name__ == "__main__":
     main.__start__()
 
     available_models = [
-        Conformer,
-        DenseModel,
-        AudioLSTM,
-        AudioSpectrogramTransformer,
         ResidualModel
     ]
 

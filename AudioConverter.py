@@ -68,7 +68,7 @@ except ImportError as e:
 warnings.filterwarnings('ignore')
 
 EXCEL_FILE = "Todas_Gravacoes.xlsx"  # Your Excel file
-DATASET_FOLDER = "Dataset"  # Folder with audio files
+DATASET_FOLDER = "Datasets"  # Folder with audio files
 OUTPUT_FOLDER = "Organized_Mosquito_Audio"  # Output folder
 
 
