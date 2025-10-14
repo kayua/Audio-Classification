@@ -196,13 +196,7 @@ class ResidualModel(ResidualProcess):
             validation_data=validation_data
         )
 
-        if validation_data is not None:
-            print(f"Acurácia Final (Validação): {training_history.history['val_accuracy'][-1]:.4f}")
-
         if generate_gradcam and validation_data is not None:
-            print("\n" + "=" * 80)
-            print(f"GERANDO MAPAS DE ATIVAÇÃO ({xai_method.upper()}) - RESIDUAL MODEL")
-            print("=" * 80)
 
             val_data, val_labels = validation_data
 
@@ -213,9 +207,6 @@ class ResidualModel(ResidualProcess):
                 output_dir=gradcam_output_dir,
                 xai_method=xai_method
             )
-
-            print(f"\n✓ Mapas de ativação salvos em: {gradcam_output_dir}")
-            print("=" * 80 + "\n")
 
         return training_history
 
@@ -234,9 +225,6 @@ class ResidualModel(ResidualProcess):
             # Get last conv layer before flatten
             last_block_idx = len(self.filters_per_block) - 1
             target_layer_name = f'conv_block_{last_block_idx}_layer_2'
-            print(f"⚠️  AVISO: Usando '{target_layer_name}' como camada alvo (última camada convolucional)")
-        else:
-            print(f"⚠️  AVISO: Usando camada customizada '{target_layer_name}'")
 
         target_layer = self.neural_network_model.get_layer(target_layer_name)
 
@@ -244,9 +232,6 @@ class ResidualModel(ResidualProcess):
             inputs=self.neural_network_model.inputs,
             outputs=[target_layer.output, self.neural_network_model.output]
         )
-
-        print(f"✓ GradCAM model criado com camada: {target_layer_name}")
-        print(f"  Forma de saída da camada: {target_layer.output.shape}")
 
     def compute_gradcam_plusplus(self, input_sample: np.ndarray, class_idx: int = None,
                                  target_layer_name: str = None) -> np.ndarray:
