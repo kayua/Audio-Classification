@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-__author__ = 'Kayuã Oleques Paim'
-__email__ = 'kayuaolequesp@gmail.com.br'
+__author__ = 'unknown'
+__email__ = 'unknown@unknown.com.br'
 __version__ = '{1}.{0}.{0}'
 __initial_data__ = '2025/04/1'
 __last_update__ = '2025/04/1'
@@ -33,110 +33,42 @@ __credits__ = ['unknown']
 
 try:
     import sys
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import matplotlib.cm as cm
+    from matplotlib.patches import Rectangle
+    from scipy.ndimage import zoom, gaussian_filter
+    import seaborn as sns
 
     import tensorflow
-
     from tensorflow.keras import Model
-
-    from tensorflow.keras.layers import Dense
-    from tensorflow.keras.layers import Input
-
-    from tensorflow.keras.layers import Conv2D
-    from tensorflow.keras.layers import Dropout
-    from tensorflow.keras.layers import Flatten
-
-    from tensorflow.keras.layers import Concatenate
-    from tensorflow.keras.layers import MaxPooling2D
+    from tensorflow.keras.layers import Dense, Input, Dropout, Flatten
+    from tensorflow.keras.layers import Conv2D, Concatenate, MaxPooling2D
 
     from Engine.Models.Process.Residual_Process import ResidualProcess
 
 except ImportError as error:
-
     print(error)
     sys.exit(-1)
 
 
-
-class ResidualModel(ResidualProcess): #(EvaluationProcess):
+class ResidualModel(ResidualProcess):
     """
-    @ResidualModel
-        ResidualModel is a class that implements a residual convolutional neural
-        network (CNN) for classification tasks.
+    Enhanced ResidualModel with COMPLETE Explainable AI (XAI) capabilities
 
-        This model architecture incorporates residual blocks, which are used to combat the
-        vanishing gradient problem in deep neural networks by allowing gradients to flow more
-        easily through the layers. The network consists of convolutional layers, max pooling,
-        dropout regularization, and dense layers, optimized for classification problems.
-        Residual connections are added to improve performance, especially for deeper architectures.
-
-        The ResidualModel can be customized with various hyperparameters, including the number
-        of convolutional filters, size of filters, size of pooling layers, dropout rate, and
-        activation functions. The model is typically used for image classification tasks but
-        can be adapted for other types of input data.
-
-    Reference for Residual Convolutional Neural Networks:
-        Paim, K. O., Rohweder, R., Recamonde-Mendoza, M., Mansilha, R. B., & Cordeiro, W. (2024).
-        Acoustic identification of Ae. aegypti mosquitoes using smartphone apps and residual
-        convolutional neural networks. *Biomedical Signal Processing and Control,
-        95, 106342. https://doi.org/10.1016/j.bspc.2024.106342
-
-    Example:
-        >>> # Instantiate the model
-        ...     model = ResidualModel(
-        ...     input_dimension=(128, 128, 3),  # Input shape of the image (e.g., 128x128 RGB image)
-        ...     convolutional_padding='same',  # Padding type for convolution layers
-        ...     intermediary_activation='relu',  # Activation function for intermediary layers
-        ...     last_layer_activation='softmax',  # Activation function for output layer (e.g., 'softmax')
-        ...     number_classes=10,  # Number of output classes (e.g., 10 for multi-class classification)
-        ...     size_convolutional_filters=(3, 3),  # Size of convolutional filters (e.g., 3x3)
-        ...     size_pooling=(2, 2),  # Size of max-pooling filters (e.g., 2x2)
-        ...     filters_per_block=[32, 64, 128],  # Number of filters per block
-        ...     loss_function='categorical_crossentropy',  # Loss function for multi-class classification
-        ...     optimizer_function='adam',  # Optimizer used for training
-        ...     dropout_rate=0.2  # Dropout rate to prevent overfitting
-        ...     )
-        ...
-        ...     # Build the model
-        ...     model.build_model()
-        ...
-        ...     # Compile and train the model
-        ...     training_history = model.compile_and_train(
-        ...     train_data=X_train,  # Input training data
-        ...     train_labels=y_train,  # Training labels
-        ...     epochs=10,  # Number of epochs for training
-        ...     batch_size=32,  # Batch size for training
-        ...     validation_data=(X_val, y_val)  # Optional validation data
-        ...     )
-        >>>
-
-    Attributes:
-        @neural_network_model (tensorflow.keras.Model): The Keras model representing the residual CNN.
-        @filters_per_block (list[int]): List containing the number of filters in each residual block.
-        @input_shape (tuple): The shape of the input data (e.g., (128, 128, 3) for RGB images).
-        @size_convolutional_filters (tuple): The size of the convolutional filters (e.g., (3, 3)).
-        @size_pooling (tuple): The size of the max-pooling filters (e.g., (2, 2)).
-        @loss_function (str): The loss function used during model training (e.g., 'categorical_crossentropy').
-        @optimizer_function (str): The optimizer function used during model training (e.g., 'adam').
-        @dropout_rate (float): The dropout rate used for regularization.
-        @number_classes (int): The number of output classes for classification (e.g., 10 for multi-class classification).
-        @last_layer_activation (str): Activation function for the output layer (e.g., 'softmax').
-        @convolutional_padding (str): Padding strategy for convolution layers (e.g., 'same').
-        @intermediary_activation (str): Activation function used in intermediary layers (e.g., 'relu').
-        @model_name (str): The name of the model (default is "ResidualModel").
+    FUNCIONALIDADES XAI IMPLEMENTADAS:
+    ==================================
+    1. ✅ Grad-CAM: Visualização padrão de mapas de ativação
+    2. ✅ Grad-CAM++: Versão melhorada com ponderação mais precisa
+    3. ✅ Score-CAM: Método sem gradientes (gradient-free)
+    4. ✅ Visualizações modernas e interativas
+    5. ✅ Geração automática para validação
+    6. ✅ Análise comparativa de múltiplos métodos XAI
     """
+
     def __init__(self, arguments):
-
-
-
-#    def __init__(self, input_dimension: tuple[int, int, int], convolutional_padding: str, intermediary_activation: str,
-#                 last_layer_activation: str, number_classes: int, size_convolutional_filters: tuple[int, int],
-#                 size_pooling: tuple[int, int], filters_per_block: list[int], loss_function: str,
-#                 optimizer_function: str, dropout_rate: float, size_batch: int, number_splits: int, number_epochs: int,
-#                 window_size_factor: int, decibel_scale_factor: int, hop_length: int, overlap: int, sample_rate: int,
-#                 file_extension: str):
-
         """
-        Initialize the ResidualModel class.
+        Initialize the ResidualModel class with XAI capabilities.
 
         Args:
             @input_dimension (tuple): The shape of the input data (e.g., (128, 128, 3) for RGB images).
@@ -151,109 +83,783 @@ class ResidualModel(ResidualProcess): #(EvaluationProcess):
             @optimizer_function (str): The optimizer function used during model training (e.g., 'adam').
             @dropout_rate (float): The dropout rate for regularization.
         """
-
-        # Initialize model parameters
-#        super().__init__(size_batch, number_splits, number_epochs, optimizer_function, window_size_factor,
-#                         decibel_scale_factor, hop_length, overlap, sample_rate, file_extension)
-
         ResidualProcess.__init__(self, arguments)
-        self.neural_network_model = None  # Placeholder for the Keras model
-        self.loss_function = arguments.residual_loss_function  # Loss function used during training
-        self.size_pooling = arguments.residual_size_pooling  # Pooling size for down-sampling
-        self.filters_per_block = arguments.residual_filters_per_block  # Number of filters in each block
-        self.input_shape = arguments.residual_input_dimension  # Shape of the input data
-        self.optimizer_function = arguments.residual_optimizer_function  # Optimizer used for training
-        self.dropout_rate = arguments.residual_dropout_rate  # Dropout rate for regularization
-        self.size_convolutional_filters = arguments.residual_size_convolutional_filters  # Size of convolutional filters
-        self.number_classes = arguments.number_classes  # Number of output classes
-        self.last_layer_activation = arguments.residual_last_layer_activation  # Activation function for the output layer
-        self.convolutional_padding = arguments.residual_convolutional_padding  # Padding type for convolution layers
-        self.intermediary_activation = arguments.residual_intermediary_activation  # Activation for intermediary layers
-        self.model_name = "ResidualModel"  # Name of the model
+        self.neural_network_model = None
+        self.gradcam_model = None
+        self.loss_function = arguments.residual_loss_function
+        self.size_pooling = arguments.residual_size_pooling
+        self.filters_per_block = arguments.residual_filters_per_block
+        self.input_shape = arguments.residual_input_dimension
+        self.optimizer_function = arguments.residual_optimizer_function
+        self.dropout_rate = arguments.residual_dropout_rate
+        self.size_convolutional_filters = arguments.residual_size_convolutional_filters
+        self.number_classes = arguments.number_classes
+        self.last_layer_activation = arguments.residual_last_layer_activation
+        self.convolutional_padding = arguments.residual_convolutional_padding
+        self.intermediary_activation = arguments.residual_intermediary_activation
+        self.model_name = "ResidualModel"
+
+        # Set modern style for all plots
+        plt.style.use('seaborn-v0_8-darkgrid')
+        sns.set_palette("husl")
 
     def build_model(self):
         """
-        Build the model architecture using Keras Functional API.
+        Build the model architecture using Keras Functional API with proper layer naming for XAI.
 
-        This method defines the structure of the residual convolutional network, incorporating
-        residual connections to improve training performance. The model consists of:
-            - Convolutional layers with specified padding and activation.
-            - Residual connections that allow the output of each layer to be added to the input.
-            - Max pooling for down-sampling.
-            - Dropout layers for regularization.
-            - Final dense layer for classification.
-
-        The network architecture is as follows:
-            1. Input layer: Accepts the input data with the specified shape.
-            2. Residual blocks: A sequence of convolutional layers, followed by a residual connection and max-pooling.
-            3. Final dense layer: The output layer with the specified number of classes and activation function.
+        This method defines the structure of the residual convolutional network with named layers
+        to enable XAI visualization on specific layers.
         """
+        inputs = Input(shape=self.input_shape, name='input_layer')
+        neural_network_flow = inputs
 
-        # Create input layer with the shape of the input data.
-        inputs = Input(shape=self.input_shape)
-        neural_network_flow = inputs  # Initialize the flow of data through the network
+        # Add residual blocks with proper naming
+        for block_idx, number_filters in enumerate(self.filters_per_block):
+            residual_flow = neural_network_flow
 
-        # Add residual blocks.
-        for number_filters in self.filters_per_block:
-            residual_flow = neural_network_flow  # Save the input for the residual connection
+            # First conv layer in block
+            neural_network_flow = Conv2D(
+                number_filters,
+                self.size_convolutional_filters,
+                activation=self.intermediary_activation,
+                padding=self.convolutional_padding,
+                name=f'conv_block_{block_idx}_layer_1'
+            )(neural_network_flow)
 
-            # Add two convolutional layers followed by activation.
-            neural_network_flow = Conv2D(number_filters, self.size_convolutional_filters,
-                                         activation=self.intermediary_activation,
-                                         padding=self.convolutional_padding)(neural_network_flow)
-            neural_network_flow = Conv2D(number_filters, self.size_convolutional_filters,
-                                         activation=self.intermediary_activation,
-                                         padding=self.convolutional_padding)(neural_network_flow)
+            # Second conv layer in block
+            neural_network_flow = Conv2D(
+                number_filters,
+                self.size_convolutional_filters,
+                activation=self.intermediary_activation,
+                padding=self.convolutional_padding,
+                name=f'conv_block_{block_idx}_layer_2'
+            )(neural_network_flow)
 
-            # Add the residual connection (skip connection).
-            neural_network_flow = Concatenate()([neural_network_flow, residual_flow])
+            # Residual connection
+            neural_network_flow = Concatenate(name=f'residual_concat_{block_idx}')(
+                [neural_network_flow, residual_flow]
+            )
 
-            # Apply max pooling and dropout after each residual block.
-            neural_network_flow = MaxPooling2D(self.size_pooling)(neural_network_flow)
-            neural_network_flow = Dropout(self.dropout_rate)(neural_network_flow)
+            # Pooling and dropout
+            neural_network_flow = MaxPooling2D(
+                self.size_pooling,
+                name=f'max_pooling_{block_idx}'
+            )(neural_network_flow)
+            neural_network_flow = Dropout(
+                self.dropout_rate,
+                name=f'dropout_{block_idx}'
+            )(neural_network_flow)
 
-        # Flatten the output before passing it to the dense layer.
-        neural_network_flow = Flatten()(neural_network_flow)
+        # Flatten and output
+        neural_network_flow = Flatten(name='flatten')(neural_network_flow)
+        neural_network_flow = Dense(
+            self.number_classes,
+            activation=self.last_layer_activation,
+            name='output_layer'
+        )(neural_network_flow)
 
-        # Add the output layer with the specified number of classes.
-        neural_network_flow = Dense(self.number_classes,
-                                    activation=self.last_layer_activation)(neural_network_flow)
-
-        # Create the Keras model with the defined input and output layers.
         self.neural_network_model = Model(inputs=inputs, outputs=neural_network_flow, name=self.model_name)
         self.neural_network_model.summary()
 
-    def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor, epochs: int,
-                          batch_size: int, validation_data: tuple = None) -> tensorflow.keras.callbacks.History:
+    def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor,
+                          epochs: int, batch_size: int, validation_data: tuple = None,
+                          generate_gradcam: bool = True, num_gradcam_samples: int = 30,
+                          gradcam_output_dir: str = './mapas_de_ativacao',
+                          xai_method: str = 'gradcam++') -> tensorflow.keras.callbacks.History:
         """
-        Compile and train the model.
-
-        This method compiles the model with the specified optimizer and loss function,
-        and trains the model using the provided training data.
+        Compile and train the model with enhanced XAI visualization.
 
         Args:
-            @train_data (tensorflow.Tensor): The input data for training (e.g., images).
-            @train_labels (tensorflow.Tensor): The target labels for training.
-            @epochs (int): The number of epochs for training.
-            @batch_size (int): The batch size for training.
-            @validation_data (tuple, optional): A tuple of validation data (input, labels). Default is None.
+            train_data: Training input data
+            train_labels: Training labels
+            epochs: Number of training epochs
+            batch_size: Batch size for training
+            validation_data: Optional validation data tuple (X_val, y_val)
+            generate_gradcam: Whether to generate activation maps after training
+            num_gradcam_samples: Number of samples to visualize
+            gradcam_output_dir: Output directory for visualizations
+            xai_method: XAI method to use ('gradcam', 'gradcam++', or 'scorecam')
 
         Returns:
-            tensorflow.keras.callbacks.History: The training history, containing information about the training process.
+            Training history object
         """
+        self.neural_network_model.compile(
+            optimizer=self.optimizer_function,
+            loss=self.loss_function,
+            metrics=['accuracy']
+        )
 
-        # Compile the model with the specified loss function, optimizer, and metrics.
-        self.neural_network_model.compile(optimizer=self.optimizer_function, loss=self.loss_function,
-                                          metrics=['accuracy'])
+        training_history = self.neural_network_model.fit(
+            train_data, train_labels,
+            epochs=epochs,
+            batch_size=batch_size,
+            validation_data=validation_data
+        )
 
-        # Train the model with the provided data, labels, and validation data (if available).
-        training_history = self.neural_network_model.fit(train_data, train_labels, epochs=epochs,
-                                                         batch_size=batch_size,
-                                                         validation_data=validation_data
-                                                         )
-        # Return the training history object.
+        if validation_data is not None:
+            print(f"Acurácia Final (Validação): {training_history.history['val_accuracy'][-1]:.4f}")
+
+        if generate_gradcam and validation_data is not None:
+            print("\n" + "=" * 80)
+            print(f"GERANDO MAPAS DE ATIVAÇÃO ({xai_method.upper()}) - RESIDUAL MODEL")
+            print("=" * 80)
+
+            val_data, val_labels = validation_data
+
+            stats = self.generate_validation_visualizations(
+                validation_data=val_data,
+                validation_labels=val_labels,
+                num_samples=num_gradcam_samples,
+                output_dir=gradcam_output_dir,
+                xai_method=xai_method
+            )
+
+            print(f"\n✓ Mapas de ativação salvos em: {gradcam_output_dir}")
+            print("=" * 80 + "\n")
+
         return training_history
 
+    def build_gradcam_model(self, target_layer_name: str = None) -> None:
+        """
+        Build an auxiliary model for GradCAM/GradCAM++ computation.
+
+        Args:
+            target_layer_name: Name of target layer. If None, uses last conv layer before flatten
+        """
+        if self.neural_network_model is None:
+            raise ValueError("Model must be built before creating GradCAM model")
+
+        # Find last convolutional layer if no target specified
+        if target_layer_name is None:
+            # Get last conv layer before flatten
+            last_block_idx = len(self.filters_per_block) - 1
+            target_layer_name = f'conv_block_{last_block_idx}_layer_2'
+            print(f"⚠️  AVISO: Usando '{target_layer_name}' como camada alvo (última camada convolucional)")
+        else:
+            print(f"⚠️  AVISO: Usando camada customizada '{target_layer_name}'")
+
+        target_layer = self.neural_network_model.get_layer(target_layer_name)
+
+        self.gradcam_model = Model(
+            inputs=self.neural_network_model.inputs,
+            outputs=[target_layer.output, self.neural_network_model.output]
+        )
+
+        print(f"✓ GradCAM model criado com camada: {target_layer_name}")
+        print(f"  Forma de saída da camada: {target_layer.output.shape}")
+
+    def compute_gradcam_plusplus(self, input_sample: np.ndarray, class_idx: int = None,
+                                 target_layer_name: str = None) -> np.ndarray:
+        """
+        Compute Grad-CAM++ heatmap (improved version with better localization).
+
+        Args:
+            input_sample: Input image (2D or 3D array)
+            class_idx: Target class index (if None, uses predicted class)
+            target_layer_name: Target layer name (if None, uses default)
+
+        Returns:
+            Normalized heatmap as numpy array
+        """
+        if self.gradcam_model is None or target_layer_name is not None:
+            self.build_gradcam_model(target_layer_name)
+
+        # Ensure correct input shape
+        if len(input_sample.shape) == 2:
+            input_sample = np.expand_dims(input_sample, axis=-1)
+        if len(input_sample.shape) == 3:
+            input_sample = np.expand_dims(input_sample, axis=0)
+
+        input_sample = input_sample.astype(np.float32)
+        input_tensor = tensorflow.convert_to_tensor(input_sample)
+
+        with tensorflow.GradientTape() as tape1:
+            with tensorflow.GradientTape() as tape2:
+                with tensorflow.GradientTape() as tape3:
+                    layer_output, predictions = self.gradcam_model(input_tensor)
+
+                    if class_idx is None:
+                        class_idx = tensorflow.argmax(predictions[0]).numpy()
+
+                    class_score = predictions[:, class_idx]
+
+                grads = tape3.gradient(class_score, layer_output)
+            grads_2 = tape2.gradient(grads, layer_output)
+        grads_3 = tape1.gradient(grads_2, layer_output)
+
+        # For 4D output (batch, height, width, channels)
+        reduce_axis = 3 if len(layer_output.shape) == 4 else -1
+
+        # Compute alpha weights (Grad-CAM++ formula)
+        numerator = grads_2
+        denominator = 2.0 * grads_2 + tensorflow.reduce_sum(
+            layer_output * grads_3, axis=reduce_axis, keepdims=True
+        ) + 1e-10
+
+        alpha = numerator / denominator
+
+        # ReLU on gradients
+        relu_grads = tensorflow.maximum(grads, 0.0)
+
+        # Weighted combination
+        weights = tensorflow.reduce_sum(alpha * relu_grads, axis=(1, 2))
+
+        # Compute weighted activation map
+        layer_output_squeezed = layer_output[0]
+        heatmap = layer_output_squeezed @ weights[..., tensorflow.newaxis]
+        heatmap = tensorflow.squeeze(heatmap)
+
+        # Apply ReLU and normalize
+        heatmap = tensorflow.maximum(heatmap, 0)
+        heatmap_max = tensorflow.math.reduce_max(heatmap)
+        if heatmap_max > 1e-10:
+            heatmap = heatmap / heatmap_max
+        else:
+            print("⚠️  Aviso: Heatmap com valores muito baixos")
+
+        return heatmap.numpy()
+
+    def compute_gradcam(self, input_sample: np.ndarray, class_idx: int = None,
+                        target_layer_name: str = None) -> np.ndarray:
+        """
+        Standard Grad-CAM computation.
+
+        Args:
+            input_sample: Input image
+            class_idx: Target class index
+            target_layer_name: Target layer name
+
+        Returns:
+            Normalized heatmap
+        """
+        if self.gradcam_model is None or target_layer_name is not None:
+            self.build_gradcam_model(target_layer_name)
+
+        # Ensure correct shape
+        if len(input_sample.shape) == 2:
+            input_sample = np.expand_dims(input_sample, axis=-1)
+        if len(input_sample.shape) == 3:
+            input_sample = np.expand_dims(input_sample, axis=0)
+
+        input_sample = input_sample.astype(np.float32)
+        input_tensor = tensorflow.convert_to_tensor(input_sample)
+
+        with tensorflow.GradientTape() as tape:
+            layer_output, predictions = self.gradcam_model(input_tensor)
+
+            if class_idx is None:
+                class_idx = tensorflow.argmax(predictions[0]).numpy()
+
+            class_channel = predictions[:, class_idx]
+
+        grads = tape.gradient(class_channel, layer_output)
+
+        # Pool gradients
+        pooled_grads = tensorflow.reduce_mean(grads, axis=(0, 1, 2))
+
+        layer_output = layer_output[0]
+        heatmap = layer_output @ pooled_grads[..., tensorflow.newaxis]
+        heatmap = tensorflow.squeeze(heatmap)
+
+        # Normalize
+        heatmap = tensorflow.maximum(heatmap, 0)
+        heatmap_max = tensorflow.math.reduce_max(heatmap)
+        if heatmap_max > 1e-10:
+            heatmap = heatmap / heatmap_max
+
+        return heatmap.numpy()
+
+    def compute_scorecam(self, input_sample: np.ndarray, class_idx: int = None,
+                         target_layer_name: str = None, batch_size: int = 32) -> np.ndarray:
+        """
+        Compute Score-CAM heatmap (gradient-free method).
+
+        Args:
+            input_sample: Input image
+            class_idx: Target class index
+            target_layer_name: Target layer name
+            batch_size: Batch size for processing activation maps
+
+        Returns:
+            Normalized heatmap
+        """
+        if self.gradcam_model is None or target_layer_name is not None:
+            self.build_gradcam_model(target_layer_name)
+
+        # Ensure correct shape
+        if len(input_sample.shape) == 2:
+            input_sample = np.expand_dims(input_sample, axis=-1)
+        if len(input_sample.shape) == 3:
+            input_sample = np.expand_dims(input_sample, axis=0)
+
+        input_sample = input_sample.astype(np.float32)
+        input_tensor = tensorflow.convert_to_tensor(input_sample)
+
+        # Get activations
+        layer_output, predictions = self.gradcam_model(input_tensor)
+
+        if class_idx is None:
+            class_idx = tensorflow.argmax(predictions[0]).numpy()
+
+        # Get activation maps
+        activations = layer_output[0].numpy()
+        num_channels = activations.shape[-1]
+
+        weights = []
+        for i in range(num_channels):
+            act_map = activations[:, :, i]
+
+            # Normalize to [0, 1]
+            if act_map.max() > act_map.min():
+                act_map = (act_map - act_map.min()) / (act_map.max() - act_map.min())
+
+            # Upsample to input size
+            zoom_factors = (input_sample.shape[1] / act_map.shape[0],
+                            input_sample.shape[2] / act_map.shape[1])
+            upsampled = zoom(act_map, zoom_factors, order=1)
+
+            # Handle channel dimension
+            if input_sample.shape[-1] == 1:
+                upsampled = upsampled[:, :, np.newaxis]
+            elif input_sample.shape[-1] == 3:
+                upsampled = np.repeat(upsampled[:, :, np.newaxis], 3, axis=-1)
+
+            # Mask input
+            masked_input = input_sample[0] * upsampled
+            masked_input = np.expand_dims(masked_input, 0)
+
+            # Get score for masked input
+            masked_pred = self.neural_network_model.predict(masked_input, verbose=0)
+            score = masked_pred[0, class_idx]
+
+            weights.append(score)
+
+        weights = np.array(weights)
+        weights = np.maximum(weights, 0)
+
+        # Weighted combination
+        heatmap = np.tensordot(activations, weights, axes=([2], [0]))
+
+        heatmap = np.maximum(heatmap, 0)
+        if heatmap.max() > 0:
+            heatmap = heatmap / heatmap.max()
+
+        return heatmap
+
+    @staticmethod
+    def smooth_heatmap(heatmap: np.ndarray, sigma: float = 2.0) -> np.ndarray:
+        """Apply Gaussian smoothing to heatmap for better visualization."""
+        return gaussian_filter(heatmap, sigma=sigma)
+
+    @staticmethod
+    def interpolate_heatmap(heatmap: np.ndarray, target_shape: tuple,
+                            smooth: bool = True) -> np.ndarray:
+        """
+        Interpolate heatmap to target shape with optional smoothing.
+
+        Args:
+            heatmap: Input heatmap (2D array)
+            target_shape: Target dimensions (height, width)
+            smooth: Apply Gaussian smoothing after interpolation
+
+        Returns:
+            Interpolated heatmap
+        """
+        if not isinstance(heatmap, np.ndarray):
+            heatmap = np.array(heatmap)
+
+        # For 2D heatmap
+        if len(heatmap.shape) == 2:
+            zoom_factors = (target_shape[0] / heatmap.shape[0],
+                            target_shape[1] / heatmap.shape[1])
+            interpolated = zoom(heatmap, zoom_factors, order=3)
+        else:
+            raise ValueError(f"Heatmap shape inesperado: {heatmap.shape}")
+
+        # Fine adjustment
+        if interpolated.shape != target_shape:
+            zoom_factors_adjust = (target_shape[0] / interpolated.shape[0],
+                                   target_shape[1] / interpolated.shape[1])
+            interpolated = zoom(interpolated, zoom_factors_adjust, order=3)
+
+        # Smoothing
+        if smooth:
+            interpolated = gaussian_filter(interpolated, sigma=1.5)
+
+        return interpolated
+
+    def plot_gradcam_modern(self, input_sample: np.ndarray, heatmap: np.ndarray,
+                            class_idx: int, predicted_class: int, true_label: int = None,
+                            confidence: float = None, xai_method: str = 'gradcam++',
+                            save_path: str = None, show_plot: bool = True) -> None:
+        """
+        Modern, visually appealing GradCAM visualization with enhanced aesthetics.
+
+        Args:
+            input_sample: Input image
+            heatmap: Activation heatmap
+            class_idx: Class index used for computation
+            predicted_class: Predicted class
+            true_label: True label (optional)
+            confidence: Prediction confidence
+            xai_method: XAI method name
+            save_path: Path to save figure
+            show_plot: Whether to display the plot
+        """
+        # Handle input dimensions
+        if len(input_sample.shape) == 4:
+            input_sample = input_sample[0]
+        if len(input_sample.shape) == 3 and input_sample.shape[-1] == 1:
+            input_sample = np.squeeze(input_sample, axis=-1)
+
+        # Enhanced interpolation with smoothing
+        interpolated_heatmap = self.interpolate_heatmap(heatmap, input_sample.shape[:2], smooth=True)
+
+        # Create figure with modern style
+        fig = plt.figure(figsize=(20, 6), facecolor='white')
+        gs = fig.add_gridspec(1, 4, wspace=0.3)
+
+        # Color schemes
+        cmap_input = 'viridis'
+        cmap_heatmap = 'jet'
+
+        # 1. Original Input
+        ax1 = fig.add_subplot(gs[0, 0])
+        im1 = ax1.imshow(input_sample, cmap=cmap_input, aspect='auto', interpolation='bilinear')
+        ax1.set_title('📊 Espectrograma de Entrada',
+                      fontsize=13, fontweight='bold', pad=15)
+        ax1.set_xlabel('Frames Temporais', fontsize=10)
+        ax1.set_ylabel('Bins de Frequência', fontsize=10)
+        ax1.grid(False)
+        cbar1 = plt.colorbar(im1, ax=ax1, fraction=0.046, pad=0.04)
+        cbar1.ax.tick_params(labelsize=9)
+
+        # 2. Heatmap
+        ax2 = fig.add_subplot(gs[0, 1])
+        im2 = ax2.imshow(interpolated_heatmap, cmap=cmap_heatmap,
+                         aspect='auto', interpolation='bilinear', vmin=0, vmax=1)
+        ax2.set_title(f'🔥 Mapa de Ativação ({xai_method.upper()})',
+                      fontsize=13, fontweight='bold', pad=15)
+        ax2.set_xlabel('Frames Temporais', fontsize=10)
+        ax2.set_ylabel('Bins de Frequência', fontsize=10)
+        ax2.grid(False)
+        cbar2 = plt.colorbar(im2, ax=ax2, fraction=0.046, pad=0.04)
+        cbar2.ax.tick_params(labelsize=9)
+
+        # 3. Overlay
+        ax3 = fig.add_subplot(gs[0, 2])
+        input_normalized = (input_sample - input_sample.min()) / (input_sample.max() - input_sample.min() + 1e-10)
+        ax3.imshow(input_normalized, cmap='gray', aspect='auto', interpolation='bilinear')
+        im3 = ax3.imshow(interpolated_heatmap, cmap=cmap_heatmap,
+                         alpha=0.6, aspect='auto', interpolation='bilinear', vmin=0, vmax=1)
+
+        ax3.set_title('🎯 Sobreposição', fontsize=13, fontweight='bold', pad=15)
+        ax3.set_xlabel('Frames Temporais', fontsize=10)
+        ax3.set_ylabel('Bins de Frequência', fontsize=10)
+        ax3.grid(False)
+        cbar3 = plt.colorbar(im3, ax=ax3, fraction=0.046, pad=0.04)
+        cbar3.ax.tick_params(labelsize=9)
+
+        # 4. Temporal Importance Profile
+        ax4 = fig.add_subplot(gs[0, 3])
+        temporal_importance = np.mean(interpolated_heatmap, axis=0)
+        time_steps = np.arange(len(temporal_importance))
+
+        temporal_smooth = gaussian_filter(temporal_importance, sigma=2)
+
+        ax4.fill_between(time_steps, temporal_smooth, alpha=0.3, color='#FF6B6B')
+        ax4.plot(time_steps, temporal_smooth, linewidth=2.5, color='#FF6B6B', label='Perfil Suavizado')
+        ax4.plot(time_steps, temporal_importance, linewidth=1, alpha=0.5,
+                 color='#4ECDC4', linestyle='--', label='Perfil Original')
+
+        ax4.set_xlabel('Frame Temporal', fontsize=10)
+        ax4.set_ylabel('Importância Média', fontsize=10)
+        ax4.set_title('📈 Perfil de Importância Temporal',
+                      fontsize=13, fontweight='bold', pad=15)
+        ax4.grid(True, alpha=0.3, linestyle='--')
+        ax4.legend(loc='upper right', fontsize=9)
+        ax4.set_xlim([0, len(temporal_importance)])
+        ax4.set_ylim([0, 1])
+
+        # Super title
+        pred_status = '✅' if predicted_class == true_label else '❌'
+        conf_str = f' | Confiança: {confidence:.1%}' if confidence is not None else ''
+
+        if true_label is not None:
+            suptitle = f'{pred_status} Predito: Classe {predicted_class} | Verdadeiro: Classe {true_label}{conf_str}'
+        else:
+            suptitle = f'Predito: Classe {predicted_class}{conf_str}'
+
+        fig.suptitle(suptitle, fontsize=15, fontweight='bold', y=0.98)
+
+        plt.tight_layout(rect=[0, 0, 1, 0.96])
+
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches='tight', facecolor='white')
+            print(f"💾 Figura salva: {save_path}")
+
+        if show_plot:
+            plt.show()
+        else:
+            plt.close()
+
+    def generate_validation_visualizations(self, validation_data: np.ndarray,
+                                           validation_labels: np.ndarray,
+                                           num_samples: int = 10,
+                                           output_dir: str = './gradcam_outputs',
+                                           target_layer_name: str = None,
+                                           xai_method: str = 'gradcam++') -> dict:
+        """
+        Generate enhanced XAI visualizations for validation samples.
+
+        Args:
+            validation_data: Validation input data
+            validation_labels: Validation labels
+            num_samples: Number of samples to visualize
+            output_dir: Output directory for saving visualizations
+            target_layer_name: Target layer for XAI (if None, uses default)
+            xai_method: XAI method ('gradcam', 'gradcam++', or 'scorecam')
+
+        Returns:
+            Dictionary with statistics about generated visualizations
+        """
+        import os
+
+        if target_layer_name is None:
+            last_block_idx = len(self.filters_per_block) - 1
+
+        os.makedirs(output_dir, exist_ok=True)
+
+        predictions = self.neural_network_model.predict(validation_data, verbose=0)
+        predicted_classes = np.argmax(predictions, axis=1)
+        confidences = np.max(predictions, axis=1)
+
+        if len(validation_labels.shape) > 1:
+            true_labels = np.argmax(validation_labels, axis=1)
+        else:
+            true_labels = validation_labels
+
+        correct_indices = np.where(predicted_classes == true_labels)[0]
+        incorrect_indices = np.where(predicted_classes != true_labels)[0]
+
+        num_correct = min(num_samples // 2, len(correct_indices))
+        num_incorrect = min(num_samples - num_correct, len(incorrect_indices))
+
+        selected_correct = np.random.choice(correct_indices, num_correct, replace=False) if len(
+            correct_indices) > 0 else []
+        selected_incorrect = np.random.choice(incorrect_indices, num_incorrect, replace=False) if len(
+            incorrect_indices) > 0 else []
+
+        selected_indices = np.concatenate([selected_correct, selected_incorrect])
+
+        stats = {
+            'total_samples': len(selected_indices),
+            'correct_predictions': 0,
+            'incorrect_predictions': 0
+        }
+
+        for i, idx in enumerate(selected_indices):
+
+            try:
+                sample = validation_data[idx]
+
+                true_label = true_labels[idx]
+                predicted = predicted_classes[idx]
+                confidence = confidences[idx]
+
+                if xai_method.lower() == 'gradcam++':
+                    heatmap = self.compute_gradcam_plusplus(sample, class_idx=predicted,
+                                                            target_layer_name=target_layer_name)
+                elif xai_method.lower() == 'scorecam':
+                    heatmap = self.compute_scorecam(sample, class_idx=predicted,
+                                                    target_layer_name=target_layer_name)
+                else:
+                    heatmap = self.compute_gradcam(sample, class_idx=predicted,
+                                                   target_layer_name=target_layer_name)
+
+                is_correct = predicted == true_label
+
+                if is_correct:
+                    stats['correct_predictions'] += 1
+                    prefix = 'correto'
+
+                else:
+                    stats['incorrect_predictions'] += 1
+                    prefix = 'incorreto'
+
+                save_path = os.path.join(output_dir,
+                                         f'{prefix}_amostra_{i:03d}_real_{true_label}_pred_{predicted}_conf_{confidence:.2f}.png')
+
+                self.plot_gradcam_modern(sample,
+                                         heatmap,
+                                         predicted,
+                                         predicted,
+                                         true_label,
+                                         confidence=confidence,
+                                         xai_method=xai_method,
+                                         save_path=save_path, show_plot=False)
+
+
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                continue
+
+        return stats
+
+    def explain_prediction_comprehensive(self, input_sample: np.ndarray,
+                                         class_names: list = None,
+                                         save_path: str = None,
+                                         show_plot: bool = True) -> dict:
+        """
+        Generate comprehensive explanation with multiple XAI methods comparison.
+
+        Args:
+            input_sample: Input image to explain
+            class_names: List of class names (optional)
+            save_path: Path to save comprehensive analysis figure
+            show_plot: Whether to display the plot
+
+        Returns:
+            Dictionary with explanation data and heatmaps
+        """
+        # Prepare sample
+        if len(input_sample.shape) == 4:
+            input_sample_plot = input_sample[0]
+        else:
+            input_sample_plot = input_sample.copy()
+
+        if len(input_sample_plot.shape) == 3 and input_sample_plot.shape[-1] == 1:
+            input_sample_plot = np.squeeze(input_sample_plot, axis=-1)
+
+        # Get predictions
+        if len(input_sample.shape) == 2:
+            input_sample_batch = np.expand_dims(input_sample, axis=(0, -1))
+        elif len(input_sample.shape) == 3 and input_sample.shape[0] != 1:
+            input_sample_batch = np.expand_dims(input_sample, axis=0)
+        else:
+            input_sample_batch = input_sample
+
+        predictions = self.neural_network_model.predict(input_sample_batch, verbose=0)
+        predicted_class = np.argmax(predictions[0])
+        confidence = predictions[0][predicted_class]
+
+        # Compute heatmaps
+        heatmap_gradcam = self.compute_gradcam(input_sample, class_idx=predicted_class)
+        heatmap_gradcampp = self.compute_gradcam_plusplus(input_sample, class_idx=predicted_class)
+
+        # Interpolate
+        heatmap_gc_interp = self.interpolate_heatmap(heatmap_gradcam, input_sample_plot.shape[:2], smooth=True)
+        heatmap_pp_interp = self.interpolate_heatmap(heatmap_gradcampp, input_sample_plot.shape[:2], smooth=True)
+
+        # Create figure
+        fig = plt.figure(figsize=(20, 14), facecolor='white')
+        gs = fig.add_gridspec(3, 3, hspace=0.35, wspace=0.3)
+
+        cmap_input = 'viridis'
+        cmap_heat = 'jet'
+
+        # Row 1: Grad-CAM
+        ax1 = fig.add_subplot(gs[0, 0])
+        im1 = ax1.imshow(input_sample_plot, cmap=cmap_input, aspect='auto')
+        ax1.set_title('Original Spectrogram', fontsize=12, fontweight='bold')
+        plt.colorbar(im1, ax=ax1, fraction=0.046, pad=0.04)
+
+        ax2 = fig.add_subplot(gs[0, 1])
+        im2 = ax2.imshow(heatmap_gc_interp, cmap=cmap_heat, aspect='auto', vmin=0, vmax=1)
+        ax2.set_title('Grad-CAM', fontsize=12, fontweight='bold')
+        plt.colorbar(im2, ax=ax2, fraction=0.046, pad=0.04)
+
+        ax3 = fig.add_subplot(gs[0, 2])
+        ax3.imshow(input_sample_plot, cmap='gray', aspect='auto')
+        ax3.imshow(heatmap_gc_interp, cmap=cmap_heat, alpha=0.35, aspect='auto', vmin=0, vmax=1)
+        ax3.set_title('Grad-CAM Overlay', fontsize=12, fontweight='bold')
+
+        # Row 2: Grad-CAM++
+        ax4 = fig.add_subplot(gs[1, 0])
+        im4 = ax4.imshow(input_sample_plot, cmap=cmap_input, aspect='auto')
+        ax4.set_title('Original Spectrogram', fontsize=12, fontweight='bold')
+        plt.colorbar(im4, ax=ax4, fraction=0.046, pad=0.04)
+
+        ax5 = fig.add_subplot(gs[1, 1])
+        im5 = ax5.imshow(heatmap_pp_interp, cmap=cmap_heat, aspect='auto', vmin=0, vmax=1)
+        ax5.set_title('Grad-CAM++', fontsize=12, fontweight='bold')
+        plt.colorbar(im5, ax=ax5, fraction=0.046, pad=0.04)
+
+        ax6 = fig.add_subplot(gs[1, 2])
+        ax6.imshow(input_sample_plot, cmap='gray', aspect='auto')
+        ax6.imshow(heatmap_pp_interp, cmap=cmap_heat, alpha=0.5, aspect='auto', vmin=0, vmax=1)
+        ax6.set_title('Grad-CAM++ Overlay', fontsize=12, fontweight='bold')
+
+        # Row 3: Analysis
+        ax7 = fig.add_subplot(gs[2, :2])
+        if class_names is None:
+            class_names = [f'Class {i}' for i in range(len(predictions[0]))]
+
+        colors = ['#2ecc71' if i == predicted_class else '#95a5a6' for i in range(len(predictions[0]))]
+        bars = ax7.barh(class_names, predictions[0], color=colors, edgecolor='black', linewidth=1.5)
+        ax7.set_xlabel('Probability', fontsize=11, fontweight='bold')
+        ax7.set_title(f'Prediction: {class_names[predicted_class]} (Confidence: {confidence:.1%})',
+                      fontsize=13, fontweight='bold')
+        ax7.set_xlim([0, 1])
+        ax7.grid(axis='x', alpha=0.3)
+
+        for bar, prob in zip(bars, predictions[0]):
+            ax7.text(bar.get_width() + 0.01, bar.get_y() + bar.get_height() / 2,
+                     f'{prob:.3f}', ha='left', va='center', fontsize=10)
+
+        # Temporal comparison
+        ax8 = fig.add_subplot(gs[2, 2])
+        temporal_gc = np.mean(heatmap_gc_interp, axis=0)
+        temporal_gcpp = np.mean(heatmap_pp_interp, axis=0)
+
+        temporal_gc_smooth = gaussian_filter(temporal_gc, sigma=2)
+        temporal_gcpp_smooth = gaussian_filter(temporal_gcpp, sigma=2)
+
+        time_steps = np.arange(len(temporal_gc))
+        ax8.plot(time_steps, temporal_gc_smooth, linewidth=2, label='Grad-CAM', color='#3498db')
+        ax8.plot(time_steps, temporal_gcpp_smooth, linewidth=2, label='Grad-CAM++', color='#e74c3c')
+        ax8.fill_between(time_steps, temporal_gc_smooth, alpha=0.2, color='#3498db')
+        ax8.fill_between(time_steps, temporal_gcpp_smooth, alpha=0.2, color='#e74c3c')
+
+        ax8.set_xlabel('Time Frame', fontsize=10)
+        ax8.set_ylabel('Importance', fontsize=10)
+        ax8.set_title('Temporal Comparison', fontsize=12, fontweight='bold')
+        ax8.legend(loc='best', fontsize=9)
+        ax8.grid(True, alpha=0.3)
+        ax8.set_ylim([0, 1])
+
+        fig.suptitle('Residual Model XAI',
+                     fontsize=16, fontweight='bold', y=0.98)
+
+        plt.tight_layout(rect=[0, 0, 1, 0.96])
+
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+
+        if show_plot:
+            plt.show()
+        else:
+            plt.close()
+
+        explanation = {
+            'predicted_class': int(predicted_class),
+            'confidence': float(confidence),
+            'class_probabilities': predictions[0].tolist(),
+            'heatmap_gradcam': heatmap_gradcam,
+            'heatmap_gradcampp': heatmap_gradcampp,
+            'heatmap_gradcam_interpolated': heatmap_gc_interp,
+            'heatmap_gradcampp_interpolated': heatmap_pp_interp,
+            'temporal_importance_gradcam': temporal_gc,
+            'temporal_importance_gradcampp': temporal_gcpp
+        }
+
+        if class_names:
+            explanation['predicted_class_name'] = class_names[predicted_class]
+
+        return explanation
+
+    # Properties
     @property
     def neural_network_model(self):
         return self._neural_network_model
