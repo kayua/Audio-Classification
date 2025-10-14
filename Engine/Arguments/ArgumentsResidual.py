@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-__author__ = 'unknown'
-__email__ = 'unknown@unknown.com.br'
+__author__ = 'Kayuã Oleques Paim'
+__email__ = 'kayuaolequesp@gmail.com.br'
 __version__ = '{1}.{0}.{0}'
 __initial_data__ = '2025/04/1'
 __last_update__ = '2025/04/1'
