@@ -171,15 +171,15 @@ class Wav2Vec2ContrastiveLoss(tf.keras.losses.Loss):
         return total_loss
 
 
-
 class Wav2Vec2DynamicTrainingModel(tf.keras.Model):
     """
     Custom training model for dynamic target computation.
     """
 
-    def __init__(self, encoder_model, **kwargs):
+    def __init__(self, encoder_model, loss_fn=None, **kwargs):
         super().__init__(**kwargs)
         self.encoder_model = encoder_model
+        self.loss_fn = loss_fn  # Store loss function for train_step
 
     def call(self, inputs, training=False):
         return self.encoder_model(inputs, training=training)
@@ -205,18 +205,19 @@ class Wav2Vec2DynamicTrainingModel(tf.keras.Model):
             else:
                 mask_indices = tf.ones(tf.shape(contextualized)[:2], dtype=tf.bool)
 
-            # Compute loss
+            # Prepare inputs for loss function
             y_true = (quantized, mask_indices, perplexity)
-            loss = self.compiled_loss(y_true, contextualized)
+
+            # Call loss function directly (stored in self.loss_fn)
+            loss = self.loss_fn(y_true, contextualized)
 
         # Update weights
         trainable_vars = self.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
 
-        self.compiled_metrics.update_state(y_true, contextualized)
-
-        return {m.name: m.result() for m in self.metrics}
+        # Return metrics
+        return {'loss': loss}
 
 
 class AudioWav2Vec2(MaskCreator, Wav2Vec2Process):
@@ -369,21 +370,22 @@ class AudioWav2Vec2(MaskCreator, Wav2Vec2Process):
         logging.info("PHASE 1: SELF-SUPERVISED PRETRAINING")
         logging.info("=" * 80)
 
-        pretrain_model = Wav2Vec2DynamicTrainingModel(
-            self.neural_network_model,
-            name='pretrain_model'
-        )
-
+        # Create contrastive loss
         contrastive_loss = Wav2Vec2ContrastiveLoss(
             temperature=self.contrastive_temperature,
             num_negatives=self.num_negatives,
             diversity_weight=self.diversity_weight
         )
 
-        pretrain_model.compile(
-            optimizer=self.optimizer_function,
-            loss=contrastive_loss
+        # Wrap model with dynamic training model, passing the loss function
+        pretrain_model = Wav2Vec2DynamicTrainingModel(
+            self.neural_network_model,
+            loss_fn=contrastive_loss,  # Pass loss function
+            name='pretrain_model'
         )
+
+        # Compile model (optimizer only, loss is handled in train_step)
+        pretrain_model.compile(optimizer=self.optimizer_function)
 
         logging.info("✓ Compiled with InfoNCE + diversity loss")
         logging.info(f"⚙ Starting pretraining for {epochs} epochs...")

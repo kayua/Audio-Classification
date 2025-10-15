@@ -259,7 +259,7 @@ if __name__ == "__main__":
     main.__start__()
 
     available_models = [
-        ResidualModel
+        AudioWav2Vec2
     ]
 
     main.__exec__(available_models, "Results")
