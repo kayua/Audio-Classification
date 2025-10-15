@@ -271,7 +271,7 @@ class AudioWav2Vec2(MaskCreator, Wav2Vec2Process):
         neural_network_flow = Reshape((128, 80, 1), name='reshape_input')(inputs)
 
         # Convolutional encoder
-        for idx, number_filters in enumerate(self.list_filters_encoder):
+        for idx, number_filters in enumerate(self.list_filters_encoder[0:1]):
             neural_network_flow = TimeDistributed(Conv1D(
                 number_filters,
                 self.kernel_size,
