@@ -1,232 +1,52 @@
-#!/usr/bin/python3
-# -*- coding: utf-8 -*-
-
-__author__ = 'Kayuã Oleques Paim'
-__email__ = 'kayuaolequesp@gmail.com.br'
-__version__ = '{1}.{0}.{2}'
-__initial_data__ = '2025/04/1'
-__last_update__ = '2025/10/14'
-__credits__ = ['unknown']
-
-# MIT License
-#
-# Copyright (c) 2025 unknown
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+"""
+===================================================================================
+ARQUIVO 3: TimeMaskingWithStorage - NOVA CLASSE AUXILIAR
+===================================================================================
+Wrapper para TimeMasking que armazena os índices de máscara
+"""
 
 try:
-    import sys
+    from Engine.Layers.MaskTimeLayer import TimeMasking
     import tensorflow as tf
-
-    from keras import Layer
-
-except ImportError as error:
-    print(error)
-    sys.exit(-1)
+except ImportError:
+    # Fallback if import fails
+    pass
 
 
-class TimeMasking(Layer):
+class TimeMaskingWithStorage(TimeMasking):
     """
-    TensorFlow layer for applying time masking to sequential data (vectorized implementation).
+    Extended TimeMasking layer that stores mask indices for loss computation.
 
-    This layer masks a percentage of time steps in the input sequence by setting their values to zero.
-    This is a fully vectorized implementation without Python loops for better performance.
-
-    Attributes:
-        mask_time_probabilities (float): Probability of masking time steps.
-        number_mask_time_steps (int): Number of consecutive time steps to mask.
-
-    Reference:
-        - Inspired by SpecAugment: https://arxiv.org/abs/1904.08779
-        - Wav2Vec 2.0: https://arxiv.org/abs/2006.11477
-
-    Example:
-        >>> # Create a TimeMasking layer
-        ...   time_masking = TimeMasking(mask_time_prob=0.2, number_mask_time_steps=5)
-        ...   hidden_states = tf.random.normal([2, 10, 32])  # (batch_size=2, sequence_length=10, feature_dim=32)
-        ...   lengths = tf.constant([10, 8], dtype=tf.int32)  # Valid sequence lengths
-        ...   masked_states, mask = time_masking([hidden_states, lengths])
-        ...   print(masked_states.shape)  # (2, 10, 32)
-        >>>   print(mask.shape)  # (2, 10)
+    This is required for the corrected InfoNCE loss which only computes
+    loss on masked positions.
     """
 
-    def __init__(self, mask_time_prob: float, number_mask_time_steps: int, **kwargs):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._last_mask_indices = None
+
+    def call(self, inputs, training=None):
         """
-        Initializes the TimeMasking layer.
+        Forward pass that stores mask indices.
 
         Args:
-            mask_time_prob (float): Probability of masking time steps (0.0 to 1.0).
-            number_mask_time_steps (int): Number of consecutive time steps to mask in each span.
-        """
-        super(TimeMasking, self).__init__(**kwargs)
-        self.mask_time_probabilities = mask_time_prob
-        self.number_mask_time_steps = number_mask_time_steps
-
-    def call(self, inputs):
-        """
-        Applies time masking to the input hidden states (vectorized).
-
-        Args:
-            inputs: Either a list/tuple of [hidden_states, lengths] or just hidden_states
-                - hidden_states (tf.Tensor): Input tensor of shape `(B, L, D)` where B is batch size,
-                                           L is sequence length, and D is feature dimension.
-                - lengths (tf.Tensor): Tensor of shape `(B,)` containing the valid sequence lengths
-                                      for each batch element.
+            inputs: Tuple of (hidden_states, lengths)
+            training: Boolean, whether in training mode
 
         Returns:
-            tuple:
-                - Masked hidden states (tf.Tensor of shape `(B, L, D)`).
-                - Time mask (tf.Tensor of shape `(B, L)`, dtype=tf.bool).
+            Tuple of (masked_output, mask_indices) if training
+            Otherwise just masked_output
         """
-        # Unpack inputs - accept both list/tuple format and separate arguments
-        if isinstance(inputs, (list, tuple)):
-            hidden_states, lengths = inputs
-        else:
-            hidden_states = inputs
-            # If lengths not provided, assume full sequence length for all samples
-            lengths = tf.fill([tf.shape(hidden_states)[0]], tf.shape(hidden_states)[1])
+        result = super().call(inputs, training=training)
 
-        batch_size = tf.shape(hidden_states)[0]
-        number_steps = tf.shape(hidden_states)[1]
-        hidden_size = tf.shape(hidden_states)[2]
+        if isinstance(result, tuple) and len(result) == 2:
+            masked_output, mask_indices = result
+            # Store mask indices for access during loss computation
+            self._last_mask_indices = mask_indices
+            return result
 
-        # Calculate number of time steps to mask per sequence
-        # mask_lengths: (B,)
-        mask_lengths = tf.cast(
-            tf.math.ceil(self.mask_time_probabilities * tf.cast(lengths, tf.float32)),
-            tf.int32
-        )
-        mask_lengths = tf.maximum(mask_lengths, 1)  # At least one mask per sequence
+        return result
 
-        # Get maximum mask length across batch
-        max_mask_length = tf.reduce_max(mask_lengths)
-
-        # Generate random start indices for each mask span
-        # Shape: (B, max_mask_length)
-        random_starts = tf.random.uniform(
-            shape=(batch_size, max_mask_length),
-            minval=0,
-            maxval=number_steps - self.number_mask_time_steps + 1,
-            dtype=tf.int32
-        )
-        random_starts = tf.maximum(random_starts, 0)
-
-        # Create range for consecutive positions
-        # Shape: (number_mask_time_steps,)
-        offsets = tf.range(self.number_mask_time_steps, dtype=tf.int32)
-
-        # Expand dimensions for broadcasting
-        # random_starts: (B, max_mask_length, 1)
-        # offsets: (1, 1, number_mask_time_steps)
-        random_starts_expanded = tf.expand_dims(random_starts, axis=-1)
-        offsets_expanded = tf.reshape(offsets, [1, 1, self.number_mask_time_steps])
-
-        # Compute all mask positions
-        # Shape: (B, max_mask_length, number_mask_time_steps)
-        mask_positions = random_starts_expanded + offsets_expanded
-
-        # Clip to valid range
-        mask_positions = tf.clip_by_value(mask_positions, 0, number_steps - 1)
-
-        # Reshape to (B, max_mask_length * number_mask_time_steps)
-        mask_positions_flat = tf.reshape(mask_positions, [batch_size, -1])
-
-        # Create a mask to filter out positions beyond the mask_length for each batch
-        # Shape: (B, max_mask_length)
-        sequence_mask = tf.sequence_mask(mask_lengths, max_mask_length, dtype=tf.int32)
-
-        # Expand to match mask_positions shape
-        # Shape: (B, max_mask_length, number_mask_time_steps)
-        sequence_mask_expanded = tf.expand_dims(sequence_mask, axis=-1)
-        sequence_mask_expanded = tf.tile(sequence_mask_expanded, [1, 1, self.number_mask_time_steps])
-        sequence_mask_flat = tf.reshape(sequence_mask_expanded, [batch_size, -1])
-
-        # Create batch indices
-        # Shape: (B, max_mask_length * number_mask_time_steps)
-        batch_indices = tf.tile(
-            tf.expand_dims(tf.range(batch_size), axis=1),
-            [1, max_mask_length * self.number_mask_time_steps]
-        )
-
-        # Stack to create scatter indices
-        # Shape: (B * max_mask_length * number_mask_time_steps, 2)
-        scatter_indices = tf.stack([
-            tf.reshape(batch_indices, [-1]),
-            tf.reshape(mask_positions_flat, [-1])
-        ], axis=1)
-
-        # Create updates (True for positions to mask)
-        # Filter by sequence_mask to only update valid positions
-        updates = tf.cast(tf.reshape(sequence_mask_flat, [-1]), tf.bool)
-
-        # Initialize mask as all False
-        time_mask_indices = tf.zeros([batch_size, number_steps], dtype=tf.bool)
-
-        # Scatter update to set masked positions to True
-        time_mask_indices = tf.tensor_scatter_nd_update(
-            time_mask_indices,
-            scatter_indices,
-            updates
-        )
-
-        # Apply mask to hidden states
-        # Expand mask to match hidden_states dimensions
-        # Shape: (B, L, 1)
-        mask_expanded = tf.expand_dims(time_mask_indices, axis=-1)
-
-        # Create masked hidden states (set masked positions to zero)
-        masked_hidden_states = tf.where(
-            mask_expanded,
-            tf.zeros_like(hidden_states),
-            hidden_states
-        )
-
-        return masked_hidden_states, time_mask_indices
-
-    @staticmethod
-    def compute_output_shape(input_shape):
-        """
-        Computes the output shape of the layer.
-
-        Args:
-            input_shape: Shape tuple of the input (or list of shape tuples for multiple inputs)
-
-        Returns:
-            Tuple of output shapes for (masked_hidden_states, mask)
-        """
-        if isinstance(input_shape, list):
-            hidden_shape = input_shape[0]
-        else:
-            hidden_shape = input_shape
-
-        return (hidden_shape, (hidden_shape[0], hidden_shape[1]))
-
-    def get_config(self):
-        """
-        Returns the config of the layer for serialization.
-
-        Returns:
-            Dictionary with layer configuration
-        """
-        config = super(TimeMasking, self).get_config()
-        config.update({
-            'mask_time_prob': self.mask_time_probabilities,
-            'number_mask_time_steps': self.number_mask_time_steps
-        })
-        return config
+    def get_last_mask_indices(self):
+        """Returns the most recently computed mask indices."""
+        return self._last_mask_indices

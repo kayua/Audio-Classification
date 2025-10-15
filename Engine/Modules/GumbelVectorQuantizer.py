@@ -3,43 +3,29 @@
 
 __author__ = 'Kayuã Oleques Paim'
 __email__ = 'kayuaolequesp@gmail.com.br'
-__version__ = '{1}.{0}.{0}'
+__version__ = '{1}.{0}.{7}'
 __initial_data__ = '2025/04/1'
-__last_update__ = '2025/04/1'
+__last_update__ = '2025/10/15'
 __credits__ = ['unknown']
 
 # MIT License
-#
 # Copyright (c) 2025 unknown
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
 
+"""
+===================================================================================
+ARQUIVO 1: GumbelVectorQuantizer.py - CORRIGIDO
+===================================================================================
+Correções:
+- Perplexity agora retorna escalar (média sobre grupos e vetores)
+- Cálculo correto de perplexity para diversity loss
+- Melhor estimativa da diversidade do codebook
+"""
 
 try:
     import sys
-
     import tensorflow
-
     from keras import Model, Layer
-
     from tensorflow.keras.layers import Dense
-
 except ImportError as error:
     print(error)
     sys.exit(-1)
@@ -47,40 +33,20 @@ except ImportError as error:
 
 class GumbelVectorQuantizer(Layer):
     """
-    A Gumbel-Softmax based Vector Quantizer for neural networks, typically used for
-    discretization of continuous representations in the context of generative models.
+    A Gumbel-Softmax based Vector Quantizer for neural networks.
 
-    This class implements the vector quantization process where the continuous hidden
-    states of a neural network are quantized using a Gumbel-Softmax relaxation.
-    It includes a learnable codebook, and the codebook is updated during
-    training via backpropagation.
+    CORRECTED VERSION:
+    - Returns scalar perplexity for diversity loss computation
+    - Proper perplexity calculation across all codebook entries
 
-    **Reference:**
-    A reference to the original paper can be found here:
-    - "Neural Discrete Representation Learning" by Aaron van den Oord, Oriol Vinyals, and Koray Kavukcuoglu.
-     [https://arxiv.org/abs/1711.00937]
-
-    Attributes:
-        number_groups (int): The number of groups for the codebook vectors.
-        number_vectors (int): The number of vectors per group.
-        code_vector_size (int): The size of each codebook vector after division by number of groups.
-        temperature (float): The temperature parameter used in the Gumbel-Softmax distribution.
-        linear (tf.keras.layers.Dense): A dense layer used to project the hidden states to the codebook space.
-        code_book (tf.Tensor): The learnable codebook that contains the code vectors.
+    Reference:
+        - "Neural Discrete Representation Learning" by van den Oord et al.
+          https://arxiv.org/abs/1711.00937
+        - Wav2Vec 2.0 paper by Baevski et al.
     """
 
     def __init__(self):
-        """
-        Initializes the GumbelVectorQuantizer model with the configuration parameters.
-
-        Args:
-            config (object): A configuration object containing the hyperparameters for the vector quantizer.
-                The configuration should include:
-                    - num_code_vector_groups (int): Number of groups for codebook vectors.
-                    - num_code_vectors_per_group (int): Number of code vectors per group.
-                    - code_vector_size (int): The size of each codebook vector.
-                    - gumbel_init_temperature (float): Initial temperature for the Gumbel-Softmax distribution.
-        """
+        """Initialize the GumbelVectorQuantizer with default config."""
         super().__init__()
         self.number_groups = 4
         self.number_vectors = 16
@@ -90,78 +56,135 @@ class GumbelVectorQuantizer(Layer):
         self.linear = Dense(self.number_groups * self.number_vectors)
         self.code_book = self.add_weight(
             shape=(1, self.number_groups, self.number_vectors, self.code_vector_size),
-            initializer="random_normal", trainable=True
+            initializer="random_normal",
+            trainable=True,
+            name='codebook'
         )
 
     @staticmethod
     def _compute_perplexity(probs, lengths):
         """
-        Computes the perplexity of the Gumbel-Softmax distribution.
+        Computes the perplexity of the codebook usage distribution.
 
-        Perplexity is a measure of uncertainty in the distribution and is used
-        to evaluate how diverse the sampled code vectors are.
+        Perplexity measures diversity: higher perplexity = more diverse code usage.
+        Perplexity = exp(entropy)
 
         Args:
-            probs (tf.Tensor): The probability distribution over codebook vectors. Shape: (B, L, G, V)
-            lengths (tf.Tensor): Lengths of the sequences in the batch. Shape: (B,)
+            probs (tf.Tensor): Probability distribution over codebook vectors.
+                              Shape: (B, L, G, V)
+            lengths (tf.Tensor): Sequence lengths in the batch. Shape: (B,)
 
         Returns:
-            tf.Tensor: Perplexity for each group and vector, shape (G, V).
+            tf.Tensor: Scalar perplexity value (averaged over groups and vectors)
         """
-        mask = tensorflow.sequence_mask(lengths, maxlen=tensorflow.shape(probs)[1], dtype=probs.dtype)
-        mask = tensorflow.reshape(mask, (-1, 1, 1))
+        # Create mask for valid positions
+        mask = tensorflow.sequence_mask(
+            lengths,
+            maxlen=tensorflow.shape(probs)[1],
+            dtype=probs.dtype
+        )
+        mask = tensorflow.reshape(mask, (-1, tensorflow.shape(mask)[1], 1, 1))
+
+        # Mask and compute average probability per codebook entry
         masked_probs = probs * mask
         num_values = tensorflow.reduce_sum(mask)
-        perplexity = tensorflow.reduce_sum(masked_probs, axis=0) / num_values
+
+        # Average probability across all timesteps: shape (G, V)
+        avg_probs = tensorflow.reduce_sum(masked_probs, axis=[0, 1]) / num_values
+
+        # Compute entropy: H = -sum(p * log(p))
+        # Add small epsilon to avoid log(0)
+        epsilon = 1e-10
+        entropy = -tensorflow.reduce_sum(
+            avg_probs * tensorflow.math.log(avg_probs + epsilon)
+        )
+
+        # Perplexity = exp(entropy)
+        # Average over groups for final scalar
+        perplexity = tensorflow.exp(entropy / tensorflow.cast(
+            self.number_groups * self.number_vectors,
+            tensorflow.float32
+        ))
 
         return perplexity
 
     def call(self, hidden_state):
         """
-        Performs the forward pass of the Gumbel-Softmax vector quantization.
-
-        The function takes the continuous hidden states as input and quantizes them
-        using the Gumbel-Softmax technique. It returns the quantized code vectors
-        and the perplexity of the codebook's distribution.
+        Performs forward pass of Gumbel-Softmax vector quantization.
 
         Args:
-            hidden_states (tf.Tensor): The input hidden states to be quantized. Shape: (B, L, D1)
-            lengths (tf.Tensor): The lengths of the sequences in the batch. Shape: (B,)
+            hidden_state: Tuple of (hidden_states, lengths)
+                - hidden_states (tf.Tensor): Input to quantize. Shape: (B, L, D1)
+                - lengths (tf.Tensor): Sequence lengths. Shape: (B,)
 
         Returns:
             Tuple:
-                - code_vectors (tf.Tensor): Quantized code vectors. Shape: (B, L, D2)
-                - perplexity (tf.Tensor): Perplexity of the codebook. Shape: (G, V)
+                - code_vectors (tf.Tensor): Quantized vectors. Shape: (B, L, D2)
+                - perplexity (tf.Tensor): Scalar perplexity of codebook usage
         """
-
         hidden_states, lengths = hidden_state
-        batch_size, length, _ = tensorflow.shape(hidden_states)
+        batch_size = tensorflow.shape(hidden_states)[0]
+        length = tensorflow.shape(hidden_states)[1]
 
-        # Project hidden states to the codebook space
+        # Project hidden states to codebook space
         hidden_states = self.linear(hidden_states)
-        hidden_states = tensorflow.reshape(hidden_states, (-1, self.number_vectors))
+        hidden_states = tensorflow.reshape(
+            hidden_states,
+            (batch_size * length, self.number_groups, self.number_vectors)
+        )
 
         # Sample codebook vector probabilities using Gumbel-Softmax
-        code_vector_probs = tensorflow.nn.softmax(tensorflow.random.uniform(tensorflow.shape(hidden_states))
-                                          + hidden_states / self.temperature, axis=-1)
+        # Gumbel noise for exploration
+        gumbel_noise = -tensorflow.math.log(
+            -tensorflow.math.log(
+                tensorflow.random.uniform(tensorflow.shape(hidden_states)) + 1e-10
+            ) + 1e-10
+        )
+
+        code_vector_probs = tensorflow.nn.softmax(
+            (hidden_states + gumbel_noise) / self.temperature,
+            axis=-1
+        )
 
         # Apply hard quantization (straight-through estimator)
-        code_vector_probs_hard = tensorflow.one_hot(tensorflow.argmax(code_vector_probs, axis=-1), depth=self.number_vectors)
-        code_vector_probs = tensorflow.stop_gradient(code_vector_probs_hard - code_vector_probs) + code_vector_probs
+        code_vector_probs_hard = tensorflow.one_hot(
+            tensorflow.argmax(code_vector_probs, axis=-1),
+            depth=self.number_vectors,
+            dtype=code_vector_probs.dtype
+        )
 
-        # Reshape and apply codebook lookup
-        code_vector_probs = tensorflow.reshape(code_vector_probs, (batch_size * length, self.number_groups, -1, 1))
+        # Straight-through: forward uses hard, backward uses soft
+        code_vector_probs = tensorflow.stop_gradient(
+            code_vector_probs_hard - code_vector_probs
+        ) + code_vector_probs
+
+        # Reshape for codebook lookup
+        code_vector_probs = tensorflow.reshape(
+            code_vector_probs,
+            (batch_size * length, self.number_groups, self.number_vectors, 1)
+        )
+
+        # Apply codebook lookup
         code_vectors = code_vector_probs * self.code_book
-
-        # Sum along the group dimension
         code_vectors = tensorflow.reduce_sum(code_vectors, axis=-2)
-        code_vectors = tensorflow.reshape(code_vectors, (batch_size, length, -1))
+        code_vectors = tensorflow.reshape(
+            code_vectors,
+            (batch_size, length, self.number_groups * self.code_vector_size)
+        )
 
-        # Compute soft distribution over the codebook vectors for perplexity
-        code_vector_soft_distance = tensorflow.nn.softmax(tensorflow.reshape(hidden_states,
-                                                                         (batch_size, length,
-                                                                          self.number_groups, -1)), axis=-1)
+        # Compute soft distribution for perplexity (no Gumbel noise)
+        hidden_states_reshaped = tensorflow.reshape(
+            self.linear(hidden_state[0]),
+            (batch_size, length, self.number_groups, self.number_vectors)
+        )
+        code_vector_soft_distance = tensorflow.nn.softmax(
+            hidden_states_reshaped,
+            axis=-1
+        )
 
+        # Compute perplexity as scalar
         perplexity = self._compute_perplexity(code_vector_soft_distance, lengths)
 
         return code_vectors, perplexity
+
+

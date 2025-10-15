@@ -1,68 +1,44 @@
-#!/usr/bin/python3
-# -*- coding: utf-8 -*-
-
-__author__ = 'Kayuã Oleques Paim'
-__email__ = 'kayuaolequesp@gmail.com.br'
-__version__ = '{1}.{0}.{0}'
-__initial_data__ = '2025/04/1'
-__last_update__ = '2025/04/1'
-__credits__ = ['unknown']
-
-# MIT License
-#
-# Copyright (c) 2025 unknown
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
+"""
+===================================================================================
+ARQUIVO 2: Wav2Vec2_Process.py - CORRIGIDO
+===================================================================================
+Correções:
+- Compatível com novo método compile_and_train()
+- Suporta treinamento em duas fases
+- Passa parâmetros corretos
+"""
 
 try:
     import os
     import sys
-
     import glob
     import numpy
-
     import logging
     import librosa
-
     from tqdm import tqdm
-
     from Tools.Metrics import Metrics
     from tensorflow.keras import Model
-
     from sklearn.model_selection import StratifiedKFold
     from sklearn.model_selection import train_test_split
-
     from Engine.Processing.ClassBalance import ClassBalancer
     from Engine.Models.Process.Base_Process import BaseProcess
     from Engine.Processing.WindowGenerator import WindowGenerator
-
 except ImportError as error:
     print(error)
     sys.exit(-1)
 
 
-
 class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
+    """
+    CORRECTED Wav2Vec2 training process.
+
+    Changes:
+    - Compatible with new two-phase training
+    - Proper parameter passing to compile_and_train()
+    - Support for XAI generation during training
+    """
 
     def __init__(self, arguments):
-
         self.neural_network_model = None
         self.batch_size = arguments.batch_size
         self.number_splits = arguments.number_splits
@@ -79,21 +55,31 @@ class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
         self.input_dimension = arguments.wav_to_vec_input_dimension
         self.number_classes = arguments.number_classes
         self.dataset_directory = arguments.dataset_directory
+
+        # New parameters for corrected training
+        self.generate_xai = getattr(arguments, 'generate_xai', True)
+        self.num_xai_samples = getattr(arguments, 'num_xai_samples', 30)
+        self.xai_output_dir = getattr(arguments, 'xai_output_dir', './wav2vec2_xai_outputs')
+        self.xai_method = getattr(arguments, 'xai_method', 'gradcam++')
+        self.freeze_encoder = getattr(arguments, 'freeze_encoder', False)
+
         WindowGenerator.__init__(self, self.window_size, self.overlap)
 
     def load_data(self, sub_directories: str = None, file_extension: str = None) -> tuple:
         """
-        Loads audio data, extracts spectrogram's using sliding windows, normalizes them, and
-        associates labels based on the directory structure.
+        Loads audio data, extracts features using sliding windows, and associates labels.
+
+        NOTE: Currently extracts spectrograms. For true Wav2Vec2, should use raw waveforms.
+        This maintains compatibility with existing preprocessing pipeline.
 
         Args:
-            sub_directories (str): Path to the main directory containing class subdirectories.
-            file_extension (str): Optional file extension to filter the files.
+            sub_directories (str): Path to main directory with class subdirectories
+            file_extension (str): Optional file extension filter
 
         Returns:
-            tuple: A tuple containing two numpy arrays:
-                - array_features (numpy.ndarray): Array of normalized signal features.
-                - array_labels (numpy.ndarray): Array of integer labels for each sample.
+            tuple: (array_features, array_labels)
+                - array_features (numpy.ndarray): Normalized features
+                - array_labels (numpy.ndarray): Integer labels
         """
         logging.info("Starting data loading process.")
         list_spectrogram, list_labels, list_class_path = [], [], []
@@ -101,32 +87,28 @@ class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
 
         list_class_path = self.__create_dir__(sub_directories, list_class_path)
 
-        # Process each class path
+        # Process each class directory
         for _, sub_directory in enumerate(list_class_path):
             logging.info(f"Processing directory: {sub_directory}")
 
-            # Iterate through all audio files in the directory with the specified extension
             for file_name in tqdm(glob.glob(os.path.join(sub_directory, file_extension))):
-
-                # Load the audio signal
+                # Load audio signal
                 raw_signal, _ = librosa.load(file_name, sr=self.sample_rate)
 
-                # Extract label from file name (assumes directory structure encodes label)
+                # Extract label from filename
                 label = self.__get_label__(file_name)
 
-                # Segment the signal using sliding windows
+                # Segment signal using sliding windows
                 for (start, end) in self.generate_windows(raw_signal):
-
-                    # Check if the windowed signal has the required length
                     if len(raw_signal[start:end]) == self.window_size:
-
-                        list_spectrogram.append(self.normalization_signal(raw_signal[start:end]))
+                        list_spectrogram.append(
+                            self.normalization_signal(raw_signal[start:end])
+                        )
                         list_labels.append(label)
 
-        # Convert lists to numpy arrays for efficient processing
+        # Convert to numpy arrays
         array_features = numpy.array(list_spectrogram, dtype=numpy.float32)
-        array_features = numpy.expand_dims(array_features, axis=-1)  # Add channel dimension
-
+        array_features = numpy.expand_dims(array_features, axis=-1)  # Add channel dim
         array_labels = numpy.array(list_labels, dtype=numpy.int32)
 
         logging.info("Data loading completed successfully.")
@@ -135,51 +117,132 @@ class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
         return array_features, array_labels
 
     def train(self) -> tuple:
+        """
+        Train Wav2Vec2 model with corrected two-phase approach.
 
+        Training process:
+        1. Load and preprocess data
+        2. Split into train/val/test sets
+        3. K-fold cross-validation on train/val
+        4. For each fold:
+           a. Phase 1: Self-supervised pretraining with InfoNCE loss
+           b. Phase 2: Supervised fine-tuning with classification head
+        5. Generate XAI visualizations (optional)
+        6. Evaluate and collect metrics
+
+        Returns:
+            tuple: Dictionary with metrics, predictions, and history
+        """
+        # Load data
         features, labels = self.load_data(self.dataset_directory)
-        metrics_list, confusion_matriz_list, labels = [], [], numpy.array(labels).astype(float)
+        metrics_list, confusion_matriz_list = [], []
+        labels = numpy.array(labels).astype(float)
 
-        # Split data into train/val and test sets
+        # Split data: 80% train/val, 20% test
         features_train_validation, features_test, labels_train_validation, labels_test = train_test_split(
             features, labels, test_size=0.2, stratify=labels, random_state=42
         )
 
-        # Balance evaluation set
+        # Balance test set
         features_test, labels_test = self.balance_class(features_test, labels_test)
 
-        # Stratified k-fold cross-validation on the training/validation set
-        instance_k_fold = StratifiedKFold(n_splits=self.number_splits, shuffle=True, random_state=42)
-        history_model, probabilities_list, real_labels_list = None, [], []
+        # K-fold cross-validation
+        instance_k_fold = StratifiedKFold(
+            n_splits=self.number_splits,
+            shuffle=True,
+            random_state=42
+        )
 
-        for train_indexes, validation_indexes in instance_k_fold.split(features_train_validation,
-                                                                       labels_train_validation):
+        history_model = None
+        probabilities_list = []
+        real_labels_list = []
 
-            features_train, features_validation = (features_train_validation[train_indexes],
-                                                   features_train_validation[validation_indexes])
+        logging.info(f"\n{'=' * 80}")
+        logging.info(f"STARTING K-FOLD CROSS-VALIDATION (k={self.number_splits})")
+        logging.info(f"{'=' * 80}\n")
 
-            labels_train, labels_validation = (labels_train_validation[train_indexes],
-                                               labels_train_validation[validation_indexes])
+        for fold_idx, (train_indexes, validation_indexes) in enumerate(
+                instance_k_fold.split(features_train_validation, labels_train_validation),
+                start=1
+        ):
+            logging.info(f"\n{'=' * 80}")
+            logging.info(f"FOLD {fold_idx}/{self.number_splits}")
+            logging.info(f"{'=' * 80}")
 
-            # Balance the training set for this fold
+            # Split current fold
+            features_train = features_train_validation[train_indexes]
+            features_validation = features_train_validation[validation_indexes]
+            labels_train = labels_train_validation[train_indexes]
+            labels_validation = labels_train_validation[validation_indexes]
+
+            # Balance training set
             features_train, labels_train = self.balance_class(features_train, labels_train)
 
+            logging.info(f"Training samples: {len(features_train)}")
+            logging.info(f"Validation samples: {len(features_validation)}")
+            logging.info(f"Test samples: {len(features_test)}")
+
+            # Build model
             self.build_model()
             self.neural_network_model.summary()
 
-            history_model = self.compile_and_train(features_train, labels_train,
-                                                   epochs=self.number_epochs, batch_size=self.batch_size,
-                                                   validation_data=(features_validation, labels_validation))
+            # CORRECTED: Call compile_and_train with proper parameters
+            history_model = self.compile_and_train(
+                train_data=features_train,
+                train_labels=labels_train,
+                epochs=self.number_epochs,
+                batch_size=self.batch_size,
+                validation_data=(features_validation, labels_validation),
+                generate_xai=self.generate_xai and (fold_idx == self.number_splits),  # Only last fold
+                num_xai_samples=self.num_xai_samples,
+                xai_output_dir=f"{self.xai_output_dir}/fold_{fold_idx}",
+                xai_method=self.xai_method,
+                freeze_encoder=self.freeze_encoder
+            )
 
-            model_predictions = self.neural_network_model.predict(features_test, batch_size=self.batch_size)
+            # Evaluate on test set
+            logging.info(f"\nEvaluating fold {fold_idx} on test set...")
+            model_predictions = self.neural_network_model.predict(
+                features_test,
+                batch_size=self.batch_size,
+                verbose=1
+            )
             predicted_labels = numpy.argmax(model_predictions, axis=1)
 
+            # Store predictions
             probabilities_list.append(model_predictions)
             real_labels_list.append(labels_test)
 
-            # Calculate and store the metrics for this fold
-            metrics, confusion_matrix = self.calculate_metrics(predicted_labels, labels_test)
+            # Calculate metrics
+            metrics, confusion_matrix = self.calculate_metrics(
+                predicted_labels,
+                labels_test
+            )
             metrics_list.append(metrics)
             confusion_matriz_list.append(confusion_matrix)
 
-        return self.__cast_to_dic__(metrics_list, probabilities_list,
-                                    real_labels_list, confusion_matriz_list, history_model)
+            # Log fold results
+            logging.info(f"\nFold {fold_idx} Results:")
+            logging.info(f"  Accuracy: {metrics.get('accuracy', 0):.4f}")
+            logging.info(f"  Precision: {metrics.get('precision', 0):.4f}")
+            logging.info(f"  Recall: {metrics.get('recall', 0):.4f}")
+            logging.info(f"  F1-Score: {metrics.get('f1', 0):.4f}")
+
+        # Final summary
+        logging.info(f"\n{'=' * 80}")
+        logging.info("CROSS-VALIDATION COMPLETED")
+        logging.info(f"{'=' * 80}")
+
+        avg_accuracy = numpy.mean([m.get('accuracy', 0) for m in metrics_list])
+        avg_f1 = numpy.mean([m.get('f1', 0) for m in metrics_list])
+
+        logging.info(f"Average Accuracy: {avg_accuracy:.4f}")
+        logging.info(f"Average F1-Score: {avg_f1:.4f}\n")
+
+        return self.__cast_to_dic__(
+            metrics_list,
+            probabilities_list,
+            real_labels_list,
+            confusion_matriz_list,
+            history_model
+        )

@@ -1,136 +1,168 @@
-#!/usr/bin/python3
-# -*- coding: utf-8 -*-
-
-__author__ = 'Kayuã Oleques Paim'
-__email__ = 'kayuaolequesp@gmail.com.br'
-__version__ = '{1}.{0}.{0}'
-__initial_data__ = '2025/04/1'
-__last_update__ = '2025/04/1'
-__credits__ = ['unknown']
-
-# MIT License
-#
-# Copyright (c) 2025 unknown
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+"""
+===================================================================================
+ARQUIVO 4: Wav2Vec2 Main Model - VERSÃO COMPLETA CORRIGIDA
+===================================================================================
+"""
 
 try:
     import sys
-
+    import logging
+    import numpy as np
+    import tensorflow as tf
     import tensorflow
+    import matplotlib.pyplot as plt
+    import matplotlib.cm as cm
+    from scipy.ndimage import zoom, gaussian_filter
+    import seaborn as sns
 
-    from tensorflow.keras.losses import Loss
+    from tensorflow.keras import Model
+    from Engine.Layers.GELU import GELU
+
+    from tensorflow.keras.layers import Add
+    from tensorflow.keras.layers import Dense
+    from tensorflow.keras.layers import Input
+    from tensorflow.keras.layers import Conv1D
+    from tensorflow.keras.layers import Lambda
+    from tensorflow.keras.layers import Dropout
+    from tensorflow.keras.layers import Flatten
+    from tensorflow.keras.layers import Reshape
+    from tensorflow.keras.layers import Activation
+    from Engine.Layers.MaskLayer import MaskCreator
+    from tensorflow.keras.layers import TimeDistributed
+    from tensorflow.keras.layers import LayerNormalization
+    from tensorflow.keras.layers import MultiHeadAttention
+    from tensorflow.keras.layers import GlobalAveragePooling1D
 
 except ImportError as error:
     print(error)
     sys.exit(-1)
 
 
-
-class ContrastiveLoss(Loss):
+class Wav2Vec2ContrastiveLoss(tf.keras.losses.Loss):
     """
-    Custom implementation of Contrastive Loss for training models with the
-    contrastive loss function, commonly used in similarity learning tasks, such as
-    metric learning and Siamese networks.
+    True Wav2Vec2 Contrastive Loss (InfoNCE Loss) with Diversity Loss.
 
-    The contrastive loss function is designed to minimize the distance between similar pairs
-    and maximize the distance between dissimilar pairs, where the similarity of a pair is
-    typically indicated by a binary label (1 for similar, 0 for dissimilar).
-
-    References:
-    -----------
-        - Hadsell, R., Chopra, S., & LeCun, Y. (2006). Dimensionality Reduction by Learning an Invariant Mapping.
-          Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR).
-        - Bengio, Y., & LeCun, Y. (2007). Learning Deep Architectures for AI. Foundations and
-          Trends in Machine Learning, 2(1), 1-127.
-
-    Mathematical Formula:
-    ---------------------
-    The contrastive loss for a pair of embeddings y1 and y2 is computed as:
-
-        L = (1/N) * sum_i [ y_i * D^2 + (1 - y_i) * max(0, m - D)^2 ]
-
-    Where:
-        - y_i is the binary label indicating whether the pair is similar (y_i = 1) or dissimilar (y_i = 0).
-        - D is the Euclidean distance between the two embeddings: D = ||y1 - y2||.
-        - m is the margin, a hyperparameter that defines the minimum distance between dissimilar pairs. Default is 1.0.
-        - N is the number of pairs in the batch.
-
-    Args:
-        margin (float): The margin value for the contrastive loss function. Default is 1.0. This margin is used
-                        to separate dissimilar pairs, ensuring they are at least this distance apart.
-        **kwargs: Additional keyword arguments passed to the base `Loss` class.
-
-    Attributes:
-        margin (float): The margin value for the contrastive loss function.
-
-    Example
-    -------
-        >>> # Create a ContrastiveLoss object with a margin of 1.0
-        ...     contrastive_loss_layer = ContrastiveLoss(margin=1.0)
-        ...     # Example tensors for true labels and predicted embeddings
-        ...     y_true = tensorflow.constant([1, 0, 1])  # Labels: 1 for similar, 0 for dissimilar
-        ...     y_pred = tensorflow.random.normal((2, 3, 128))  # Predicted embeddings of shape (2, batch_size, embedding_dim)
-        ...     # Compute the contrastive loss
-        ...     loss = contrastive_loss_layer(y_true, y_pred)
-        >>>     print(loss)
-
+    Implements:
+    - InfoNCE loss with negative sampling
+    - Loss computed only on masked positions
+    - Diversity loss to encourage codebook usage
     """
 
-    def __init__(self, margin=1.0, **kwargs):
+    def __init__(self, temperature=0.1, num_negatives=100,
+                 diversity_weight=0.1, name='wav2vec2_contrastive_loss'):
+        super().__init__(name=name)
+        self.temperature = temperature
+        self.num_negatives = num_negatives
+        self.diversity_weight = diversity_weight
+
+    def sample_negatives(self, quantized, batch_size, seq_length, num_negatives):
         """
-        Initializes the ContrastiveLoss class with a specified margin.
+        Sample negative examples from other time steps and other examples in batch.
 
         Args:
-            margin (float): The margin value for the contrastive loss. Default is 1.0.
-            **kwargs: Additional keyword arguments passed to the base Loss class.
-        """
-        super().__init__(**kwargs)
-        self.margin = margin
-
-    def call(self, y_true, y_predicted):
-        """
-        Computes the contrastive loss.
-
-        Args:
-            y_true (tf.Tensor): Tensor of true labels with shape (batch_size,).
-            y_predicted (tf.Tensor): Tensor of predicted embeddings with shape (2, batch_size, embedding_dim).
+            quantized: (batch_size, seq_length, hidden_dim)
+            batch_size: int
+            seq_length: int
+            num_negatives: int
 
         Returns:
-            tf.Tensor: The computed contrastive loss.
+            negatives: (batch_size, seq_length, num_negatives, hidden_dim)
         """
-        y_true = tensorflow.cast(y_true, tensorflow.float32)
-        y_predicted = tensorflow.cast(y_predicted, tensorflow.float32)
+        hidden_dim = tf.shape(quantized)[-1]
 
-        # Calculate the Euclidean distance between the two sets of embeddings
-        distance = tensorflow.reduce_sum(tensorflow.square(y_predicted[0] - y_predicted[1]), axis=1)
+        # Flatten to (batch_size * seq_length, hidden_dim)
+        quantized_flat = tf.reshape(quantized, [-1, hidden_dim])
+        total_positions = batch_size * seq_length
 
-        # Ensure the distance is non-zero to avoid division by zero errors
-        distance = tensorflow.maximum(distance, 1e-10)
+        # Sample random indices for each position
+        negative_indices = tf.random.uniform(
+            shape=(batch_size, seq_length, num_negatives),
+            minval=0,
+            maxval=total_positions,
+            dtype=tf.int32
+        )
 
-        # Compute the square root of the distance
-        sqrt_distance = tensorflow.sqrt(distance)
+        # Flatten and gather
+        negative_indices_flat = tf.reshape(negative_indices, [-1])
+        negatives_flat = tf.gather(quantized_flat, negative_indices_flat)
 
-        # Calculate the margin term for the contrastive loss
-        margin_term = tensorflow.maximum(0.0, self.margin - sqrt_distance)
+        # Reshape back
+        negatives = tf.reshape(
+            negatives_flat,
+            [batch_size, seq_length, num_negatives, hidden_dim]
+        )
 
-        # Compute the final contrastive loss
-        contrastive_loss = tensorflow.reduce_mean(y_true * distance + (1 - y_true) * tensorflow.square(margin_term))
+        return negatives
 
-        return contrastive_loss
+    def compute_diversity_loss(self, perplexity):
+        """
+        Diversity loss to encourage using different codebook entries.
+
+        Args:
+            perplexity: Scalar tensor representing codebook perplexity
+
+        Returns:
+            diversity_loss: Scalar tensor
+        """
+        target_perplexity = 100.0
+        diversity_loss = tf.math.squared_difference(
+            perplexity, target_perplexity
+        ) / target_perplexity
+        return diversity_loss
+
+    def call(self, y_true, y_pred):
+        """
+        Compute InfoNCE loss with diversity loss.
+
+        Args:
+            y_true: Tuple of (quantized, mask_indices, perplexity)
+            y_pred: contextualized representations (batch_size, seq_length, hidden_dim)
+
+        Returns:
+            total_loss: Combined contrastive + diversity loss
+        """
+        quantized, mask_indices, perplexity = y_true
+        contextualized = y_pred
+
+        # Normalize representations
+        contextualized = tf.nn.l2_normalize(contextualized, axis=-1)
+        quantized = tf.nn.l2_normalize(quantized, axis=-1)
+
+        batch_size = tf.shape(contextualized)[0]
+        seq_length = tf.shape(contextualized)[1]
+
+        # Sample negatives
+        negatives = self.sample_negatives(
+            quantized, batch_size, seq_length, self.num_negatives
+        )
+        negatives = tf.nn.l2_normalize(negatives, axis=-1)
+
+        # Positive similarity
+        positive_similarity = tf.reduce_sum(
+            contextualized * quantized, axis=-1
+        ) / self.temperature
+
+        # Negative similarities
+        contextualized_expanded = tf.expand_dims(contextualized, axis=2)
+        negative_similarities = tf.reduce_sum(
+            contextualized_expanded * negatives, axis=-1
+        ) / self.temperature
+
+        # InfoNCE loss (log-sum-exp for stability)
+        positive_exp = tf.exp(positive_similarity)
+        negative_exp_sum = tf.reduce_sum(tf.exp(negative_similarities), axis=-1)
+        log_prob = positive_similarity - tf.math.log(positive_exp + negative_exp_sum + 1e-7)
+
+        # Apply mask
+        mask_indices_float = tf.cast(mask_indices, tf.float32)
+        masked_log_prob = log_prob * mask_indices_float
+        num_masked = tf.reduce_sum(mask_indices_float) + 1e-7
+        contrastive_loss = -tf.reduce_sum(masked_log_prob) / num_masked
+
+        # Diversity loss
+        diversity_loss = self.compute_diversity_loss(perplexity)
+
+        # Combined
+        total_loss = contrastive_loss + self.diversity_weight * diversity_loss
+
+        return total_loss
