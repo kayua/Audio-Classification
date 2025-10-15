@@ -53,30 +53,11 @@ class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
         self.number_classes = arguments.number_classes
         self.dataset_directory = arguments.dataset_directory
 
-        # XAI configuration - UPDATED
-        self.generate_xai = getattr(arguments, 'generate_xai', True)
-        self.num_xai_samples = getattr(arguments, 'num_xai_samples', 30)
-        self.xai_output_dir = getattr(arguments, 'xai_output_dir', './wav2vec2_xai_outputs')
-
-        # NEW: Select which XAI methods to use
-        # Options: 'all', 'attention', 'integrated_gradients', 'saliency'
-        self.xai_methods = getattr(arguments, 'xai_methods', 'all')
-
         self.freeze_encoder = getattr(arguments, 'freeze_encoder', False)
-        self.xai_only_last_fold = getattr(arguments, 'xai_only_last_fold', True)
+
 
         WindowGenerator.__init__(self, self.window_size, self.overlap)
 
-        # Log XAI configuration
-        logging.info(f"\n{'=' * 60}")
-        logging.info("XAI CONFIGURATION (CORRECTED METHODS)")
-        logging.info(f"{'=' * 60}")
-        logging.info(f"Generate XAI: {self.generate_xai}")
-        logging.info(f"XAI samples: {self.num_xai_samples}")
-        logging.info(f"XAI output dir: {self.xai_output_dir}")
-        logging.info(f"XAI methods: {self.xai_methods}")
-        logging.info(f"XAI only last fold: {self.xai_only_last_fold}")
-        logging.info(f"{'=' * 60}\n")
 
     def load_data(self, sub_directories: str = None, file_extension: str = None) -> tuple:
         """Load audio data (unchanged)."""
@@ -163,18 +144,8 @@ class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
             self.build_model()
             self.neural_network_model.summary()
 
-            # XAI for this fold?
-            should_generate_xai = self.generate_xai
-            if self.xai_only_last_fold:
-                should_generate_xai = should_generate_xai and (fold_idx == self.number_splits)
+            # XAI for this fold
 
-            logging.info(f"\n{'=' * 60}")
-            logging.info(f"XAI FOR FOLD {fold_idx}")
-            logging.info(f"{'=' * 60}")
-            logging.info(f"Will generate XAI: {should_generate_xai}")
-            if should_generate_xai:
-                logging.info(f"Methods: {self.xai_methods}")
-            logging.info(f"{'=' * 60}\n")
 
             # Train with CORRECTED parameters
             history_model = self.compile_and_train(
@@ -183,10 +154,6 @@ class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
                 epochs=self.number_epochs,
                 batch_size=self.batch_size,
                 validation_data=(features_validation, labels_validation),
-                generate_xai=should_generate_xai,
-                num_xai_samples=self.num_xai_samples,
-                xai_output_dir=f"{self.xai_output_dir}/fold_{fold_idx}",
-                xai_methods=self.xai_methods,  # UPDATED
                 freeze_encoder=self.freeze_encoder
             )
 
