@@ -33,7 +33,7 @@ __credits__ = ['unknown']
 
 try:
     import sys
-    import numpy as np
+    import numpy
     import matplotlib.pyplot as plt
     import matplotlib.cm as cm
     from matplotlib.patches import Rectangle
@@ -108,11 +108,10 @@ class Conformer(ProcessConformer):
             )(neural_network_flow)
 
         neural_network_flow = GlobalAveragePooling1D(name='global_avg_pooling')(neural_network_flow)
-        neural_network_flow = Dense(
-            self.number_classes,
-            activation=self.last_layer_activation,
-            name='output_layer'
-        )(neural_network_flow)
+        neural_network_flow = Dense(self.number_classes,
+                                    activation=self.last_layer_activation,
+                                    name='output_layer'
+                                    )(neural_network_flow)
 
         self.neural_network_model = Model(inputs=inputs, outputs=neural_network_flow, name=self.model_name)
         self.neural_network_model.summary()
@@ -128,27 +127,19 @@ class Conformer(ProcessConformer):
         Args:
             xai_method (str): 'gradcam', 'gradcam++', or 'scorecam'
         """
-        self.neural_network_model.compile(
-            optimizer=self.optimizer_function,
-            loss=self.loss_function,
-            metrics=['accuracy']
-        )
+        self.neural_network_model.compile(optimizer=self.optimizer_function,
+                                          loss=self.loss_function,
+                                          metrics=['accuracy'])
 
-        training_history = self.neural_network_model.fit(
-            train_data, train_labels,
-            epochs=epochs,
-            batch_size=batch_size,
-            validation_data=validation_data
-        )
+        training_history = self.neural_network_model.fit(train_data, train_labels,
+                                                         epochs=epochs,
+                                                         batch_size=batch_size,
+                                                         validation_data=validation_data)
 
         if validation_data is not None:
             print(f"Acurácia Final (Validação): {training_history.history['val_accuracy'][-1]:.4f}")
 
         if generate_gradcam and validation_data is not None:
-            print("\n" + "=" * 80)
-            print(f"GERANDO MAPAS DE ATIVAÇÃO ({xai_method.upper()}) - VERSÃO CORRIGIDA")
-            print("=" * 80)
-
             val_data, val_labels = validation_data
 
             stats = self.generate_validation_visualizations(
@@ -158,9 +149,6 @@ class Conformer(ProcessConformer):
                 output_dir=gradcam_output_dir,
                 xai_method=xai_method
             )
-
-            print(f"\n✓ Mapas de ativação salvos em: {gradcam_output_dir}")
-            print("=" * 80 + "\n")
 
         return training_history
 
@@ -185,46 +173,33 @@ class Conformer(ProcessConformer):
         if self.neural_network_model is None:
             raise ValueError("Model must be built before creating GradCAM model")
 
-        # ✅ CORREÇÃO: Usar conv_subsampling que mantém estrutura 2D
         if target_layer_name is None:
             target_layer_name = 'conv_subsampling'
-            print("⚠️  AVISO: Usando 'conv_subsampling' como camada alvo (recomendado)")
-            print("   Esta é a última camada que mantém estrutura espacial 2D")
-            print("   Saída esperada: (batch, tempo_reduzido, features_conv)")
-        else:
-            print(f"⚠️  AVISO: Usando camada customizada '{target_layer_name}'")
-            if 'conformer_block' in target_layer_name:
-                print("   ⚠️  ConformerBlocks têm saída 1D sequencial - visualização pode ser limitada")
 
         target_layer = self.neural_network_model.get_layer(target_layer_name)
 
-        self.gradcam_model = Model(
-            inputs=self.neural_network_model.inputs,
-            outputs=[target_layer.output, self.neural_network_model.output]
-        )
+        self.gradcam_model = Model(inputs=self.neural_network_model.inputs,
+                                   outputs=[target_layer.output, self.neural_network_model.output])
 
-        print(f"✓ GradCAM model criado com camada: {target_layer_name}")
-        print(f"  Forma de saída da camada: {target_layer.output.shape}")
-
-    def compute_gradcam_plusplus(self, input_sample: np.ndarray, class_idx: int = None,
-                                 target_layer_name: str = None) -> np.ndarray:
+    def compute_gradcam_plusplus(self, input_sample: numpy.ndarray, class_idx: int = None,
+                                 target_layer_name: str = None) -> numpy.ndarray:
         """
         Compute Grad-CAM++ heatmap (VERSÃO CORRIGIDA).
 
         CORREÇÕES:
-        - ✅ Axis corrigido no reduce_sum para arquiteturas com saída 3D
-        - ✅ Tratamento adequado de diferentes dimensionalidades de saída
+        - Axis corrigido no reduce_sum para arquiteturas com saída 3D
+        - Tratamento adequado de diferentes dimensionalidades de saída
         """
         if self.gradcam_model is None or target_layer_name is not None:
             self.build_gradcam_model(target_layer_name)
 
         # Ensure correct input shape
         if len(input_sample.shape) == 2:
-            input_sample = np.expand_dims(input_sample, axis=0)
+            input_sample = numpy.expand_dims(input_sample, axis=0)
         elif len(input_sample.shape) == 3 and input_sample.shape[0] != 1:
             input_sample = input_sample[0:1]
 
-        input_sample = input_sample.astype(np.float32)
+        input_sample = input_sample.astype(numpy.float32)
         input_tensor = tensorflow.convert_to_tensor(input_sample)
 
         with tensorflow.GradientTape() as tape1:
@@ -251,16 +226,17 @@ class Conformer(ProcessConformer):
         # Para saída 4D (batch, height, width, features): usar axis=3
         if len(layer_output.shape) == 3:
             reduce_axis = 2  # Features dimension
+
         elif len(layer_output.shape) == 4:
             reduce_axis = 3  # Channel dimension
+
         else:
             reduce_axis = -1  # Fallback
 
         # Compute alpha weights (Grad-CAM++ formula) - CORRIGIDO
         numerator = grads_2
-        denominator = 2.0 * grads_2 + tensorflow.reduce_sum(
-            layer_output * grads_3, axis=reduce_axis, keepdims=True
-        ) + 1e-10
+        denominator = 2.0 * grads_2 + tensorflow.reduce_sum(layer_output * grads_3,
+                                                            axis=reduce_axis, keepdims=True) + 1e-10
 
         alpha = numerator / denominator
 
@@ -278,27 +254,26 @@ class Conformer(ProcessConformer):
         # Apply ReLU and normalize
         heatmap = tensorflow.maximum(heatmap, 0)
 
-        # ✅ Normalização robusta
+        # Normalização robusta
         heatmap_max = tensorflow.math.reduce_max(heatmap)
         if heatmap_max > 1e-10:
             heatmap = heatmap / heatmap_max
-        else:
-            print("⚠️  Aviso: Heatmap com valores muito baixos - pode indicar problema na camada alvo")
 
         return heatmap.numpy()
 
-    def compute_gradcam(self, input_sample: np.ndarray, class_idx: int = None,
-                        target_layer_name: str = None) -> np.ndarray:
+    def compute_gradcam(self, input_sample: numpy.ndarray, class_idx: int = None,
+                        target_layer_name: str = None) -> numpy.ndarray:
         """Standard Grad-CAM computation (VERSÃO CORRIGIDA)."""
         if self.gradcam_model is None or target_layer_name is not None:
             self.build_gradcam_model(target_layer_name)
 
         if len(input_sample.shape) == 2:
-            input_sample = np.expand_dims(input_sample, axis=0)
+            input_sample = numpy.expand_dims(input_sample, axis=0)
+
         elif len(input_sample.shape) == 3 and input_sample.shape[0] != 1:
             input_sample = input_sample[0:1]
 
-        input_sample = input_sample.astype(np.float32)
+        input_sample = input_sample.astype(numpy.float32)
         input_tensor = tensorflow.convert_to_tensor(input_sample)
 
         with tensorflow.GradientTape() as tape:
@@ -311,11 +286,13 @@ class Conformer(ProcessConformer):
 
         grads = tape.gradient(class_channel, layer_output)
 
-        # ✅ CORREÇÃO: Adaptar pooling para diferentes shapes
+        # CORREÇÃO: Adaptar pooling para diferentes shapes
         if len(layer_output.shape) == 3:  # (batch, sequence, features)
             pooled_grads = tensorflow.reduce_mean(grads, axis=(0, 1))
+
         elif len(layer_output.shape) == 4:  # (batch, height, width, channels)
             pooled_grads = tensorflow.reduce_mean(grads, axis=(0, 1, 2))
+
         else:
             pooled_grads = tensorflow.reduce_mean(grads, axis=0)
 
@@ -323,16 +300,17 @@ class Conformer(ProcessConformer):
         heatmap = layer_output @ pooled_grads[..., tensorflow.newaxis]
         heatmap = tensorflow.squeeze(heatmap)
 
-        # ✅ Normalização robusta
+        # Normalização robusta
         heatmap = tensorflow.maximum(heatmap, 0)
         heatmap_max = tensorflow.math.reduce_max(heatmap)
+
         if heatmap_max > 1e-10:
             heatmap = heatmap / heatmap_max
 
         return heatmap.numpy()
 
-    def compute_scorecam(self, input_sample: np.ndarray, class_idx: int = None,
-                         target_layer_name: str = None, batch_size: int = 32) -> np.ndarray:
+    def compute_scorecam(self, input_sample: numpy.ndarray, class_idx: int = None,
+                         target_layer_name: str = None, batch_size: int = 32) -> numpy.ndarray:
         """
         Compute Score-CAM heatmap (gradient-free method).
         """
@@ -340,9 +318,9 @@ class Conformer(ProcessConformer):
             self.build_gradcam_model(target_layer_name)
 
         if len(input_sample.shape) == 2:
-            input_sample = np.expand_dims(input_sample, axis=0)
+            input_sample = numpy.expand_dims(input_sample, axis=0)
 
-        input_sample = input_sample.astype(np.float32)
+        input_sample = input_sample.astype(numpy.float32)
         input_tensor = tensorflow.convert_to_tensor(input_sample)
 
         # Get activations
@@ -354,13 +332,15 @@ class Conformer(ProcessConformer):
         # Get activation maps
         activations = layer_output[0].numpy()
 
-        # ✅ Adaptar para diferentes shapes de ativação
+        # Adaptar para diferentes shapes de ativação
         if len(activations.shape) == 2:  # (sequence, features)
             num_channels = activations.shape[-1]
+
         else:
             num_channels = activations.shape[-1]
 
         weights = []
+
         for i in range(num_channels):
             if len(activations.shape) == 2:
                 act_map = activations[:, i]
@@ -374,7 +354,7 @@ class Conformer(ProcessConformer):
             # Upsample to input size
             if len(act_map.shape) == 1:
                 upsampled = zoom(act_map, (input_sample.shape[1] / act_map.shape[0],), order=1)
-                upsampled = np.tile(upsampled[:, np.newaxis], (1, input_sample.shape[2]))
+                upsampled = numpy.tile(upsampled[:, numpy.newaxis], (1, input_sample.shape[2]))
             else:
                 zoom_factors = (input_sample.shape[1] / act_map.shape[0],
                                 input_sample.shape[2] / act_map.shape[1])
@@ -382,7 +362,7 @@ class Conformer(ProcessConformer):
 
             # Mask input
             masked_input = input_sample[0] * upsampled
-            masked_input = np.expand_dims(masked_input, 0)
+            masked_input = numpy.expand_dims(masked_input, 0)
 
             # Get score for masked input
             masked_pred = self.neural_network_model.predict(masked_input, verbose=0)
@@ -390,17 +370,17 @@ class Conformer(ProcessConformer):
 
             weights.append(score)
 
-        weights = np.array(weights)
-        weights = np.maximum(weights, 0)
+        weights = numpy.array(weights)
+        weights = numpy.maximum(weights, 0)
 
         # Weighted combination
         if len(activations.shape) == 2:
-            heatmap = np.dot(activations, weights)
+            heatmap = numpy.dot(activations, weights)
         else:
-            heatmap = np.tensordot(activations, weights, axes=([[-1], [0]]))
-            heatmap = np.squeeze(heatmap)
+            heatmap = numpy.tensordot(activations, weights, axes=([[-1], [0]]))
+            heatmap = numpy.squeeze(heatmap)
 
-        heatmap = np.maximum(heatmap, 0)
+        heatmap = numpy.maximum(heatmap, 0)
 
         if heatmap.max() > 0:
             heatmap = heatmap / heatmap.max()
@@ -408,15 +388,15 @@ class Conformer(ProcessConformer):
         return heatmap
 
     @staticmethod
-    def smooth_heatmap(heatmap: np.ndarray, sigma: float = 2.0) -> np.ndarray:
+    def smooth_heatmap(heatmap: numpy.ndarray, sigma: float = 2.0) -> numpy.ndarray:
         """Apply Gaussian smoothing to heatmap for better visualization."""
         return gaussian_filter(heatmap, sigma=sigma)
 
     @staticmethod
-    def interpolate_heatmap(heatmap: np.ndarray, target_shape: tuple,
-                            smooth: bool = True) -> np.ndarray:
+    def interpolate_heatmap(heatmap: numpy.ndarray, target_shape: tuple,
+                            smooth: bool = True) -> numpy.ndarray:
         """
-        ✅ INTERPOLAÇÃO CORRIGIDA: Agora lida adequadamente com heatmaps 1D e 2D.
+        INTERPOLAÇÃO CORRIGIDA: Agora lida adequadamente com heatmaps 1D e 2D.
 
         Args:
             heatmap: Input heatmap (pode ser 1D ou 2D)
@@ -424,29 +404,26 @@ class Conformer(ProcessConformer):
             smooth: Apply Gaussian smoothing after interpolation
         """
         # Converter para array numpy se necessário
-        if not isinstance(heatmap, np.ndarray):
-            heatmap = np.array(heatmap)
+        if not isinstance(heatmap, numpy.ndarray):
+            heatmap = numpy.array(heatmap)
 
         # Caso 1: Heatmap 1D (ex: saída de ConformerBlock)
         if len(heatmap.shape) == 1:
-            print(f"  ℹ️  Heatmap 1D detectado (tamanho: {heatmap.shape[0]})")
-            print(f"     Expandindo para 2D: {target_shape}")
 
             # Interpolar temporalmente primeiro
             temporal_interp = zoom(heatmap, (target_shape[0] / heatmap.shape[0],), order=3)
 
             # Expandir para frequências usando gradiente suave
             # Em vez de replicar, criar transição suave
-            freq_profile = np.linspace(1.0, 0.6, target_shape[1])
-            heatmap_2d = temporal_interp[:, np.newaxis] * freq_profile[np.newaxis, :]
+            freq_profile = numpy.linspace(1.0, 0.6, target_shape[1])
+            heatmap_2d = temporal_interp[:, numpy.newaxis] * freq_profile[numpy.newaxis, :]
 
             interpolated = heatmap_2d
 
         # Caso 2: Heatmap 2D (ex: saída de conv_subsampling)
         elif len(heatmap.shape) == 2:
-            print(f"  ℹ️  Heatmap 2D detectado (forma: {heatmap.shape})")
-            zoom_factors = (target_shape[0] / heatmap.shape[0],
-                            target_shape[1] / heatmap.shape[1])
+
+            zoom_factors = (target_shape[0] / heatmap.shape[0], target_shape[1] / heatmap.shape[1])
             interpolated = zoom(heatmap, zoom_factors, order=3)  # Cubic interpolation
         else:
             raise ValueError(f"Heatmap shape inesperado: {heatmap.shape}")
@@ -557,7 +534,6 @@ class Conformer(ProcessConformer):
 
         if save_path:
             plt.savefig(save_path, dpi=300, bbox_inches='tight', facecolor='white')
-            print(f"💾 Figura salva: {save_path}")
 
         if show_plot:
             plt.show()
@@ -574,18 +550,6 @@ class Conformer(ProcessConformer):
         Generate enhanced XAI visualizations for validation samples.
         """
         import os
-
-        print(f"\n🔍 Dados de validação: {validation_data.shape}")
-        print(f"🎯 Labels de validação: {validation_labels.shape}")
-        print(f"📐 Dimensão de entrada esperada: {self.input_dimension}")
-        print(f"🧠 Método XAI: {xai_method.upper()}")
-
-        # ✅ Informar sobre camada alvo
-        if target_layer_name is None:
-            print(f"🎯 Camada alvo: 'conv_subsampling' (padrão - recomendado)")
-        else:
-            print(f"🎯 Camada alvo: '{target_layer_name}'")
-        print()
 
         os.makedirs(output_dir, exist_ok=True)
 
@@ -616,9 +580,6 @@ class Conformer(ProcessConformer):
             'correct_predictions': 0,
             'incorrect_predictions': 0
         }
-
-        print(f"🎨 Gerando visualizações para {len(selected_indices)} amostras...")
-        print(f"📁 Diretório de saída: {output_dir}\n")
 
         for i, idx in enumerate(selected_indices):
             try:
@@ -654,32 +615,17 @@ class Conformer(ProcessConformer):
                 save_path = os.path.join(output_dir,
                                          f'{prefix}_amostra_{i:03d}_real_{true_label}_pred_{predicted}_conf_{confidence:.2f}.png')
 
-                self.plot_gradcam_modern(
-                    sample, heatmap, predicted, predicted, true_label,
-                    confidence=confidence, xai_method=xai_method,
-                    save_path=save_path, show_plot=False
-                )
-
-                status = '✅' if is_correct else '❌'
-                print(f"{status} Amostra {i + 1}/{len(selected_indices)}: "
-                      f"Real={true_label}, Pred={predicted}, Conf={confidence:.1%}")
+                self.plot_gradcam_modern(sample, heatmap,
+                                         predicted, predicted,
+                                         true_label, confidence=confidence,
+                                         xai_method=xai_method,
+                                         save_path=save_path,
+                                         show_plot=False)
 
             except Exception as e:
-                print(f"❌ Erro processando amostra {i + 1}: {e}")
                 import traceback
                 traceback.print_exc()
                 continue
-
-        print(f"\n{'=' * 80}")
-        print(f"✨ GERAÇÃO DE VISUALIZAÇÕES CONCLUÍDA!")
-        print(f"{'=' * 80}")
-        print(f"📊 Total de amostras: {stats['total_samples']}")
-        print(f"✅ Predições corretas: {stats['correct_predictions']}")
-        print(f"❌ Predições incorretas: {stats['incorrect_predictions']}")
-        accuracy = stats['correct_predictions'] / stats['total_samples'] * 100 if stats['total_samples'] > 0 else 0
-        print(f"🎯 Acurácia: {accuracy:.2f}%")
-        print(f"💾 Arquivos salvos em: {output_dir}")
-        print(f"{'=' * 80}\n")
 
         return stats
 
@@ -707,12 +653,8 @@ class Conformer(ProcessConformer):
         confidence = predictions[0][predicted_class]
 
         # Compute heatmaps
-        print("🔄 Computando mapas de ativação com diferentes métodos...")
-
         heatmap_gradcam = self.compute_gradcam(input_sample_2d, class_idx=predicted_class)
         heatmap_gradcampp = self.compute_gradcam_plusplus(input_sample_2d, class_idx=predicted_class)
-
-        print("✓ Mapas computados com sucesso!")
 
         # Interpolate
         heatmap_gc_interp = self.interpolate_heatmap(heatmap_gradcam, input_sample_2d.shape, smooth=True)
@@ -728,12 +670,12 @@ class Conformer(ProcessConformer):
         # Row 1: Grad-CAM
         ax1 = fig.add_subplot(gs[0, 0])
         im1 = ax1.imshow(input_sample_2d, cmap=cmap_input, aspect='auto')
-        ax1.set_title('📊 Espectrograma Original', fontsize=12, fontweight='bold')
+        ax1.set_title('Espectrograma Original', fontsize=12, fontweight='bold')
         plt.colorbar(im1, ax=ax1, fraction=0.046, pad=0.04)
 
         ax2 = fig.add_subplot(gs[0, 1])
         im2 = ax2.imshow(heatmap_gc_interp, cmap=cmap_heat, aspect='auto', vmin=0, vmax=1)
-        ax2.set_title('🔥 Grad-CAM', fontsize=12, fontweight='bold')
+        ax2.set_title('Grad-CAM', fontsize=12, fontweight='bold')
         plt.colorbar(im2, ax=ax2, fraction=0.046, pad=0.04)
 
         ax3 = fig.add_subplot(gs[0, 2])
@@ -744,12 +686,12 @@ class Conformer(ProcessConformer):
         # Row 2: Grad-CAM++
         ax4 = fig.add_subplot(gs[1, 0])
         im4 = ax4.imshow(input_sample_2d, cmap=cmap_input, aspect='auto')
-        ax4.set_title('📊 Espectrograma Original', fontsize=12, fontweight='bold')
+        ax4.set_title('Espectrograma Original', fontsize=12, fontweight='bold')
         plt.colorbar(im4, ax=ax4, fraction=0.046, pad=0.04)
 
         ax5 = fig.add_subplot(gs[1, 1])
         im5 = ax5.imshow(heatmap_pp_interp, cmap=cmap_heat, aspect='auto', vmin=0, vmax=1)
-        ax5.set_title('🔥 Grad-CAM++ (Melhorado)', fontsize=12, fontweight='bold')
+        ax5.set_title('Grad-CAM++ (Melhorado)', fontsize=12, fontweight='bold')
         plt.colorbar(im5, ax=ax5, fraction=0.046, pad=0.04)
 
         ax6 = fig.add_subplot(gs[1, 2])
@@ -765,7 +707,7 @@ class Conformer(ProcessConformer):
         colors = ['#2ecc71' if i == predicted_class else '#95a5a6' for i in range(len(predictions[0]))]
         bars = ax7.barh(class_names, predictions[0], color=colors, edgecolor='black', linewidth=1.5)
         ax7.set_xlabel('Probabilidade', fontsize=11, fontweight='bold')
-        ax7.set_title(f'🎯 Predição: {class_names[predicted_class]} (Confiança: {confidence:.1%})',
+        ax7.set_title(f'Predição: {class_names[predicted_class]} (Confiança: {confidence:.1%})',
                       fontsize=13, fontweight='bold')
         ax7.set_xlim([0, 1])
         ax7.grid(axis='x', alpha=0.3)
@@ -790,19 +732,18 @@ class Conformer(ProcessConformer):
 
         ax8.set_xlabel('Frame Temporal', fontsize=10)
         ax8.set_ylabel('Importância', fontsize=10)
-        ax8.set_title('📈 Comparação Temporal', fontsize=12, fontweight='bold')
+        ax8.set_title('Comparação Temporal', fontsize=12, fontweight='bold')
         ax8.legend(loc='best', fontsize=9)
         ax8.grid(True, alpha=0.3)
         ax8.set_ylim([0, 1])
 
-        fig.suptitle('🧠 Análise Explicativa Abrangente - Conformer XAI (CORRIGIDO)',
+        fig.suptitle('Análise Explicativa Abrangente - Conformer XAI (CORRIGIDO)',
                      fontsize=16, fontweight='bold', y=0.98)
 
         plt.tight_layout(rect=[0, 0, 1, 0.96])
 
         if save_path:
             plt.savefig(save_path, dpi=300, bbox_inches='tight')
-            print(f"💾 Análise completa salva: {save_path}")
 
         if show_plot:
             plt.show()
@@ -824,7 +765,6 @@ class Conformer(ProcessConformer):
         if class_names:
             explanation['predicted_class_name'] = class_names[predicted_class]
 
-        print("✅ Explicação abrangente gerada com sucesso!")
         return explanation
 
     # Properties
