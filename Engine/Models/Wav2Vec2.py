@@ -271,7 +271,7 @@ class AudioWav2Vec2(MaskCreator, Wav2Vec2Process):
         neural_network_flow = Reshape((128, 80, 1), name='reshape_input')(inputs)
 
         # Convolutional encoder
-        for idx, number_filters in enumerate(self.list_filters_encoder[0:1]):
+        for idx, number_filters in enumerate(self.list_filters_encoder):
             neural_network_flow = TimeDistributed(Conv1D(
                 number_filters,
                 self.kernel_size,
@@ -428,28 +428,22 @@ class AudioWav2Vec2(MaskCreator, Wav2Vec2Process):
             name='classification_output'
         )(neural_network_flow)
 
-        self.neural_network_model = Model(
-            inputs=self.neural_network_model.inputs,
-            outputs=neural_network_flow,
-            name=f"{self.model_name}_FineTuned"
-        )
+        self.neural_network_model = Model(inputs=self.neural_network_model.inputs,
+                                          outputs=neural_network_flow,
+                                          name=f"{self.model_name}_FineTuned")
 
-        self.neural_network_model.compile(
-            optimizer=self.optimizer_function,
-            loss=self.loss_function,
-            metrics=['accuracy']
-        )
+        self.neural_network_model.compile(optimizer=self.optimizer_function,
+                                          loss=self.loss_function,
+                                          metrics=['accuracy'])
 
         logging.info(f"⚙ Starting fine-tuning for {epochs} epochs...")
 
-        finetune_history = self.neural_network_model.fit(
-            train_data,
-            train_labels,
-            epochs=epochs,
-            batch_size=batch_size,
-            validation_data=validation_data,
-            verbose=1
-        )
+        finetune_history = self.neural_network_model.fit(train_data,
+                                                         train_labels,
+                                                         epochs=epochs,
+                                                         batch_size=batch_size,
+                                                         validation_data=validation_data,
+                                                         verbose=1)
 
         logging.info("✓ Fine-tuning completed!")
 
