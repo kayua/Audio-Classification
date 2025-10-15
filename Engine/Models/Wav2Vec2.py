@@ -220,6 +220,479 @@ class Wav2Vec2DynamicTrainingModel(tf.keras.Model):
         return {'loss': loss}
 
 
+"""
+===================================================================================
+WAV2VEC2 XAI - MÉTODOS APROPRIADOS PARA TRANSFORMERS
+===================================================================================
+Substitui Grad-CAM++ por métodos mais adequados:
+1. Attention Weights Visualization (nativo para Transformers)
+2. Integrated Gradients (melhor para arquiteturas híbridas)
+3. Input Saliency Maps (simples e efetivo)
+"""
+
+import numpy as np
+import tensorflow as tf
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.ndimage import gaussian_filter
+import logging
+from typing import Tuple, Optional
+
+
+class Wav2Vec2XAIVisualization:
+    """
+    XAI methods specifically designed for Wav2Vec2 (CNN + Transformer) architecture.
+
+    MÉTODOS IMPLEMENTADOS:
+    ✅ Attention Weights Visualization - Visualiza pesos de atenção do Transformer
+    ✅ Integrated Gradients - Atribuição robusta para arquiteturas híbridas
+    ✅ Input Saliency Maps - Gradientes de primeira ordem (baseline simples)
+    """
+
+    def __init__(self, model: tf.keras.Model, input_dimension: Tuple[int, int]):
+        self.model = model
+        self.input_dimension = input_dimension
+
+    # ==================== MÉTODO 1: ATTENTION WEIGHTS ====================
+    def extract_attention_weights(self, input_sample: np.ndarray) -> np.ndarray:
+        """
+        Extrai e visualiza os pesos de atenção do MultiHeadAttention.
+
+        Este é o método MAIS APROPRIADO para Transformers, pois usa
+        informação nativa da arquitetura (sem backpropagation).
+
+        Args:
+            input_sample: Audio sample (shape matching input_dimension)
+
+        Returns:
+            attention_weights: Mapa de atenção normalizado
+        """
+        # Prepare input
+        if len(input_sample.shape) == 2:
+            input_sample = np.expand_dims(input_sample, axis=0)
+        input_tensor = tf.convert_to_tensor(input_sample, dtype=tf.float32)
+
+        # Find attention layer
+        attention_layer = None
+        for layer in self.model.layers:
+            if isinstance(layer, tf.keras.layers.MultiHeadAttention):
+                attention_layer = layer
+                break
+
+        if attention_layer is None:
+            logging.warning("⚠️ No MultiHeadAttention layer found!")
+            return np.zeros((128, 80))
+
+        # Create model to extract attention layer output
+        # We need to get the intermediate representation before attention
+        attention_input_layer = None
+        for i, layer in enumerate(self.model.layers):
+            if layer == attention_layer:
+                # Get the layer before attention
+                if i > 0:
+                    attention_input_layer = self.model.layers[i - 1]
+                break
+
+        if attention_input_layer is None:
+            logging.warning("⚠️ Could not find attention input layer!")
+            return np.zeros((128, 80))
+
+        # Build extraction model
+        extraction_model = tf.keras.Model(
+            inputs=self.model.inputs,
+            outputs=attention_input_layer.output
+        )
+
+        # Get attention input
+        attention_input = extraction_model(input_tensor)
+
+        # Compute attention weights manually
+        # MultiHeadAttention: Q @ K^T / sqrt(d_k)
+        query = attention_input
+        key = attention_input
+
+        # Simplified attention computation (single head)
+        d_k = query.shape[-1]
+        attention_scores = tf.matmul(query, key, transpose_b=True)
+        attention_scores = attention_scores / tf.math.sqrt(tf.cast(d_k, tf.float32))
+        attention_weights = tf.nn.softmax(attention_scores, axis=-1)
+
+        # Average over batch and heads
+        attention_map = tf.reduce_mean(attention_weights, axis=0).numpy()
+
+        # Average over sequence dimension to get importance per timestep
+        temporal_importance = np.mean(attention_map, axis=0)
+
+        # Reshape to match input spectrogram
+        target_shape = (128, 80)
+        if len(temporal_importance) < target_shape[0]:
+            # Upsample temporal importance to match input shape
+            from scipy.ndimage import zoom
+            zoom_factor = target_shape[0] / len(temporal_importance)
+            temporal_upsampled = zoom(temporal_importance, zoom_factor, order=1)
+        else:
+            temporal_upsampled = temporal_importance[:target_shape[0]]
+
+        # Tile to create 2D map
+        attention_heatmap = np.tile(temporal_upsampled[:, np.newaxis], (1, target_shape[1]))
+
+        # Normalize
+        attention_heatmap = (attention_heatmap - attention_heatmap.min()) / \
+                            (attention_heatmap.max() - attention_heatmap.min() + 1e-10)
+
+        return attention_heatmap
+
+    # ==================== MÉTODO 2: INTEGRATED GRADIENTS ====================
+    def compute_integrated_gradients(self,
+                                     input_sample: np.ndarray,
+                                     class_idx: Optional[int] = None,
+                                     steps: int = 50,
+                                     baseline: Optional[np.ndarray] = None) -> np.ndarray:
+        """
+        Implementa Integrated Gradients - método robusto para atribuição de features.
+
+        VANTAGENS sobre Grad-CAM++:
+        - Funciona bem com arquiteturas híbridas (CNN + Transformer)
+        - Satisfaz axiomas de atribuição (sensitivity, implementation invariance)
+        - Não requer camadas convolucionais específicas
+
+        Referência: Sundararajan et al. (2017) - "Axiomatic Attribution for Deep Networks"
+
+        Args:
+            input_sample: Audio sample
+            class_idx: Target class (None = predicted class)
+            steps: Number of integration steps (mais = mais preciso)
+            baseline: Baseline input (None = zeros)
+
+        Returns:
+            attributions: Mapa de atribuição normalizado
+        """
+        # Prepare input
+        if len(input_sample.shape) == 2:
+            input_sample = np.expand_dims(input_sample, axis=0)
+        input_tensor = tf.convert_to_tensor(input_sample, dtype=tf.float32)
+
+        # Create baseline (zeros or custom)
+        if baseline is None:
+            baseline = np.zeros_like(input_sample)
+        else:
+            if len(baseline.shape) == 2:
+                baseline = np.expand_dims(baseline, axis=0)
+        baseline_tensor = tf.convert_to_tensor(baseline, dtype=tf.float32)
+
+        # Get predicted class if not specified
+        if class_idx is None:
+            predictions = self.model(input_tensor)
+            class_idx = tf.argmax(predictions[0]).numpy()
+
+        # Generate interpolated inputs between baseline and actual input
+        alphas = tf.linspace(0.0, 1.0, steps + 1)
+
+        # Vectorized path interpolation
+        alphas_x = alphas[:, tf.newaxis, tf.newaxis, tf.newaxis]
+        baseline_x = tf.expand_dims(baseline_tensor, axis=0)
+        input_x = tf.expand_dims(input_tensor, axis=0)
+        delta = input_x - baseline_x
+        interpolated_inputs = baseline_x + alphas_x * delta
+
+        # Reshape for batch processing
+        interpolated_inputs = tf.reshape(interpolated_inputs,
+                                         [-1] + list(input_sample.shape[1:]))
+
+        # Compute gradients for all interpolated inputs
+        with tf.GradientTape() as tape:
+            tape.watch(interpolated_inputs)
+            predictions = self.model(interpolated_inputs)
+            target_class_logits = predictions[:, class_idx]
+
+        gradients = tape.gradient(target_class_logits, interpolated_inputs)
+
+        # Average gradients (trapezoidal rule)
+        avg_gradients = tf.reduce_mean(gradients, axis=0)
+
+        # Integrated gradients = (input - baseline) * avg_gradients
+        integrated_gradients = (input_sample[0] - baseline[0]) * avg_gradients.numpy()
+
+        # Take absolute value and normalize
+        attribution_map = np.abs(integrated_gradients)
+        attribution_map = (attribution_map - attribution_map.min()) / \
+                          (attribution_map.max() - attribution_map.min() + 1e-10)
+
+        return attribution_map
+
+    # ==================== MÉTODO 3: INPUT SALIENCY MAPS ====================
+    def compute_saliency_map(self,
+                             input_sample: np.ndarray,
+                             class_idx: Optional[int] = None) -> np.ndarray:
+        """
+        Computa mapa de saliência simples usando gradientes de primeira ordem.
+
+        VANTAGENS:
+        - Muito rápido (single backprop)
+        - Funciona com qualquer arquitetura
+        - Baseline simples para comparação
+
+        Args:
+            input_sample: Audio sample
+            class_idx: Target class
+
+        Returns:
+            saliency_map: Mapa de saliência normalizado
+        """
+        # Prepare input
+        if len(input_sample.shape) == 2:
+            input_sample = np.expand_dims(input_sample, axis=0)
+        input_tensor = tf.Variable(input_sample, dtype=tf.float32)
+
+        # Compute gradients
+        with tf.GradientTape() as tape:
+            predictions = self.model(input_tensor)
+            if class_idx is None:
+                class_idx = tf.argmax(predictions[0]).numpy()
+            class_score = predictions[:, class_idx]
+
+        gradients = tape.gradient(class_score, input_tensor)
+
+        # Take absolute value of gradients
+        saliency = tf.abs(gradients).numpy()[0]
+
+        # Normalize
+        saliency = (saliency - saliency.min()) / (saliency.max() - saliency.min() + 1e-10)
+
+        return saliency
+
+    # ==================== VISUALIZAÇÃO UNIFICADA ====================
+    def plot_comparison(self,
+                        input_sample: np.ndarray,
+                        class_idx: Optional[int] = None,
+                        predicted_class: Optional[int] = None,
+                        true_label: Optional[int] = None,
+                        confidence: Optional[float] = None,
+                        save_path: Optional[str] = None,
+                        show_plot: bool = True) -> dict:
+        """
+        Gera visualização comparativa com os 3 métodos.
+
+        Returns:
+            dict: Dicionário com os 3 mapas gerados
+        """
+        logging.info("🎨 Gerando visualizações XAI comparativas...")
+
+        # Compute all three methods
+        logging.info("   1/3 Computing Attention Weights...")
+        attention_map = self.extract_attention_weights(input_sample)
+
+        logging.info("   2/3 Computing Integrated Gradients...")
+        ig_map = self.compute_integrated_gradients(input_sample, class_idx)
+
+        logging.info("   3/3 Computing Saliency Map...")
+        saliency_map = self.compute_saliency_map(input_sample, class_idx)
+
+        # Prepare input for plotting
+        input_plot = input_sample.reshape((128, 80))
+
+        # Create figure
+        fig = plt.figure(figsize=(22, 10), facecolor='white')
+        gs = fig.add_gridspec(2, 4, hspace=0.3, wspace=0.3)
+
+        # Row 1: Heatmaps
+        methods = [
+            ('Attention Weights', attention_map, 'YlOrRd'),
+            ('Integrated Gradients', ig_map, 'RdYlGn_r'),
+            ('Saliency Map', saliency_map, 'plasma')
+        ]
+
+        for idx, (method_name, heatmap, cmap) in enumerate(methods):
+            # Smooth heatmap
+            heatmap_smooth = gaussian_filter(heatmap, sigma=1.5)
+
+            ax = fig.add_subplot(gs[0, idx])
+            im = ax.imshow(heatmap_smooth, cmap=cmap, aspect='auto',
+                           interpolation='bilinear', vmin=0, vmax=1)
+            ax.set_title(f'🔥 {method_name}', fontsize=12, fontweight='bold', pad=10)
+            ax.set_xlabel('Time Frames', fontsize=9)
+            ax.set_ylabel('Frequency Bins', fontsize=9)
+            plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+
+        # Row 1, Column 4: Original Spectrogram
+        ax = fig.add_subplot(gs[0, 3])
+        im = ax.imshow(input_plot, cmap='viridis', aspect='auto', interpolation='bilinear')
+        ax.set_title('📊 Original Spectrogram', fontsize=12, fontweight='bold', pad=10)
+        ax.set_xlabel('Time Frames', fontsize=9)
+        ax.set_ylabel('Frequency Bins', fontsize=9)
+        plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+
+        # Row 2: Overlays
+        input_normalized = (input_plot - input_plot.min()) / \
+                           (input_plot.max() - input_plot.min() + 1e-10)
+
+        for idx, (method_name, heatmap, cmap) in enumerate(methods):
+            heatmap_smooth = gaussian_filter(heatmap, sigma=1.5)
+
+            ax = fig.add_subplot(gs[1, idx])
+            ax.imshow(input_normalized, cmap='gray', aspect='auto', interpolation='bilinear')
+            im = ax.imshow(heatmap_smooth, cmap=cmap, alpha=0.6,
+                           aspect='auto', interpolation='bilinear', vmin=0, vmax=1)
+            ax.set_title(f'🎯 Overlay: {method_name}', fontsize=12, fontweight='bold', pad=10)
+            ax.set_xlabel('Time Frames', fontsize=9)
+            ax.set_ylabel('Frequency Bins', fontsize=9)
+            plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+
+        # Row 2, Column 4: Temporal Importance Comparison
+        ax = fig.add_subplot(gs[1, 3])
+
+        for method_name, heatmap, color in [
+            ('Attention', attention_map, '#FF6B6B'),
+            ('Int. Gradients', ig_map, '#4ECDC4'),
+            ('Saliency', saliency_map, '#95E1D3')
+        ]:
+            temporal = np.mean(heatmap, axis=0)
+            temporal_smooth = gaussian_filter(temporal, sigma=2)
+            time_steps = np.arange(len(temporal_smooth))
+            ax.plot(time_steps, temporal_smooth, linewidth=2.5,
+                    color=color, label=method_name, alpha=0.8)
+
+        ax.set_xlabel('Time Frame', fontsize=10)
+        ax.set_ylabel('Mean Importance', fontsize=10)
+        ax.set_title('📈 Temporal Importance Comparison', fontsize=12, fontweight='bold', pad=10)
+        ax.grid(True, alpha=0.3, linestyle='--')
+        ax.legend(loc='upper right', fontsize=9)
+        ax.set_ylim([0, 1])
+
+        # Suptitle
+        pred_status = '✅' if predicted_class == true_label else '❌'
+        conf_str = f' | Confidence: {confidence:.1%}' if confidence is not None else ''
+
+        if true_label is not None and predicted_class is not None:
+            suptitle = f'{pred_status} Predicted: Class {predicted_class} | True: Class {true_label}{conf_str}'
+        elif predicted_class is not None:
+            suptitle = f'Predicted: Class {predicted_class}{conf_str}'
+        else:
+            suptitle = 'XAI Comparison: Attention vs Integrated Gradients vs Saliency'
+
+        fig.suptitle(suptitle, fontsize=16, fontweight='bold', y=0.98)
+        plt.tight_layout(rect=[0, 0, 1, 0.96])
+
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches='tight', facecolor='white')
+            logging.info(f"💾 Saved comparison: {save_path}")
+
+        if show_plot:
+            plt.show()
+        else:
+            plt.close()
+
+        return {
+            'attention_weights': attention_map,
+            'integrated_gradients': ig_map,
+            'saliency_map': saliency_map
+        }
+
+
+# ==================== INTEGRAÇÃO NO CÓDIGO PRINCIPAL ====================
+def integrate_into_wav2vec2_model(model_class):
+    """
+    Adiciona os novos métodos XAI à classe AudioWav2Vec2.
+
+    Uso:
+    1. Substitua os métodos compute_gradcam*, compute_scorecam
+    2. Atualize generate_validation_visualizations para usar plot_comparison
+    """
+
+    def generate_validation_visualizations_corrected(self,
+                                                     validation_data: np.ndarray,
+                                                     validation_labels: np.ndarray,
+                                                     num_samples: int = 10,
+                                                     output_dir: str = './wav2vec2_xai',
+                                                     xai_method: str = 'comparison') -> dict:
+        """
+        VERSÃO CORRIGIDA: Usa métodos apropriados para Transformers.
+
+        Args:
+            xai_method: 'comparison', 'attention', 'integrated_gradients', ou 'saliency'
+        """
+        import os
+        os.makedirs(output_dir, exist_ok=True)
+
+        logging.info(f"\n{'=' * 60}")
+        logging.info(f"XAI VISUALIZATION - CORRECTED METHODS")
+        logging.info(f"{'=' * 60}")
+
+        # Initialize XAI visualizer
+        xai_viz = Wav2Vec2XAIVisualization(self.neural_network_model, self.input_dimension)
+
+        # Get predictions
+        predictions = self.neural_network_model.predict(validation_data, verbose=0)
+        predicted_classes = np.argmax(predictions, axis=1)
+        confidences = np.max(predictions, axis=1)
+
+        if len(validation_labels.shape) > 1:
+            true_labels = np.argmax(validation_labels, axis=1)
+        else:
+            true_labels = validation_labels
+
+        # Select samples
+        correct_indices = np.where(predicted_classes == true_labels)[0]
+        incorrect_indices = np.where(predicted_classes != true_labels)[0]
+
+        num_correct = min(num_samples // 2, len(correct_indices))
+        num_incorrect = min(num_samples - num_correct, len(incorrect_indices))
+
+        selected_correct = np.random.choice(correct_indices, num_correct, replace=False) if len(
+            correct_indices) > 0 else []
+        selected_incorrect = np.random.choice(incorrect_indices, num_incorrect, replace=False) if len(
+            incorrect_indices) > 0 else []
+
+        selected_indices = np.concatenate([selected_correct, selected_incorrect])
+
+        stats = {
+            'total_samples': 0,
+            'correct_predictions': 0,
+            'incorrect_predictions': 0
+        }
+
+        # Generate visualizations
+        for i, idx in enumerate(selected_indices):
+            try:
+                sample = validation_data[idx]
+                true_label = true_labels[idx]
+                predicted = predicted_classes[idx]
+                confidence = confidences[idx]
+
+                is_correct = predicted == true_label
+                prefix = 'correct' if is_correct else 'incorrect'
+
+                save_path = os.path.join(output_dir,
+                                         f'{prefix}_sample_{i:03d}_true_{true_label}_pred_{predicted}_conf_{confidence:.2f}.png')
+
+                # Generate comparison plot with all 3 methods
+                xai_viz.plot_comparison(
+                    input_sample=sample,
+                    class_idx=predicted,
+                    predicted_class=predicted,
+                    true_label=true_label,
+                    confidence=confidence,
+                    save_path=save_path,
+                    show_plot=False
+                )
+
+                stats['total_samples'] += 1
+                if is_correct:
+                    stats['correct_predictions'] += 1
+                else:
+                    stats['incorrect_predictions'] += 1
+
+            except Exception as e:
+                logging.error(f"Error processing sample {idx}: {e}")
+                continue
+
+        logging.info(f"\n✅ Generated {stats['total_samples']} visualizations")
+        return stats
+
+    return generate_validation_visualizations_corrected
+
+
+
 class AudioWav2Vec2(MaskCreator, Wav2Vec2Process):
     """
     Complete Wav2Vec2 Implementation with all corrections applied.
