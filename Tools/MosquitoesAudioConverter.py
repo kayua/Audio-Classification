@@ -100,8 +100,8 @@ except ImportError as e:
     exit(1)
 warnings.filterwarnings('ignore')
 
-EXCEL_FILE = "../Todas_Gravacoes.xlsx"  # Your Excel file
-DATASET_FOLDER = "Datasets"  # Folder with audio files
+EXCEL_FILE = "./Todas_Gravacoes.xlsx"  # Your Excel file
+DATASET_FOLDER = "./Datasets/Mosquitoes_Dataset/"  # Folder with audio files
 OUTPUT_FOLDER = "Organized_Mosquito_Audio"  # Output folder
 
 
