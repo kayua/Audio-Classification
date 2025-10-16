@@ -105,7 +105,7 @@ DATASET_FOLDER = "Datasets"  # Folder with audio files
 OUTPUT_FOLDER = "Organized_Mosquito_Audio"  # Output folder
 
 
-class MosquitoAudioOrganizer:
+class MosquitoesAudioOrganizer:
     """
     Main class for organizing and processing mosquito audio recordings.
 
@@ -689,7 +689,7 @@ class MosquitoAudioOrganizer:
             Folder label (Male, Female, Male-Female, or Both)
         """
         # Parse multiple values
-        sex_list = MosquitoAudioOrganizer.parse_multiple_values(sex_values)
+        sex_list = MosquitoesAudioOrganizer.parse_multiple_values(sex_values)
 
         if not sex_list:
             return 'Unknown'
@@ -732,7 +732,7 @@ class MosquitoAudioOrganizer:
             Folder label for species
         """
         # Parse multiple values
-        species_list = MosquitoAudioOrganizer.parse_multiple_values(species_values)
+        species_list = MosquitoesAudioOrganizer.parse_multiple_values(species_values)
 
         if not species_list:
             return 'Unknown_Species'
@@ -1367,7 +1367,7 @@ def main():
     """
 
     # Create organizer instance
-    organizer = MosquitoAudioOrganizer(
+    organizer = MosquitoesAudioOrganizer(
         excel_path=EXCEL_FILE,
         dataset_path=DATASET_FOLDER,
         output_path=OUTPUT_FOLDER
