@@ -3,9 +3,9 @@
 
 __author__ = 'Kayuã Oleques Paim'
 __email__ = 'kayuaolequesp@gmail.com.br'
-__version__ = '{1}.{0}.{0}'
+__version__ = '{1}.{0}.{1}'
 __initial_data__ = '2025/04/1'
-__last_update__ = '2025/04/1'
+__last_update__ = '2025/10/16'
 __credits__ = ['unknown']
 
 # MIT License
@@ -32,12 +32,10 @@ __credits__ = ['unknown']
 
 
 """
-Environment Noise Dataset Downloader and Processor
-===================================================
-This script downloads and processes three environmental sound datasets:
+ESC-50 Environmental Sound Dataset Downloader and Processor
+============================================================
+This script downloads and processes the ESC-50 environmental sound dataset:
 - ESC-50 (50 classes, 2000 clips)
-- UrbanSound8K (10 classes, 8732 clips)
-- DESED (10 classes, domestic environment sounds)
 
 Hierarchy: Dataset -> Class -> [sounds, spectrograms, histograms]
 Processing: Format conversion -> Low-pass filter -> Resampling to 8kHz
@@ -52,7 +50,7 @@ Features:
     - Progress tracking with tqdm
 
 Dependencies:
-    pip install librosa soundfile scipy numpy pandas openpyxl tqdm matplotlib requests zenodo_get
+    pip install librosa soundfile scipy numpy pandas openpyxl tqdm matplotlib requests
 
     For audio format support:
     - Ubuntu/Debian: sudo apt-get install ffmpeg
@@ -68,12 +66,10 @@ import logging
 import warnings
 import requests
 import zipfile
-import tarfile
 from pathlib import Path
 from typing import Dict, List, Tuple
 from datetime import datetime
 from collections import defaultdict
-from urllib.request import urlretrieve
 
 import numpy as np
 import pandas as pd
@@ -90,14 +86,14 @@ import matplotlib.pyplot as plt
 warnings.filterwarnings('ignore')
 
 # Configuration
-OUTPUT_FOLDER = "Environment_Noise"  # Main output folder
+OUTPUT_FOLDER = "ESC50_Processed"  # Main output folder
 DOWNLOAD_FOLDER = "downloads"  # Temporary download folder
 TARGET_SR = 8000  # Target sampling rate
 CUTOFF_FREQ = 4000  # Low-pass filter cutoff
 
 
 class DatasetDownloader:
-    """Handles downloading and extracting datasets."""
+    """Handles downloading and extracting ESC-50 dataset."""
 
     def __init__(self, download_path: Path):
         self.download_path = download_path
@@ -146,13 +142,6 @@ class DatasetDownloader:
             zip_ref.extractall(extract_to)
         self.logger.info(f"Extracted to {extract_to}")
 
-    def extract_tar(self, tar_path: Path, extract_to: Path):
-        """Extract TAR/TGZ file."""
-        self.logger.info(f"Extracting {tar_path.name}...")
-        with tarfile.open(tar_path, 'r:*') as tar_ref:
-            tar_ref.extractall(extract_to)
-        self.logger.info(f"Extracted to {extract_to}")
-
     def download_esc50(self) -> Path:
         """Download ESC-50 dataset."""
         self.logger.info("=" * 70)
@@ -176,46 +165,9 @@ class DatasetDownloader:
 
         return extract_path
 
-    def download_urbansound8k(self) -> Path:
-        """
-        Download UrbanSound8K dataset.
-        Note: UrbanSound8K requires manual download from the website.
-        """
-        self.logger.info("=" * 70)
-        self.logger.info("UrbanSound8K Dataset")
-        self.logger.info("=" * 70)
 
-        self.logger.warning("UrbanSound8K requires manual download!")
-        self.logger.warning("Please download from: https://urbansounddataset.weebly.com/urbansound8k.html")
-        self.logger.warning("After downloading, extract to: downloads/UrbanSound8K/")
-
-        extract_path = self.download_path / "UrbanSound8K"
-
-        if not extract_path.exists():
-            self.logger.error("UrbanSound8K not found. Please download manually.")
-            self.logger.info("Continuing without UrbanSound8K...")
-            return None
-
-        return extract_path
-
-    def download_desed(self) -> Path:
-        """
-        Download DESED dataset (synthetic subset for simplicity).
-        Note: Full DESED requires Zenodo and more complex setup.
-        """
-        self.logger.info("=" * 70)
-        self.logger.info("DESED Dataset")
-        self.logger.info("=" * 70)
-
-        self.logger.warning("DESED requires manual setup from: https://project.inria.fr/desed/")
-        self.logger.warning("For this script, we'll use a subset or skip DESED")
-        self.logger.info("Continuing without DESED...")
-
-        return None
-
-
-class EnvironmentNoiseProcessor:
-    """Process environmental sound datasets."""
+class ESC50Processor:
+    """Process ESC-50 environmental sound dataset."""
 
     def __init__(self, output_path: str):
         self.output_path = Path(output_path)
@@ -237,11 +189,6 @@ class EnvironmentNoiseProcessor:
         # Detailed statistics
         self.detailed_stats = {
             'audio_metrics': [],
-            'by_dataset': defaultdict(lambda: {
-                'count': 0,
-                'total_duration': 0,
-                'classes': defaultdict(int)
-            }),
             'by_class': defaultdict(lambda: {
                 'count': 0,
                 'total_duration': 0,
@@ -259,13 +206,13 @@ class EnvironmentNoiseProcessor:
             level=logging.INFO,
             format=log_format,
             handlers=[
-                logging.FileHandler('environment_noise_processing.log'),
+                logging.FileHandler('esc50_processing.log'),
                 logging.StreamHandler()
             ]
         )
         self.logger = logging.getLogger(__name__)
         self.logger.info("=" * 70)
-        self.logger.info("Environment Noise Processor - Starting")
+        self.logger.info("ESC-50 Processor - Starting")
         self.logger.info("=" * 70)
 
     def apply_lowpass_filter(self, audio: np.ndarray, sr: int) -> np.ndarray:
@@ -418,11 +365,11 @@ class EnvironmentNoiseProcessor:
             plt.close('all')
             return False
 
-    def process_audio_file(self, input_path: Path, dataset_name: str, class_name: str, file_id: str):
+    def process_audio_file(self, input_path: Path, class_name: str, file_id: str):
         """Process a single audio file."""
         try:
             # Create folder structure
-            class_folder = self.output_path / dataset_name / class_name
+            class_folder = self.output_path / class_name
             sounds_folder = class_folder / 'sounds'
             spectrograms_folder = class_folder / 'spectrograms'
             histograms_folder = class_folder / 'histograms'
@@ -475,16 +422,12 @@ class EnvironmentNoiseProcessor:
             # Collect statistics
             metrics = self.calculate_audio_metrics(processed_audio, self.target_sr)
             metrics['file_id'] = file_id
-            metrics['dataset'] = dataset_name
             metrics['class'] = class_name
             metrics['original_sample_rate'] = original_sr
             metrics['original_file_size_bytes'] = input_path.stat().st_size
             metrics['processed_file_size_bytes'] = audio_output.stat().st_size if audio_output.exists() else 0
 
             self.detailed_stats['audio_metrics'].append(metrics)
-            self.detailed_stats['by_dataset'][dataset_name]['count'] += 1
-            self.detailed_stats['by_dataset'][dataset_name]['total_duration'] += metrics['duration_seconds']
-            self.detailed_stats['by_dataset'][dataset_name]['classes'][class_name] += 1
 
             self.detailed_stats['by_class'][class_name]['count'] += 1
             self.detailed_stats['by_class'][class_name]['total_duration'] += metrics['duration_seconds']
@@ -524,36 +467,7 @@ class EnvironmentNoiseProcessor:
 
             if audio_file.exists():
                 self.stats['total_files'] += 1
-                self.process_audio_file(audio_file, 'ESC-50', category, filename)
-
-    def process_urbansound8k(self, us8k_path: Path):
-        """Process UrbanSound8K dataset."""
-        self.logger.info("=" * 70)
-        self.logger.info("Processing UrbanSound8K Dataset")
-        self.logger.info("=" * 70)
-
-        audio_path = us8k_path / 'audio'
-        meta_path = us8k_path / 'metadata' / 'UrbanSound8K.csv'
-
-        if not audio_path.exists() or not meta_path.exists():
-            self.logger.error("UrbanSound8K structure not found")
-            return
-
-        # Load metadata
-        meta_df = pd.read_csv(meta_path)
-
-        self.logger.info(f"Found {len(meta_df)} files in UrbanSound8K")
-
-        for _, row in tqdm(meta_df.iterrows(), total=len(meta_df), desc="Processing UrbanSound8K"):
-            filename = row['slice_file_name']
-            fold = f"fold{row['fold']}"
-            class_name = row['class']
-
-            audio_file = audio_path / fold / filename
-
-            if audio_file.exists():
-                self.stats['total_files'] += 1
-                self.process_audio_file(audio_file, 'UrbanSound8K', class_name, filename)
+                self.process_audio_file(audio_file, category, filename)
 
     def generate_statistics_report(self):
         """Generate comprehensive statistics report."""
@@ -590,17 +504,8 @@ class EnvironmentNoiseProcessor:
                 'min_duration_seconds': float(df['duration_seconds'].min()),
                 'max_duration_seconds': float(df['duration_seconds'].max())
             },
-            'statistics_by_dataset': {},
             'statistics_by_class': {}
         }
-
-        # By dataset
-        for dataset, data in self.detailed_stats['by_dataset'].items():
-            summary['statistics_by_dataset'][dataset] = {
-                'count': data['count'],
-                'total_duration_hours': data['total_duration'] / 3600,
-                'classes': dict(data['classes'])
-            }
 
         # By class
         for class_name, data in self.detailed_stats['by_class'].items():
@@ -638,48 +543,41 @@ class EnvironmentNoiseProcessor:
 def main():
     """Main entry point."""
     print("=" * 70)
-    print("Environment Noise Dataset Processor")
+    print("ESC-50 Dataset Processor")
     print("=" * 70)
 
-    # Step 1: Download datasets
+    # Step 1: Download ESC-50
     downloader = DatasetDownloader(Path(DOWNLOAD_FOLDER))
 
-    print("\n[1/4] Downloading datasets...")
+    print("\n[1/3] Downloading ESC-50 dataset...")
     esc50_path = downloader.download_esc50()
-    us8k_path = downloader.download_urbansound8k()
 
-    # Step 2: Process datasets
-    print("\n[2/4] Processing audio files...")
-    processor = EnvironmentNoiseProcessor(OUTPUT_FOLDER)
+    # Step 2: Process ESC-50
+    print("\n[2/3] Processing audio files...")
+    processor = ESC50Processor(OUTPUT_FOLDER)
 
     if esc50_path and esc50_path.exists():
         processor.process_esc50(esc50_path)
-
-    if us8k_path and us8k_path.exists():
-        processor.process_urbansound8k(us8k_path)
+    else:
+        print("ERROR: ESC-50 dataset not found!")
+        return
 
     # Step 3: Generate statistics
-    print("\n[3/4] Generating statistics...")
+    print("\n[3/3] Generating statistics...")
     processor.generate_statistics_report()
 
-    # Step 4: Done
-    print("\n[4/4] Processing complete!")
+    # Done
+    print("\nProcessing complete!")
     print(f"Output folder: {OUTPUT_FOLDER}")
     print("\nGenerated files:")
     print(f"  - {OUTPUT_FOLDER}/statistics_report.json")
     print(f"  - {OUTPUT_FOLDER}/detailed_audio_metrics.csv")
     print("\nFolder structure:")
     print(f"  {OUTPUT_FOLDER}/")
-    print(f"    ├── ESC-50/")
-    print(f"    │   └── [class_name]/")
-    print(f"    │       ├── sounds/")
-    print(f"    │       ├── spectrograms/")
-    print(f"    │       └── histograms/")
-    print(f"    └── UrbanSound8K/")
-    print(f"        └── [class_name]/")
-    print(f"            ├── sounds/")
-    print(f"            ├── spectrograms/")
-    print(f"            └── histograms/")
+    print(f"    └── [class_name]/")
+    print(f"        ├── sounds/")
+    print(f"        ├── spectrograms/")
+    print(f"        └── histograms/")
 
 
 if __name__ == "__main__":
