@@ -206,7 +206,7 @@ class ESC50Processor:
             level=logging.INFO,
             format=log_format,
             handlers=[
-                logging.FileHandler('esc50_processing.log'),
+                logging.FileHandler('../esc50_processing.log'),
                 logging.StreamHandler()
             ]
         )

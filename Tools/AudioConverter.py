@@ -100,7 +100,7 @@ except ImportError as e:
     exit(1)
 warnings.filterwarnings('ignore')
 
-EXCEL_FILE = "Todas_Gravacoes.xlsx"  # Your Excel file
+EXCEL_FILE = "../Todas_Gravacoes.xlsx"  # Your Excel file
 DATASET_FOLDER = "Datasets"  # Folder with audio files
 OUTPUT_FOLDER = "Organized_Mosquito_Audio"  # Output folder
 
@@ -178,7 +178,7 @@ class MosquitoAudioOrganizer:
             level=logging.INFO,
             format=log_format,
             handlers=[
-                logging.FileHandler('mosquito_audio_processing.log'),
+                logging.FileHandler('../mosquito_audio_processing.log'),
                 logging.StreamHandler()
             ]
         )
