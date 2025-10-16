@@ -1,0 +1,303 @@
+2025-10-12 16:10:37,979	***	Command:
+	main.py --number_epochs 1
+
+2025-10-12 16:10:37,979	***	Settings:
+2025-10-12 16:10:37,979	***		ast_decibel_scale_factor                 : 80
+2025-10-12 16:10:37,979	***		ast_dropout                              : 0.2
+2025-10-12 16:10:37,979	***		ast_head_size                            : 64
+2025-10-12 16:10:37,979	***		ast_hop_length                           : 512
+2025-10-12 16:10:37,979	***		ast_intermediary_activation              : relu
+2025-10-12 16:10:37,979	***		ast_last_activation_layer                : softmax
+2025-10-12 16:10:37,979	***		ast_loss_function                        : sparse_categorical_crossentropy
+2025-10-12 16:10:37,979	***		ast_normalization_epsilon                : 1e-06
+2025-10-12 16:10:37,979	***		ast_number_blocks                        : 2
+2025-10-12 16:10:37,979	***		ast_number_filters_spectrogram           : 512
+2025-10-12 16:10:37,979	***		ast_number_heads                         : 2
+2025-10-12 16:10:37,979	***		ast_optimizer_function                   : adam
+2025-10-12 16:10:37,979	***		ast_overlap                              : 1
+2025-10-12 16:10:37,979	***		ast_patch_size                           : (16, 16)
+2025-10-12 16:10:37,979	***		ast_projection_dimension                 : 16
+2025-10-12 16:10:37,979	***		ast_size_fft                             : 1024
+2025-10-12 16:10:37,979	***		ast_window_size_factor                   : 40
+2025-10-12 16:10:37,980	***		ast_window_size_fft                      : 1024
+2025-10-12 16:10:37,980	***		batch_size                               : 32
+2025-10-12 16:10:37,980	***		comparative_metrics_bar_width            : 0.2
+2025-10-12 16:10:37,980	***		comparative_metrics_caption_size         : 10
+2025-10-12 16:10:37,980	***		comparative_metrics_figure_height        : 8
+2025-10-12 16:10:37,980	***		comparative_metrics_figure_width         : 12
+2025-10-12 16:10:37,980	***		comparative_metrics_show_plot            : False
+2025-10-12 16:10:37,980	***		conformer_decibel_scale_factor           : 80
+2025-10-12 16:10:37,980	***		conformer_dropout_rate                   : 0.2
+2025-10-12 16:10:37,980	***		conformer_embedding_dimension            : 64
+2025-10-12 16:10:37,980	***		conformer_hop_length                     : 256
+2025-10-12 16:10:37,980	***		conformer_input_dimension                : (80, 40)
+2025-10-12 16:10:37,980	***		conformer_last_layer_activation          : softmax
+2025-10-12 16:10:37,980	***		conformer_loss_function                  : sparse_categorical_crossentropy
+2025-10-12 16:10:37,980	***		conformer_number_conformer_blocks        : 4
+2025-10-12 16:10:37,980	***		conformer_number_filters_spectrogram     : 80
+2025-10-12 16:10:37,980	***		conformer_number_heads                   : 4
+2025-10-12 16:10:37,980	***		conformer_optimizer_function             : adam
+2025-10-12 16:10:37,980	***		conformer_overlap                        : 1
+2025-10-12 16:10:37,980	***		conformer_size_kernel                    : 3
+2025-10-12 16:10:37,980	***		conformer_window_size                    : 1024
+2025-10-12 16:10:37,980	***		conformer_window_size_factor             : 40
+2025-10-12 16:10:37,980	***		confusion_matrix_annot_font_size         : 10
+2025-10-12 16:10:37,980	***		confusion_matrix_annot_kws               : None
+2025-10-12 16:10:37,980	***		confusion_matrix_color_bar               : True
+2025-10-12 16:10:37,980	***		confusion_matrix_color_map               : Blues
+2025-10-12 16:10:37,980	***		confusion_matrix_figure_size             : (5, 5)
+2025-10-12 16:10:37,980	***		confusion_matrix_fmt                     : d
+2025-10-12 16:10:37,980	***		confusion_matrix_label_font_size         : 12
+2025-10-12 16:10:37,981	***		confusion_matrix_rotation                : 45
+2025-10-12 16:10:37,981	***		confusion_matrix_show_plot               : False
+2025-10-12 16:10:37,981	***		confusion_matrix_title_font_size         : 14
+2025-10-12 16:10:37,981	***		dataset_directory                        : Dataset/
+2025-10-12 16:10:37,981	***		file_extension                           : *.wav
+2025-10-12 16:10:37,981	***		loss                                     : sparse_categorical_crossentropy
+2025-10-12 16:10:37,981	***		loss_curve_axis_font_size                : 12
+2025-10-12 16:10:37,981	***		loss_curve_figure_size                   : (10, 6)
+2025-10-12 16:10:37,981	***		loss_curve_grid                          : True
+2025-10-12 16:10:37,981	***		loss_curve_legend_font_size              : 10
+2025-10-12 16:10:37,981	***		loss_curve_line_style_training           : -
+2025-10-12 16:10:37,981	***		loss_curve_line_style_validation         : --
+2025-10-12 16:10:37,981	***		loss_curve_line_width                    : 2
+2025-10-12 16:10:37,981	***		loss_curve_title                         : Loss Graph
+2025-10-12 16:10:37,981	***		loss_curve_title_font_size               : 16
+2025-10-12 16:10:37,981	***		loss_curve_training_loss_color           : blue
+2025-10-12 16:10:37,981	***		loss_curve_validation_loss_color         : orange
+2025-10-12 16:10:37,981	***		loss_curve_x_label                       : Epochs
+2025-10-12 16:10:37,981	***		loss_curve_y_label                       : Loss
+2025-10-12 16:10:37,981	***		lstm_decibel_scale_factor                : 80
+2025-10-12 16:10:37,981	***		lstm_dropout_rate                        : 0.1
+2025-10-12 16:10:37,981	***		lstm_hop_length                          : 256
+2025-10-12 16:10:37,981	***		lstm_input_dimension                     : (40, 256)
+2025-10-12 16:10:37,981	***		lstm_intermediary_layer_activation       : tanh
+2025-10-12 16:10:37,981	***		lstm_last_layer_activation               : softmax
+2025-10-12 16:10:37,981	***		lstm_list_lstm_cells                     : [128, 129]
+2025-10-12 16:10:37,981	***		lstm_loss_function                       : sparse_categorical_crossentropy
+2025-10-12 16:10:37,981	***		lstm_optimizer_function                  : adam
+2025-10-12 16:10:37,981	***		lstm_overlap                             : 1
+2025-10-12 16:10:37,981	***		lstm_recurrent_activation                : sigmoid
+2025-10-12 16:10:37,982	***		lstm_window_size                         : 1024
+2025-10-12 16:10:37,982	***		lstm_window_size_factor                  : 40
+2025-10-12 16:10:37,982	***		mlp_decibel_scale_factor                 : 80
+2025-10-12 16:10:37,982	***		mlp_dropout_rate                         : 0.1
+2025-10-12 16:10:37,982	***		mlp_hop_length                           : 256
+2025-10-12 16:10:37,982	***		mlp_input_dimension                      : (40, 256)
+2025-10-12 16:10:37,982	***		mlp_intermediary_layer_activation        : relu
+2025-10-12 16:10:37,982	***		mlp_last_layer_activation                : softmax
+2025-10-12 16:10:37,982	***		mlp_list_dense_neurons                   : [128, 129]
+2025-10-12 16:10:37,982	***		mlp_loss_function                        : sparse_categorical_crossentropy
+2025-10-12 16:10:37,982	***		mlp_optimizer_function                   : adam
+2025-10-12 16:10:37,982	***		mlp_overlap                              : 1
+2025-10-12 16:10:37,982	***		mlp_window_size                          : 1024
+2025-10-12 16:10:37,982	***		mlp_window_size_factor                   : 40
+2025-10-12 16:10:37,982	***		number_classes                           : 4
+2025-10-12 16:10:37,982	***		number_epochs                            : 1
+2025-10-12 16:10:37,982	***		number_splits                            : 5
+2025-10-12 16:10:37,982	***		output_directory                         : Results/
+2025-10-12 16:10:37,982	***		overlap                                  : 2
+2025-10-12 16:10:37,982	***		plot_bar_width                           : 0.15
+2025-10-12 16:10:37,982	***		plot_cap_size                            : 10
+2025-10-12 16:10:37,982	***		plot_height                              : 8
+2025-10-12 16:10:37,982	***		plot_width                               : 14
+2025-10-12 16:10:37,982	***		residual_convolutional_padding           : same
+2025-10-12 16:10:37,982	***		residual_decibel_scale_factor            : 80
+2025-10-12 16:10:37,982	***		residual_dropout_rate                    : 0.1
+2025-10-12 16:10:37,982	***		residual_filters_per_block               : [16, 32, 64, 96]
+2025-10-12 16:10:37,982	***		residual_hop_length                      : 256
+2025-10-12 16:10:37,982	***		residual_input_dimension                 : (513, 40, 1)
+2025-10-12 16:10:37,982	***		residual_intermediary_activation         : relu
+2025-10-12 16:10:37,982	***		residual_last_layer_activation           : softmax
+2025-10-12 16:10:37,983	***		residual_loss_function                   : sparse_categorical_crossentropy
+2025-10-12 16:10:37,983	***		residual_number_filters_spectrogram      : 512
+2025-10-12 16:10:37,983	***		residual_number_layers                   : 4
+2025-10-12 16:10:37,983	***		residual_optimizer_function              : adam
+2025-10-12 16:10:37,983	***		residual_overlap                         : 1
+2025-10-12 16:10:37,983	***		residual_size_convolutional_filters      : (3, 3)
+2025-10-12 16:10:37,983	***		residual_size_pooling                    : (2, 2)
+2025-10-12 16:10:37,983	***		residual_window_size                     : 1024
+2025-10-12 16:10:37,983	***		residual_window_size_factor              : 40
+2025-10-12 16:10:37,983	***		roc_curve_axis_label_font_size           : 12
+2025-10-12 16:10:37,983	***		roc_curve_color_map                      : magma
+2025-10-12 16:10:37,983	***		roc_curve_diagonal_line                  : True
+2025-10-12 16:10:37,983	***		roc_curve_figure_size                    : (8, 6)
+2025-10-12 16:10:37,983	***		roc_curve_grid                           : True
+2025-10-12 16:10:37,983	***		roc_curve_legend_font_size               : 10
+2025-10-12 16:10:37,983	***		roc_curve_line_width                     : 2
+2025-10-12 16:10:37,983	***		roc_curve_marker_style                   : 
+2025-10-12 16:10:37,983	***		roc_curve_show_plot                      : False
+2025-10-12 16:10:37,983	***		roc_curve_title_font_size                : 14
+2025-10-12 16:10:37,983	***		sample_rate                              : 8000
+2025-10-12 16:10:37,983	***		verbosity                                : 20
+2025-10-12 16:10:37,983	***		wav_to_vec_context_dimension             : 16
+2025-10-12 16:10:37,983	***		wav_to_vec_decibel_scale_factor          : 80
+2025-10-12 16:10:37,983	***		wav_to_vec_dropout_rate                  : 0.1
+2025-10-12 16:10:37,983	***		wav_to_vec_hop_length                    : 256
+2025-10-12 16:10:37,983	***		wav_to_vec_input_dimension               : (10240,)
+2025-10-12 16:10:37,983	***		wav_to_vec_intermediary_layer_activation : relu
+2025-10-12 16:10:37,983	***		wav_to_vec_kernel_size                   : 3
+2025-10-12 16:10:37,983	***		wav_to_vec_key_dimension                 : 16
+2025-10-12 16:10:37,983	***		wav_to_vec_last_layer_activation         : softmax
+2025-10-12 16:10:37,983	***		wav_to_vec_list_filters_encoder          : [8, 16, 32]
+2025-10-12 16:10:37,983	***		wav_to_vec_loss_function                 : sparse_categorical_crossentropy
+2025-10-12 16:10:37,984	***		wav_to_vec_number_heads                  : 2
+2025-10-12 16:10:37,984	***		wav_to_vec_optimizer_function            : adam
+2025-10-12 16:10:37,984	***		wav_to_vec_overlap                       : 1
+2025-10-12 16:10:37,984	***		wav_to_vec_projection_mlp_dimension      : 128
+2025-10-12 16:10:37,984	***		wav_to_vec_quantization_bits             : 8
+2025-10-12 16:10:37,984	***		wav_to_vec_window_size                   : 1024
+2025-10-12 16:10:37,984	***		wav_to_vec_window_size_factor            : 40
+2025-10-12 16:10:37,984	***	
+2025-10-12 16:10:37,984	***	Starting the training and evaluation process.
+2025-10-12 16:10:37,984	***	Starting the training and evaluation process.
+2025-10-12 16:10:37,984	***	Starting training for model ResidualModel.
+2025-10-12 16:10:37,984	***	Starting training for model ResidualModel.
+2025-10-12 16:10:37,984	***	Instantiated model class 'ResidualModel'.
+2025-10-12 16:10:37,984	***	Instantiated model class 'ResidualModel'.
+2025-10-12 16:10:38,678	***	Starting data loading process.
+2025-10-12 16:10:38,678	***	Starting data loading process.
+2025-10-12 16:10:38,678	***	Reading subdirectories in 'Dataset/'...
+2025-10-12 16:10:38,678	***	Reading subdirectories in 'Dataset/'...
+2025-10-12 16:10:38,678	***	Processing directory: Dataset/2
+2025-10-12 16:10:38,678	***	Processing directory: Dataset/2
+2025-10-12 16:10:43,714	***	Processing directory: Dataset/1
+2025-10-12 16:10:43,714	***	Processing directory: Dataset/1
+2025-10-12 16:10:47,910	***	Processing directory: Dataset/3
+2025-10-12 16:10:47,910	***	Processing directory: Dataset/3
+2025-10-12 16:10:52,149	***	Processing directory: Dataset/0
+2025-10-12 16:10:52,149	***	Processing directory: Dataset/0
+2025-10-12 16:10:55,054	***	Reshaping feature array.
+2025-10-12 16:10:55,054	***	Reshaping feature array.
+2025-10-12 16:10:55,144	***	Data loading complete.
+2025-10-12 16:10:55,144	***	Data loading complete.
+2025-10-12 16:11:04,467	***	Error during training of model 'ResidualModel': Graph execution error:
+
+Detected at node StatefulPartitionedCall defined at (most recent call last):
+  File "/home/kayua/PycharmProjects/Mosquitoes-Classification-Models/main.py", line 262, in <module>
+
+  File "/home/kayua/PycharmProjects/Mosquitoes-Classification-Models/main.py", line 178, in __exec__
+
+  File "/home/kayua/PycharmProjects/Mosquitoes-Classification-Models/main.py", line 147, in train_and_collect_metrics
+
+  File "/home/kayua/PycharmProjects/Mosquitoes-Classification-Models/Engine/Models/Process/Residual_Process.py", line 173, in train
+
+  File "/home/kayua/PycharmProjects/Mosquitoes-Classification-Models/Engine/Models/ResidualModel.py", line 250, in compile_and_train
+
+  File "/home/kayua/.local/lib/python3.12/site-packages/keras/src/utils/traceback_utils.py", line 117, in error_handler
+
+  File "/home/kayua/.local/lib/python3.12/site-packages/keras/src/backend/tensorflow/trainer.py", line 377, in fit
+
+  File "/home/kayua/.local/lib/python3.12/site-packages/keras/src/backend/tensorflow/trainer.py", line 220, in function
+
+  File "/home/kayua/.local/lib/python3.12/site-packages/keras/src/backend/tensorflow/trainer.py", line 133, in multi_step_on_iterator
+
+No PTX compilation provider is available. Neither ptxas/nvlink nor nvjtlink is available. As a fallback you can enable JIT compilation in the CUDA driver via the flag `--xla_gpu_unsafe_fallback_to_driver_on_ptxas_not_found`. Details: 
+ - Has NvJitLink support: LibNvJitLink is not supported (disabled during compilation).
+ - Has NvPtxCompiler support: LibNvPtxCompiler is not supported (disabled during compilation).
+ - Parallel compilation support is desired: 0
+ - ptxas_path: Couldn't find a suitable version of ptxas. The following locations were considered: ./cuda_sdk_lib/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /home/kayua/miniconda3/envs/MosquitoesTest/bin/ptxas, /home/kayua/miniconda3/condabin/ptxas, /home/kayua/.juliaup/bin/ptxas, /home/kayua/.local/bin/ptxas, /usr/local/sbin/ptxas, /usr/local/bin/ptxas, /usr/sbin/ptxas, /usr/bin/ptxas, /sbin/ptxas, /bin/ptxas, /usr/games/ptxas, /usr/local/games/ptxas, /snap/bin/ptxas, /snap/bin/ptxas, /home/kayua/.local/share/JetBrains/Toolbox/scripts/ptxas, main.py.runfiles/cuda_nvcc/bin/ptxas, main.py/cuda_nvcc/bin/ptxas, bin/ptxas, /usr/local/cuda/bin/ptxas, /opt/cuda/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../nvidia/cuda_nvcc/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../nvidia/cuda_nvcc/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../cuda/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../../bin/ptxas
+ - ptxas_version: Couldn't find a suitable version of ptxas. The following locations were considered: ./cuda_sdk_lib/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /home/kayua/miniconda3/envs/MosquitoesTest/bin/ptxas, /home/kayua/miniconda3/condabin/ptxas, /home/kayua/.juliaup/bin/ptxas, /home/kayua/.local/bin/ptxas, /usr/local/sbin/ptxas, /usr/local/bin/ptxas, /usr/sbin/ptxas, /usr/bin/ptxas, /sbin/ptxas, /bin/ptxas, /usr/games/ptxas, /usr/local/games/ptxas, /snap/bin/ptxas, /snap/bin/ptxas, /home/kayua/.local/share/JetBrains/Toolbox/scripts/ptxas, main.py.runfiles/cuda_nvcc/bin/ptxas, main.py/cuda_nvcc/bin/ptxas, bin/ptxas, /usr/local/cuda/bin/ptxas, /opt/cuda/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../nvidia/cuda_nvcc/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../nvidia/cuda_nvcc/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../cuda/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../../bin/ptxas
+ - nvlink_path: Couldn't find a suitable version of nvlink. The following locations were considered: ./cuda_sdk_lib/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /home/kayua/miniconda3/envs/MosquitoesTest/bin/nvlink, /home/kayua/miniconda3/condabin/nvlink, /home/kayua/.juliaup/bin/nvlink, /home/kayua/.local/bin/nvlink, /usr/local/sbin/nvlink, /usr/local/bin/nvlink, /usr/sbin/nvlink, /usr/bin/nvlink, /sbin/nvlink, /bin/nvlink, /usr/games/nvlink, /usr/local/games/nvlink, /snap/bin/nvlink, /snap/bin/nvlink, /home/kayua/.local/share/JetBrains/Toolbox/scripts/nvlink, main.py.runfiles/cuda_nvcc/bin/nvlink, main.py/cuda_nvcc/bin/nvlink, bin/nvlink, /usr/local/cuda/bin/nvlink, /opt/cuda/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../nvidia/cuda_nvcc/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../nvidia/cuda_nvcc/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../cuda/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../../bin/nvlink
+ - nvlink_version: Couldn't find a suitable version of nvlink. The following locations were considered: ./cuda_sdk_lib/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /home/kayua/miniconda3/envs/MosquitoesTest/bin/nvlink, /home/kayua/miniconda3/condabin/nvlink, /home/kayua/.juliaup/bin/nvlink, /home/kayua/.local/bin/nvlink, /usr/local/sbin/nvlink, /usr/local/bin/nvlink, /usr/sbin/nvlink, /usr/bin/nvlink, /sbin/nvlink, /bin/nvlink, /usr/games/nvlink, /usr/local/games/nvlink, /snap/bin/nvlink, /snap/bin/nvlink, /home/kayua/.local/share/JetBrains/Toolbox/scripts/nvlink, main.py.runfiles/cuda_nvcc/bin/nvlink, main.py/cuda_nvcc/bin/nvlink, bin/nvlink, /usr/local/cuda/bin/nvlink, /opt/cuda/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../nvidia/cuda_nvcc/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../nvidia/cuda_nvcc/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../cuda/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../../bin/nvlink
+ - Driver compilation is enabled: 0
+
+	 [[{{node StatefulPartitionedCall}}]] [Op:__inference_multi_step_on_iterator_3955]
+2025-10-12 16:11:04,467	***	Error during training of model 'ResidualModel': Graph execution error:
+
+Detected at node StatefulPartitionedCall defined at (most recent call last):
+  File "/home/kayua/PycharmProjects/Mosquitoes-Classification-Models/main.py", line 262, in <module>
+
+  File "/home/kayua/PycharmProjects/Mosquitoes-Classification-Models/main.py", line 178, in __exec__
+
+  File "/home/kayua/PycharmProjects/Mosquitoes-Classification-Models/main.py", line 147, in train_and_collect_metrics
+
+  File "/home/kayua/PycharmProjects/Mosquitoes-Classification-Models/Engine/Models/Process/Residual_Process.py", line 173, in train
+
+  File "/home/kayua/PycharmProjects/Mosquitoes-Classification-Models/Engine/Models/ResidualModel.py", line 250, in compile_and_train
+
+  File "/home/kayua/.local/lib/python3.12/site-packages/keras/src/utils/traceback_utils.py", line 117, in error_handler
+
+  File "/home/kayua/.local/lib/python3.12/site-packages/keras/src/backend/tensorflow/trainer.py", line 377, in fit
+
+  File "/home/kayua/.local/lib/python3.12/site-packages/keras/src/backend/tensorflow/trainer.py", line 220, in function
+
+  File "/home/kayua/.local/lib/python3.12/site-packages/keras/src/backend/tensorflow/trainer.py", line 133, in multi_step_on_iterator
+
+No PTX compilation provider is available. Neither ptxas/nvlink nor nvjtlink is available. As a fallback you can enable JIT compilation in the CUDA driver via the flag `--xla_gpu_unsafe_fallback_to_driver_on_ptxas_not_found`. Details: 
+ - Has NvJitLink support: LibNvJitLink is not supported (disabled during compilation).
+ - Has NvPtxCompiler support: LibNvPtxCompiler is not supported (disabled during compilation).
+ - Parallel compilation support is desired: 0
+ - ptxas_path: Couldn't find a suitable version of ptxas. The following locations were considered: ./cuda_sdk_lib/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /home/kayua/miniconda3/envs/MosquitoesTest/bin/ptxas, /home/kayua/miniconda3/condabin/ptxas, /home/kayua/.juliaup/bin/ptxas, /home/kayua/.local/bin/ptxas, /usr/local/sbin/ptxas, /usr/local/bin/ptxas, /usr/sbin/ptxas, /usr/bin/ptxas, /sbin/ptxas, /bin/ptxas, /usr/games/ptxas, /usr/local/games/ptxas, /snap/bin/ptxas, /snap/bin/ptxas, /home/kayua/.local/share/JetBrains/Toolbox/scripts/ptxas, main.py.runfiles/cuda_nvcc/bin/ptxas, main.py/cuda_nvcc/bin/ptxas, bin/ptxas, /usr/local/cuda/bin/ptxas, /opt/cuda/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../nvidia/cuda_nvcc/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../nvidia/cuda_nvcc/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../cuda/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../../bin/ptxas
+ - ptxas_version: Couldn't find a suitable version of ptxas. The following locations were considered: ./cuda_sdk_lib/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /home/kayua/miniconda3/envs/MosquitoesTest/bin/ptxas, /home/kayua/miniconda3/condabin/ptxas, /home/kayua/.juliaup/bin/ptxas, /home/kayua/.local/bin/ptxas, /usr/local/sbin/ptxas, /usr/local/bin/ptxas, /usr/sbin/ptxas, /usr/bin/ptxas, /sbin/ptxas, /bin/ptxas, /usr/games/ptxas, /usr/local/games/ptxas, /snap/bin/ptxas, /snap/bin/ptxas, /home/kayua/.local/share/JetBrains/Toolbox/scripts/ptxas, main.py.runfiles/cuda_nvcc/bin/ptxas, main.py/cuda_nvcc/bin/ptxas, bin/ptxas, /usr/local/cuda/bin/ptxas, /opt/cuda/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../nvidia/cuda_nvcc/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../nvidia/cuda_nvcc/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../cuda/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../../bin/ptxas
+ - nvlink_path: Couldn't find a suitable version of nvlink. The following locations were considered: ./cuda_sdk_lib/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /home/kayua/miniconda3/envs/MosquitoesTest/bin/nvlink, /home/kayua/miniconda3/condabin/nvlink, /home/kayua/.juliaup/bin/nvlink, /home/kayua/.local/bin/nvlink, /usr/local/sbin/nvlink, /usr/local/bin/nvlink, /usr/sbin/nvlink, /usr/bin/nvlink, /sbin/nvlink, /bin/nvlink, /usr/games/nvlink, /usr/local/games/nvlink, /snap/bin/nvlink, /snap/bin/nvlink, /home/kayua/.local/share/JetBrains/Toolbox/scripts/nvlink, main.py.runfiles/cuda_nvcc/bin/nvlink, main.py/cuda_nvcc/bin/nvlink, bin/nvlink, /usr/local/cuda/bin/nvlink, /opt/cuda/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../nvidia/cuda_nvcc/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../nvidia/cuda_nvcc/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../cuda/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../../bin/nvlink
+ - nvlink_version: Couldn't find a suitable version of nvlink. The following locations were considered: ./cuda_sdk_lib/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /home/kayua/miniconda3/envs/MosquitoesTest/bin/nvlink, /home/kayua/miniconda3/condabin/nvlink, /home/kayua/.juliaup/bin/nvlink, /home/kayua/.local/bin/nvlink, /usr/local/sbin/nvlink, /usr/local/bin/nvlink, /usr/sbin/nvlink, /usr/bin/nvlink, /sbin/nvlink, /bin/nvlink, /usr/games/nvlink, /usr/local/games/nvlink, /snap/bin/nvlink, /snap/bin/nvlink, /home/kayua/.local/share/JetBrains/Toolbox/scripts/nvlink, main.py.runfiles/cuda_nvcc/bin/nvlink, main.py/cuda_nvcc/bin/nvlink, bin/nvlink, /usr/local/cuda/bin/nvlink, /opt/cuda/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../nvidia/cuda_nvcc/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../nvidia/cuda_nvcc/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../cuda/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../../bin/nvlink
+ - Driver compilation is enabled: 0
+
+	 [[{{node StatefulPartitionedCall}}]] [Op:__inference_multi_step_on_iterator_3955]
+2025-10-12 16:11:04,593	***	Garbage collection complete after training model 'ResidualModel'.
+2025-10-12 16:11:04,593	***	Garbage collection complete after training model 'ResidualModel'.
+2025-10-12 16:11:04,593	***	Error during training of model ResidualModel: Graph execution error:
+
+Detected at node StatefulPartitionedCall defined at (most recent call last):
+  File "/home/kayua/PycharmProjects/Mosquitoes-Classification-Models/main.py", line 262, in <module>
+
+  File "/home/kayua/PycharmProjects/Mosquitoes-Classification-Models/main.py", line 178, in __exec__
+
+  File "/home/kayua/PycharmProjects/Mosquitoes-Classification-Models/main.py", line 147, in train_and_collect_metrics
+
+  File "/home/kayua/PycharmProjects/Mosquitoes-Classification-Models/Engine/Models/Process/Residual_Process.py", line 173, in train
+
+  File "/home/kayua/PycharmProjects/Mosquitoes-Classification-Models/Engine/Models/ResidualModel.py", line 250, in compile_and_train
+
+  File "/home/kayua/.local/lib/python3.12/site-packages/keras/src/utils/traceback_utils.py", line 117, in error_handler
+
+  File "/home/kayua/.local/lib/python3.12/site-packages/keras/src/backend/tensorflow/trainer.py", line 377, in fit
+
+  File "/home/kayua/.local/lib/python3.12/site-packages/keras/src/backend/tensorflow/trainer.py", line 220, in function
+
+  File "/home/kayua/.local/lib/python3.12/site-packages/keras/src/backend/tensorflow/trainer.py", line 133, in multi_step_on_iterator
+
+No PTX compilation provider is available. Neither ptxas/nvlink nor nvjtlink is available. As a fallback you can enable JIT compilation in the CUDA driver via the flag `--xla_gpu_unsafe_fallback_to_driver_on_ptxas_not_found`. Details: 
+ - Has NvJitLink support: LibNvJitLink is not supported (disabled during compilation).
+ - Has NvPtxCompiler support: LibNvPtxCompiler is not supported (disabled during compilation).
+ - Parallel compilation support is desired: 0
+ - ptxas_path: Couldn't find a suitable version of ptxas. The following locations were considered: ./cuda_sdk_lib/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /home/kayua/miniconda3/envs/MosquitoesTest/bin/ptxas, /home/kayua/miniconda3/condabin/ptxas, /home/kayua/.juliaup/bin/ptxas, /home/kayua/.local/bin/ptxas, /usr/local/sbin/ptxas, /usr/local/bin/ptxas, /usr/sbin/ptxas, /usr/bin/ptxas, /sbin/ptxas, /bin/ptxas, /usr/games/ptxas, /usr/local/games/ptxas, /snap/bin/ptxas, /snap/bin/ptxas, /home/kayua/.local/share/JetBrains/Toolbox/scripts/ptxas, main.py.runfiles/cuda_nvcc/bin/ptxas, main.py/cuda_nvcc/bin/ptxas, bin/ptxas, /usr/local/cuda/bin/ptxas, /opt/cuda/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../nvidia/cuda_nvcc/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../nvidia/cuda_nvcc/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../cuda/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../../bin/ptxas
+ - ptxas_version: Couldn't find a suitable version of ptxas. The following locations were considered: ./cuda_sdk_lib/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /home/kayua/miniconda3/envs/MosquitoesTest/bin/ptxas, /home/kayua/miniconda3/condabin/ptxas, /home/kayua/.juliaup/bin/ptxas, /home/kayua/.local/bin/ptxas, /usr/local/sbin/ptxas, /usr/local/bin/ptxas, /usr/sbin/ptxas, /usr/bin/ptxas, /sbin/ptxas, /bin/ptxas, /usr/games/ptxas, /usr/local/games/ptxas, /snap/bin/ptxas, /snap/bin/ptxas, /home/kayua/.local/share/JetBrains/Toolbox/scripts/ptxas, main.py.runfiles/cuda_nvcc/bin/ptxas, main.py/cuda_nvcc/bin/ptxas, bin/ptxas, /usr/local/cuda/bin/ptxas, /opt/cuda/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../nvidia/cuda_nvcc/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../nvidia/cuda_nvcc/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../cuda/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../../bin/ptxas
+ - nvlink_path: Couldn't find a suitable version of nvlink. The following locations were considered: ./cuda_sdk_lib/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /home/kayua/miniconda3/envs/MosquitoesTest/bin/nvlink, /home/kayua/miniconda3/condabin/nvlink, /home/kayua/.juliaup/bin/nvlink, /home/kayua/.local/bin/nvlink, /usr/local/sbin/nvlink, /usr/local/bin/nvlink, /usr/sbin/nvlink, /usr/bin/nvlink, /sbin/nvlink, /bin/nvlink, /usr/games/nvlink, /usr/local/games/nvlink, /snap/bin/nvlink, /snap/bin/nvlink, /home/kayua/.local/share/JetBrains/Toolbox/scripts/nvlink, main.py.runfiles/cuda_nvcc/bin/nvlink, main.py/cuda_nvcc/bin/nvlink, bin/nvlink, /usr/local/cuda/bin/nvlink, /opt/cuda/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../nvidia/cuda_nvcc/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../nvidia/cuda_nvcc/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../cuda/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../../bin/nvlink
+ - nvlink_version: Couldn't find a suitable version of nvlink. The following locations were considered: ./cuda_sdk_lib/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /home/kayua/miniconda3/envs/MosquitoesTest/bin/nvlink, /home/kayua/miniconda3/condabin/nvlink, /home/kayua/.juliaup/bin/nvlink, /home/kayua/.local/bin/nvlink, /usr/local/sbin/nvlink, /usr/local/bin/nvlink, /usr/sbin/nvlink, /usr/bin/nvlink, /sbin/nvlink, /bin/nvlink, /usr/games/nvlink, /usr/local/games/nvlink, /snap/bin/nvlink, /snap/bin/nvlink, /home/kayua/.local/share/JetBrains/Toolbox/scripts/nvlink, main.py.runfiles/cuda_nvcc/bin/nvlink, main.py/cuda_nvcc/bin/nvlink, bin/nvlink, /usr/local/cuda/bin/nvlink, /opt/cuda/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../nvidia/cuda_nvcc/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../nvidia/cuda_nvcc/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../cuda/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../../bin/nvlink
+ - Driver compilation is enabled: 0
+
+	 [[{{node StatefulPartitionedCall}}]] [Op:__inference_multi_step_on_iterator_3955]
+2025-10-12 16:11:04,593	***	Error during training of model ResidualModel: Graph execution error:
+
+Detected at node StatefulPartitionedCall defined at (most recent call last):
+  File "/home/kayua/PycharmProjects/Mosquitoes-Classification-Models/main.py", line 262, in <module>
+
+  File "/home/kayua/PycharmProjects/Mosquitoes-Classification-Models/main.py", line 178, in __exec__
+
+  File "/home/kayua/PycharmProjects/Mosquitoes-Classification-Models/main.py", line 147, in train_and_collect_metrics
+
+  File "/home/kayua/PycharmProjects/Mosquitoes-Classification-Models/Engine/Models/Process/Residual_Process.py", line 173, in train
+
+  File "/home/kayua/PycharmProjects/Mosquitoes-Classification-Models/Engine/Models/ResidualModel.py", line 250, in compile_and_train
+
+  File "/home/kayua/.local/lib/python3.12/site-packages/keras/src/utils/traceback_utils.py", line 117, in error_handler
+
+  File "/home/kayua/.local/lib/python3.12/site-packages/keras/src/backend/tensorflow/trainer.py", line 377, in fit
+
+  File "/home/kayua/.local/lib/python3.12/site-packages/keras/src/backend/tensorflow/trainer.py", line 220, in function
+
+  File "/home/kayua/.local/lib/python3.12/site-packages/keras/src/backend/tensorflow/trainer.py", line 133, in multi_step_on_iterator
+
+No PTX compilation provider is available. Neither ptxas/nvlink nor nvjtlink is available. As a fallback you can enable JIT compilation in the CUDA driver via the flag `--xla_gpu_unsafe_fallback_to_driver_on_ptxas_not_found`. Details: 
+ - Has NvJitLink support: LibNvJitLink is not supported (disabled during compilation).
+ - Has NvPtxCompiler support: LibNvPtxCompiler is not supported (disabled during compilation).
+ - Parallel compilation support is desired: 0
+ - ptxas_path: Couldn't find a suitable version of ptxas. The following locations were considered: ./cuda_sdk_lib/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /home/kayua/miniconda3/envs/MosquitoesTest/bin/ptxas, /home/kayua/miniconda3/condabin/ptxas, /home/kayua/.juliaup/bin/ptxas, /home/kayua/.local/bin/ptxas, /usr/local/sbin/ptxas, /usr/local/bin/ptxas, /usr/sbin/ptxas, /usr/bin/ptxas, /sbin/ptxas, /bin/ptxas, /usr/games/ptxas, /usr/local/games/ptxas, /snap/bin/ptxas, /snap/bin/ptxas, /home/kayua/.local/share/JetBrains/Toolbox/scripts/ptxas, main.py.runfiles/cuda_nvcc/bin/ptxas, main.py/cuda_nvcc/bin/ptxas, bin/ptxas, /usr/local/cuda/bin/ptxas, /opt/cuda/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../nvidia/cuda_nvcc/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../nvidia/cuda_nvcc/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../cuda/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../../bin/ptxas
+ - ptxas_version: Couldn't find a suitable version of ptxas. The following locations were considered: ./cuda_sdk_lib/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /usr/local/cuda/bin/ptxas, /home/kayua/miniconda3/envs/MosquitoesTest/bin/ptxas, /home/kayua/miniconda3/condabin/ptxas, /home/kayua/.juliaup/bin/ptxas, /home/kayua/.local/bin/ptxas, /usr/local/sbin/ptxas, /usr/local/bin/ptxas, /usr/sbin/ptxas, /usr/bin/ptxas, /sbin/ptxas, /bin/ptxas, /usr/games/ptxas, /usr/local/games/ptxas, /snap/bin/ptxas, /snap/bin/ptxas, /home/kayua/.local/share/JetBrains/Toolbox/scripts/ptxas, main.py.runfiles/cuda_nvcc/bin/ptxas, main.py/cuda_nvcc/bin/ptxas, bin/ptxas, /usr/local/cuda/bin/ptxas, /opt/cuda/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../nvidia/cuda_nvcc/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../nvidia/cuda_nvcc/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../cuda/bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../bin/ptxas, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../../bin/ptxas
+ - nvlink_path: Couldn't find a suitable version of nvlink. The following locations were considered: ./cuda_sdk_lib/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /home/kayua/miniconda3/envs/MosquitoesTest/bin/nvlink, /home/kayua/miniconda3/condabin/nvlink, /home/kayua/.juliaup/bin/nvlink, /home/kayua/.local/bin/nvlink, /usr/local/sbin/nvlink, /usr/local/bin/nvlink, /usr/sbin/nvlink, /usr/bin/nvlink, /sbin/nvlink, /bin/nvlink, /usr/games/nvlink, /usr/local/games/nvlink, /snap/bin/nvlink, /snap/bin/nvlink, /home/kayua/.local/share/JetBrains/Toolbox/scripts/nvlink, main.py.runfiles/cuda_nvcc/bin/nvlink, main.py/cuda_nvcc/bin/nvlink, bin/nvlink, /usr/local/cuda/bin/nvlink, /opt/cuda/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../nvidia/cuda_nvcc/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../nvidia/cuda_nvcc/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../cuda/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../../bin/nvlink
+ - nvlink_version: Couldn't find a suitable version of nvlink. The following locations were considered: ./cuda_sdk_lib/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /usr/local/cuda/bin/nvlink, /home/kayua/miniconda3/envs/MosquitoesTest/bin/nvlink, /home/kayua/miniconda3/condabin/nvlink, /home/kayua/.juliaup/bin/nvlink, /home/kayua/.local/bin/nvlink, /usr/local/sbin/nvlink, /usr/local/bin/nvlink, /usr/sbin/nvlink, /usr/bin/nvlink, /sbin/nvlink, /bin/nvlink, /usr/games/nvlink, /usr/local/games/nvlink, /snap/bin/nvlink, /snap/bin/nvlink, /home/kayua/.local/share/JetBrains/Toolbox/scripts/nvlink, main.py.runfiles/cuda_nvcc/bin/nvlink, main.py/cuda_nvcc/bin/nvlink, bin/nvlink, /usr/local/cuda/bin/nvlink, /opt/cuda/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../nvidia/cuda_nvcc/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../nvidia/cuda_nvcc/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../cuda/bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../bin/nvlink, /home/kayua/.local/lib/python3.12/site-packages/tensorflow/python/platform/../../../../../../../bin/nvlink
+ - Driver compilation is enabled: 0
+
+	 [[{{node StatefulPartitionedCall}}]] [Op:__inference_multi_step_on_iterator_3955]
