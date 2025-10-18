@@ -3,9 +3,9 @@
 
 __author__ = 'Kayuã Oleques Paim'
 __email__ = 'kayuaolequesp@gmail.com.br'
-__version__ = '{1}.{0}.{0}'
+__version__ = '{1}.{0}.{1}'
 __initial_data__ = '2025/04/1'
-__last_update__ = '2025/04/1'
+__last_update__ = '2025/10/18'
 __credits__ = ['unknown']
 
 # MIT License
@@ -42,9 +42,6 @@ except ImportError as error:
     print(error)
     sys.exit(-1)
 
-# Default value for the projection dimension
-DEFAULT_PROJECTION_DIMENSION = 64
-
 
 class CLSTokenLayer(Layer):
     """
@@ -52,94 +49,102 @@ class CLSTokenLayer(Layer):
 
     The [CLS] token is a special token often used in transformer-based models like BERT to aggregate
     information from the entire input sequence, typically for classification tasks. This token is
-    appended to the beginning of each input sequence, enabling the model to learn an aggregate
+    prepended to the beginning of each input sequence, enabling the model to learn an aggregate
     representation of the sequence for downstream tasks, such as sentence classification.
 
-    The [CLS] token is typically initialized as a learnable parameter and is added to the input tensor
-    during the model's forward pass. It is returned as part of the output, which can then be further
-    processed by subsequent layers.
+    The [CLS] token is initialized as a learnable parameter and is concatenated with the input tensor
+    during the model's forward pass. The dimensionality of the [CLS] token automatically matches the
+    embedding dimension of the input sequences.
 
     Attributes:
     -----------
     cls_token : tf.Variable
-        The [CLS] token, represented as a learnable embedding. It is shared across all input sequences.
-
-    projection_dimension : int
-        The dimensionality of the [CLS] token embedding, which determines the size of the token's
-        representation in the model's embedding space.
+        The [CLS] token, represented as a learnable embedding. It is shared across all input sequences
+        and has the same dimensionality as the input embeddings.
 
     Example
     -------
-    >>> # Initialize the CLSTokenLayer with a projection dimension of 64
-    ...     cls_layer = CLSTokenLayer(projection_dimension=64)
-    ...     # Example input tensor of shape (batch_size, sequence_length, embedding_dim)
-    ...     input_tensor = tf.random.normal([32, 100, 128])  # Batch of 32, sequence length of 100, 128 features
-    ...     # Apply the CLSTokenLayer to the input tensor
-    ...     cls_tokens = cls_layer(input_tensor)
-    ...     # Print the shape of the output tensor
-    >>>     print("Output tensor shape with [CLS] token:", cls_tokens.shape)
+    >>> # Initialize the CLSTokenLayer
+    >>> cls_layer = CLSTokenLayer()
+    >>> # Example input tensor of shape (batch_size, sequence_length, embedding_dim)
+    >>> input_tensor = tf.random.normal([32, 100, 128])  # Batch of 32, sequence length of 100, 128 features
+    >>> # Apply the CLSTokenLayer to the input tensor
+    >>> output = cls_layer(input_tensor)
+    >>> # Print the shape of the output tensor
+    >>> print("Output tensor shape with [CLS] token:", output.shape)
 
     Output:
     -------
-    Output tensor shape with [CLS] token: (32, 1, 64)
+    Output tensor shape with [CLS] token: (32, 101, 128)
     """
 
-    def __init__(self, projection_dimension: int = DEFAULT_PROJECTION_DIMENSION, **kwargs):
+    def __init__(self, **kwargs):
         """
-        Initializes the CLSTokenLayer with the given projection dimension.
+        Initializes the CLSTokenLayer.
 
         Args:
-            projection_dimension (int, optional): Dimensionality of the [CLS] token embeddings.
-                                                   Default is 64.
             **kwargs: Additional arguments passed to the `Layer` superclass.
-
         """
         super(CLSTokenLayer, self).__init__(**kwargs)
         self.cls_token = None
-        self.projection_dimension = projection_dimension
 
     def build(self, input_shape):
         """
         Creates the [CLS] token as a trainable weight variable.
 
         This method is called once the layer is added to the model and before any computations are
-        performed. It creates the [CLS] token as a learnable parameter of shape (1, 1, projection_dimension),
-        where `projection_dimension` is the size of the embedding for the [CLS] token.
+        performed. It creates the [CLS] token as a learnable parameter with shape (1, 1, embedding_dim),
+        where `embedding_dim` matches the last dimension of the input tensor.
 
         Args:
-            input_shape (tf.TensorShape): The shape of the input tensor. Used to determine the batch size.
+            input_shape (tf.TensorShape): The shape of the input tensor. Used to determine the embedding dimension.
         """
-        # Initialize the [CLS] token as a trainable variable with the given projection dimension
+        # Get the embedding dimension from the input shape
+        embedding_dim = input_shape[-1]
+
+        # Initialize the [CLS] token as a trainable variable with the same embedding dimension as the input
         self.cls_token = self.add_weight(
-            shape=(1, 1, self.projection_dimension),
+            shape=(1, 1, embedding_dim),
             initializer='random_normal',
             trainable=True,
             name='cls_token'
         )
 
+        super(CLSTokenLayer, self).build(input_shape)
+
     def call(self, inputs: tensorflow.Tensor) -> tensorflow.Tensor:
         """
-        Adds the [CLS] token to the input sequences.
+        Adds the [CLS] token to the beginning of the input sequences.
 
         This method takes the input tensor, extracts the batch size, and tiles the [CLS] token to
-        match the batch size. The [CLS] token is added to each sample in the batch, producing a tensor
-        with the shape `(batch_size, 1, projection_dimension)` for the [CLS] token. This token is used
-        for downstream classification tasks, where it serves as an aggregate representation of the
-        input sequence.
+        match the batch size. The [CLS] token is then concatenated with the input sequences along
+        the sequence dimension (axis=1), resulting in an output tensor where each sequence is
+        prepended with the [CLS] token.
 
         Args:
-            inputs (tf.Tensor): The input tensor (e.g., input sequences) of shape `(batch_size, sequence_length, embedding_dim)`.
+            inputs (tf.Tensor): The input tensor of shape `(batch_size, sequence_length, embedding_dim)`.
 
         Returns:
-            tf.Tensor: A tensor of shape `(batch_size, 1, projection_dimension)`, containing the [CLS] token
-                       for each sample in the batch.
+            tf.Tensor: A tensor of shape `(batch_size, sequence_length + 1, embedding_dim)`, containing
+                       the [CLS] token prepended to each input sequence.
         """
-
         # Get the batch size from the input tensor shape
         batch_size = tensorflow.shape(inputs)[0]
 
         # Tile the [CLS] token to match the batch size
-        # Create a tensor of shape (batch_size, 1, projection_dimension)
+        # Create a tensor of shape (batch_size, 1, embedding_dim)
         cls_tokens = tensorflow.tile(self.cls_token, [batch_size, 1, 1])
 
-        return cls_tokens
+        # Concatenate the [CLS] token with the input sequences along axis=1 (sequence dimension)
+        # Output shape: (batch_size, sequence_length + 1, embedding_dim)
+        return tensorflow.concat([cls_tokens, inputs], axis=1)
+
+    def get_config(self):
+        """
+        Returns the configuration of the layer for serialization.
+
+        Returns:
+            dict: Configuration dictionary.
+        """
+        config = super(CLSTokenLayer, self).get_config()
+        return config
