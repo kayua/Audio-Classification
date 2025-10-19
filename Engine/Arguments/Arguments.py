@@ -8,6 +8,8 @@ __initial_data__ = '2025/04/1'
 __last_update__ = '2025/04/1'
 __credits__ = ['unknown']
 
+from Engine.Arguments.ArgumentsMobileNet import add_mobilenet_arguments
+
 # MIT License
 #
 # Copyright (c) 2025 unknown
@@ -147,10 +149,12 @@ class Arguments:
         self.input_arguments = add_mlp_arguments(self.input_arguments)
         self.input_arguments = add_residual_arguments(self.input_arguments)
         self.input_arguments = add_wav_to_vec_arguments(self.input_arguments)
+        self.input_arguments = add_mobilenet_arguments(self.input_arguments)
         self.input_arguments = add_comparative_metrics_plotter_arguments(self.input_arguments)
         self.input_arguments = add_confusion_matrix_arguments(self.input_arguments)
         self.input_arguments = add_loss_plotter_arguments(self.input_arguments)
         self.input_arguments = add_roc_plotter_arguments(self.input_arguments)
+
         # Parse the combined set of arguments
         self.input_arguments = self.input_arguments.parse_args()
         self.show_all_settings()

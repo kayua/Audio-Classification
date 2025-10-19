@@ -8,6 +8,8 @@ __initial_data__ = '2025/04/1'
 __last_update__ = '2025/04/1'
 __credits__ = ['unknown']
 
+from Engine.Models.MobileNet import MobileNetModel
+
 # MIT License
 #
 # Copyright (c) 2025 unknown
@@ -258,7 +260,7 @@ if __name__ == "__main__":
     main.__start__()
 
     available_models = [
-        AudioSpectrogramTransformer
+        MobileNetModel
     ]
 
     main.__exec__(available_models, "Results")
