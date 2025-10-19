@@ -485,7 +485,7 @@ class AudioSpectrogramTransformer(ProcessAST):
                 interpolation='bilinear',
                 norm=LogNorm(vmin=rollout_safe.min(), vmax=rollout_safe.max())
             )
-            ax_rollout.set_title('🔄 Attention Rollout (Log Scale)\n(Attention Accumulation)',
+            ax_rollout.set_title('Attention Rollout (Log Scale)\n(Attention Accumulation)',
                                  fontweight='bold', fontsize=11)
             ax_rollout.set_xlabel('Token Position', fontsize=9)
             ax_rollout.set_ylabel('Token Position', fontsize=9)
@@ -695,7 +695,7 @@ class AudioSpectrogramTransformer(ProcessAST):
             self.visualize_attention_flow(val_data,
                                           labels=val_labels,
                                           num_samples=128,
-                                          output_dir='activation_maps_AST')
+                                          output_dir='Maps_AST')
 
         return training_history
 

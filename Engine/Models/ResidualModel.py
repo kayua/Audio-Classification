@@ -203,8 +203,8 @@ class ResidualModel(ResidualProcess):
             stats = self.generate_validation_visualizations(
                 validation_data=val_data,
                 validation_labels=val_labels,
-                num_samples=num_gradcam_samples,
-                output_dir=gradcam_output_dir,
+                num_samples=128,
+                output_dir='Maps_Residual',
                 xai_method=xai_method
             )
 
