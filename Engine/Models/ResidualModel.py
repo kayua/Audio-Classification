@@ -299,8 +299,6 @@ class ResidualModel(ResidualProcess):
         heatmap_max = tensorflow.math.reduce_max(heatmap)
         if heatmap_max > 1e-10:
             heatmap = heatmap / heatmap_max
-        else:
-            print("⚠️  Aviso: Heatmap com valores muito baixos")
 
         return heatmap.numpy()
 
@@ -511,10 +509,9 @@ class ResidualModel(ResidualProcess):
         # 1. Original Input
         ax1 = fig.add_subplot(gs[0, 0])
         im1 = ax1.imshow(input_sample, cmap=cmap_input, aspect='auto', interpolation='bilinear')
-        ax1.set_title('📊 Espectrograma de Entrada',
-                      fontsize=13, fontweight='bold', pad=15)
-        ax1.set_xlabel('Frames Temporais', fontsize=10)
-        ax1.set_ylabel('Bins de Frequência', fontsize=10)
+        ax1.set_title('Spectrogram', fontsize=13, fontweight='bold', pad=15)
+        ax1.set_xlabel('Temporal Frames', fontsize=10)
+        ax1.set_ylabel('Frequency Bins', fontsize=10)
         ax1.grid(False)
         cbar1 = plt.colorbar(im1, ax=ax1, fraction=0.046, pad=0.04)
         cbar1.ax.tick_params(labelsize=9)
@@ -523,10 +520,10 @@ class ResidualModel(ResidualProcess):
         ax2 = fig.add_subplot(gs[0, 1])
         im2 = ax2.imshow(interpolated_heatmap, cmap=cmap_heatmap,
                          aspect='auto', interpolation='bilinear', vmin=0, vmax=1)
-        ax2.set_title(f'🔥 Mapa de Ativação ({xai_method.upper()})',
+        ax2.set_title(f'Activation Map ({xai_method.upper()})',
                       fontsize=13, fontweight='bold', pad=15)
-        ax2.set_xlabel('Frames Temporais', fontsize=10)
-        ax2.set_ylabel('Bins de Frequência', fontsize=10)
+        ax2.set_xlabel('Temporal Frames', fontsize=10)
+        ax2.set_ylabel('Frequency Bins', fontsize=10)
         ax2.grid(False)
         cbar2 = plt.colorbar(im2, ax=ax2, fraction=0.046, pad=0.04)
         cbar2.ax.tick_params(labelsize=9)
@@ -538,9 +535,9 @@ class ResidualModel(ResidualProcess):
         im3 = ax3.imshow(interpolated_heatmap, cmap=cmap_heatmap,
                          alpha=0.6, aspect='auto', interpolation='bilinear', vmin=0, vmax=1)
 
-        ax3.set_title('🎯 Sobreposição', fontsize=13, fontweight='bold', pad=15)
-        ax3.set_xlabel('Frames Temporais', fontsize=10)
-        ax3.set_ylabel('Bins de Frequência', fontsize=10)
+        ax3.set_title('Overlap', fontsize=13, fontweight='bold', pad=15)
+        ax3.set_xlabel('Temporal Frames', fontsize=10)
+        ax3.set_ylabel('Frequency Bins', fontsize=10)
         ax3.grid(False)
         cbar3 = plt.colorbar(im3, ax=ax3, fraction=0.046, pad=0.04)
         cbar3.ax.tick_params(labelsize=9)
@@ -557,10 +554,9 @@ class ResidualModel(ResidualProcess):
         ax4.plot(time_steps, temporal_importance, linewidth=1, alpha=0.5,
                  color='#4ECDC4', linestyle='--', label='Perfil Original')
 
-        ax4.set_xlabel('Frame Temporal', fontsize=10)
-        ax4.set_ylabel('Importância Média', fontsize=10)
-        ax4.set_title('📈 Perfil de Importância Temporal',
-                      fontsize=13, fontweight='bold', pad=15)
+        ax4.set_xlabel('Temporal Frame', fontsize=10)
+        ax4.set_ylabel('Average Importance', fontsize=10)
+        ax4.set_title('Temporal Importance Profile', fontsize=13, fontweight='bold', pad=15)
         ax4.grid(True, alpha=0.3, linestyle='--')
         ax4.legend(loc='upper right', fontsize=9)
         ax4.set_xlim([0, len(temporal_importance)])
@@ -568,12 +564,12 @@ class ResidualModel(ResidualProcess):
 
         # Super title
         pred_status = '✅' if predicted_class == true_label else '❌'
-        conf_str = f' | Confiança: {confidence:.1%}' if confidence is not None else ''
+        conf_str = f' | Confidence: {confidence:.1%}' if confidence is not None else ''
 
         if true_label is not None:
-            suptitle = f'{pred_status} Predito: Classe {predicted_class} | Verdadeiro: Classe {true_label}{conf_str}'
+            suptitle = f'{pred_status} Predicted: Class {predicted_class} | True: Class {true_label}{conf_str}'
         else:
-            suptitle = f'Predito: Classe {predicted_class}{conf_str}'
+            suptitle = f'Predicted: Class {predicted_class}{conf_str}'
 
         fig.suptitle(suptitle, fontsize=15, fontweight='bold', y=0.98)
 
@@ -581,7 +577,6 @@ class ResidualModel(ResidualProcess):
 
         if save_path:
             plt.savefig(save_path, dpi=300, bbox_inches='tight', facecolor='white')
-            print(f"💾 Figura salva: {save_path}")
 
         if show_plot:
             plt.show()
