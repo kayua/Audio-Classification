@@ -8,7 +8,9 @@ __initial_data__ = '2025/04/1'
 __last_update__ = '2025/04/1'
 __credits__ = ['unknown']
 
+from Engine.Models import MLP
 from Engine.Models.MobileNet import MobileNetModel
+from Engine.Models.Process.MLP_Process import MLPProcess
 
 # MIT License
 #
@@ -260,7 +262,13 @@ if __name__ == "__main__":
     main.__start__()
 
     available_models = [
-        MobileNetModel
+        MobileNetModel,
+        AudioLSTM,
+        AudioSpectrogramTransformer,
+        Conformer,
+        AudioWav2Vec2,
+        ResidualModel,
+        MLP
     ]
 
     main.__exec__(available_models, "Results")
