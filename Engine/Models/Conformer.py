@@ -43,8 +43,14 @@ try:
 
     import tensorflow
     from tensorflow.keras import Model
-    from tensorflow.keras.layers import Dense, Input, Layer, Dropout, Flatten, Reshape
-    from tensorflow.keras.layers import Concatenate, GlobalAveragePooling1D
+    from tensorflow.keras.layers import Dense
+    from tensorflow.keras.layers import Input
+    from tensorflow.keras.layers import Layer
+    from tensorflow.keras.layers import Dropout
+    from tensorflow.keras.layers import Flatten
+    from tensorflow.keras.layers import Reshape
+    from tensorflow.keras.layers import Concatenate
+    from tensorflow.keras.layers import GlobalAveragePooling1D
 
     from Engine.Layers.ConformerBlock import ConformerBlock
     from Engine.Layers.TransposeLayer import TransposeLayer

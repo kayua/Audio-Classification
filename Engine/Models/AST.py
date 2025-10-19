@@ -18,10 +18,15 @@ try:
     from pathlib import Path
     import tensorflow
     from tensorflow.keras import models
-    from tensorflow.keras.layers import (
-        Add, Input, Layer, Dense, Dropout, Flatten,
-        TimeDistributed, LayerNormalization, MultiHeadAttention
-    )
+    from tensorflow.keras.layers import Add
+    from tensorflow.keras.layers import Input
+    from tensorflow.keras.layers import Layer
+    from tensorflow.keras.layers import Dense
+    from tensorflow.keras.layers import Dropout
+    from tensorflow.keras.layers import Flatten
+    from tensorflow.keras.layers import TimeDistributed
+    from tensorflow.keras.layers import LayerNormalization
+    from tensorflow.keras.layers import MultiHeadAttention
 
     from Engine.Layers.PositionalEmbeddingsLayer import PositionalEmbeddingsLayer
     from Engine.Models.Process.AST_Process import ProcessAST

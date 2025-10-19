@@ -258,7 +258,7 @@ if __name__ == "__main__":
     main.__start__()
 
     available_models = [
-        Conformer
+        ResidualModel
     ]
 
     main.__exec__(available_models, "Results")
