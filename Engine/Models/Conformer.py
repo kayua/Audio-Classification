@@ -264,7 +264,7 @@ class Conformer(ProcessConformer):
 
     def compute_gradcam(self, input_sample: numpy.ndarray, class_idx: int = None,
                         target_layer_name: str = None) -> numpy.ndarray:
-        """Standard Grad-CAM computation (VERSÃO CORRIGIDA)."""
+        """Standard Grad-CAM computation."""
         if self.gradcam_model is None or target_layer_name is not None:
             self.build_gradcam_model(target_layer_name)
 
@@ -287,7 +287,6 @@ class Conformer(ProcessConformer):
 
         grads = tape.gradient(class_channel, layer_output)
 
-        # CORREÇÃO: Adaptar pooling para diferentes shapes
         if len(layer_output.shape) == 3:  # (batch, sequence, features)
             pooled_grads = tensorflow.reduce_mean(grads, axis=(0, 1))
 
@@ -333,7 +332,6 @@ class Conformer(ProcessConformer):
         # Get activation maps
         activations = layer_output[0].numpy()
 
-        # Adaptar para diferentes shapes de ativação
         if len(activations.shape) == 2:  # (sequence, features)
             num_channels = activations.shape[-1]
 
@@ -408,36 +406,30 @@ class Conformer(ProcessConformer):
         if not isinstance(heatmap, numpy.ndarray):
             heatmap = numpy.array(heatmap)
 
-        # Caso 1: Heatmap 1D (ex: saída de ConformerBlock)
         if len(heatmap.shape) == 1:
 
-            # Interpolar temporalmente primeiro
             temporal_interp = zoom(heatmap, (target_shape[0] / heatmap.shape[0],), order=3)
 
-            # Expandir para frequências usando gradiente suave
-            # Em vez de replicar, criar transição suave
             freq_profile = numpy.linspace(1.0, 0.6, target_shape[1])
             heatmap_2d = temporal_interp[:, numpy.newaxis] * freq_profile[numpy.newaxis, :]
 
             interpolated = heatmap_2d
 
-        # Caso 2: Heatmap 2D (ex: saída de conv_subsampling)
         elif len(heatmap.shape) == 2:
 
             zoom_factors = (target_shape[0] / heatmap.shape[0], target_shape[1] / heatmap.shape[1])
-            interpolated = zoom(heatmap, zoom_factors, order=3)  # Cubic interpolation
+            interpolated = zoom(heatmap, zoom_factors, order=3)
+
         else:
             raise ValueError(f"Heatmap shape inesperado: {heatmap.shape}")
 
-        # Ajuste fino se necessário
         if interpolated.shape != target_shape:
             zoom_factors_adjust = (target_shape[0] / interpolated.shape[0],
                                    target_shape[1] / interpolated.shape[1])
             interpolated = zoom(interpolated, zoom_factors_adjust, order=3)
 
-        # Suavização final
         if smooth:
-            interpolated = gaussian_filter(interpolated, sigma=1.5)
+            interpolated = gaussian_filter(interpolated, sigma=2.0)
 
         return interpolated
 
@@ -451,24 +443,19 @@ class Conformer(ProcessConformer):
         if len(input_sample.shape) == 3:
             input_sample = input_sample[0]
 
-        # Enhanced interpolation with smoothing
         interpolated_heatmap = self.interpolate_heatmap(heatmap, input_sample.shape, smooth=True)
 
-        # Create figure with modern style
         fig = plt.figure(figsize=(20, 6), facecolor='white')
         gs = fig.add_gridspec(1, 4, wspace=0.3)
 
-        # Color schemes
         cmap_input = 'viridis'
         cmap_heatmap = 'jet'  # Melhor contraste
 
-        # 1. Original Input
         ax1 = fig.add_subplot(gs[0, 0])
         im1 = ax1.imshow(input_sample, cmap=cmap_input, aspect='auto', interpolation='bilinear')
-        ax1.set_title('📊 Espectrograma de Entrada',
-                      fontsize=13, fontweight='bold', pad=15)
-        ax1.set_xlabel('Frames Temporais', fontsize=10)
-        ax1.set_ylabel('Bins de Frequência', fontsize=10)
+        ax1.set_title(' Spectrogram', fontsize=13, fontweight='bold', pad=15)
+        ax1.set_xlabel('Temporal Frames', fontsize=10)
+        ax1.set_ylabel('Frequency Bins', fontsize=10)
         ax1.grid(False)
         cbar1 = plt.colorbar(im1, ax=ax1, fraction=0.046, pad=0.04)
         cbar1.ax.tick_params(labelsize=9)
@@ -477,10 +464,10 @@ class Conformer(ProcessConformer):
         ax2 = fig.add_subplot(gs[0, 1])
         im2 = ax2.imshow(interpolated_heatmap, cmap=cmap_heatmap,
                          aspect='auto', interpolation='bilinear', vmin=0, vmax=1)
-        ax2.set_title(f'🔥 Mapa de Ativação ({xai_method.upper()})',
-                      fontsize=13, fontweight='bold', pad=15)
-        ax2.set_xlabel('Frames Temporais', fontsize=10)
-        ax2.set_ylabel('Bins de Frequência', fontsize=10)
+
+        ax2.set_title(f' Activation Map ({xai_method.upper()})', fontsize=13, fontweight='bold', pad=15)
+        ax2.set_xlabel('Temporal Frames', fontsize=10)
+        ax2.set_ylabel('Frequency Bins', fontsize=10)
         ax2.grid(False)
         cbar2 = plt.colorbar(im2, ax=ax2, fraction=0.046, pad=0.04)
         cbar2.ax.tick_params(labelsize=9)
@@ -490,11 +477,11 @@ class Conformer(ProcessConformer):
         input_normalized = (input_sample - input_sample.min()) / (input_sample.max() - input_sample.min() + 1e-10)
         ax3.imshow(input_normalized, cmap='gray', aspect='auto', interpolation='bilinear')
         im3 = ax3.imshow(interpolated_heatmap, cmap=cmap_heatmap,
-                         alpha=0.6, aspect='auto', interpolation='bilinear', vmin=0, vmax=1)
+                         alpha=0.4, aspect='auto', interpolation='bilinear', vmin=0, vmax=1)
 
-        ax3.set_title('🎯 Sobreposição', fontsize=13, fontweight='bold', pad=15)
-        ax3.set_xlabel('Frames Temporais', fontsize=10)
-        ax3.set_ylabel('Bins de Frequência', fontsize=10)
+        ax3.set_title('Overlap', fontsize=13, fontweight='bold', pad=15)
+        ax3.set_xlabel('Temporal Frames', fontsize=10)
+        ax3.set_ylabel('Frequency Bins', fontsize=10)
         ax3.grid(False)
         cbar3 = plt.colorbar(im3, ax=ax3, fraction=0.046, pad=0.04)
         cbar3.ax.tick_params(labelsize=9)
@@ -507,14 +494,13 @@ class Conformer(ProcessConformer):
         temporal_smooth = gaussian_filter(temporal_importance, sigma=2)
 
         ax4.fill_between(time_steps, temporal_smooth, alpha=0.3, color='#FF6B6B')
-        ax4.plot(time_steps, temporal_smooth, linewidth=2.5, color='#FF6B6B', label='Perfil Suavizado')
+        ax4.plot(time_steps, temporal_smooth, linewidth=2.5, color='#FF6B6B', label='Smoothed Profile')
         ax4.plot(time_steps, temporal_importance, linewidth=1, alpha=0.5,
-                 color='#4ECDC4', linestyle='--', label='Perfil Original')
+                 color='#4ECDC4', linestyle='--', label='Original')
 
-        ax4.set_xlabel('Frame Temporal', fontsize=10)
-        ax4.set_ylabel('Importância Média', fontsize=10)
-        ax4.set_title('📈 Perfil de Importância Temporal',
-                      fontsize=13, fontweight='bold', pad=15)
+        ax4.set_xlabel('Temporal Frame', fontsize=10)
+        ax4.set_ylabel('Average Importance', fontsize=10)
+        ax4.set_title('Temporal Importance Profile', fontsize=13, fontweight='bold', pad=15)
         ax4.grid(True, alpha=0.3, linestyle='--')
         ax4.legend(loc='upper right', fontsize=9)
         ax4.set_xlim([0, len(temporal_importance)])
@@ -522,12 +508,12 @@ class Conformer(ProcessConformer):
 
         # Super title
         pred_status = '✅' if predicted_class == true_label else '❌'
-        conf_str = f' | Confiança: {confidence:.1%}' if confidence is not None else ''
+        conf_str = f' | Confidence: {confidence:.1%}' if confidence is not None else ''
 
         if true_label is not None:
-            suptitle = f'{pred_status} Predito: Classe {predicted_class} | Verdadeiro: Classe {true_label}{conf_str}'
+            suptitle = f'{pred_status} Predicted: Class {predicted_class} | True: Class {true_label}{conf_str}'
         else:
-            suptitle = f'Predito: Classe {predicted_class}{conf_str}'
+            suptitle = f'Predicted: Class {predicted_class}{conf_str}'
 
         fig.suptitle(suptitle, fontsize=15, fontweight='bold', y=0.98)
 
