@@ -10,10 +10,6 @@ __author__ = 'Kayuã Oleques Paim'
 __version__ = '{1}.{0}.{4}'
 __last_update__ = '2025/10/18'
 
-import os
-os.environ['TF_XLA_FLAGS'] = '--tf_xla_auto_jit=0'
-
-
 try:
     import numpy as np
     import matplotlib.pyplot as plt
@@ -32,7 +28,9 @@ try:
     from tensorflow.keras.layers import LayerNormalization
     from tensorflow.keras.layers import MultiHeadAttention
 
+    # Desabilitar JIT/XLA para evitar erro de compilação Triton
     tensorflow.config.optimizer.set_jit(False)
+
     from Engine.Layers.PositionalEmbeddingsLayer import PositionalEmbeddingsLayer
     from Engine.Models.Process.AST_Process import ProcessAST
 
@@ -253,14 +251,27 @@ class AudioSpectrogramTransformer(ProcessAST):
         return self.attention_model
 
     def extract_attention_weights(self, data_sample):
-        """Extract attention weights for a given input sample."""
+        """
+        Extract attention weights for a given input sample.
+        MODIFICADO: Usa chamada direta ao invés de .predict() para evitar erro Triton.
+        """
         if self.attention_model is None:
             self.build_attention_model()
 
         if len(data_sample.shape) == 3:
             data_sample = np.expand_dims(data_sample, axis=0)
 
-        attention_outputs = self.attention_model.predict(data_sample, verbose=0)
+        # CORREÇÃO: Usar chamada direta ao invés de predict
+        attention_outputs = self.attention_model(data_sample, training=False)
+
+        # Converter para numpy se necessário
+        if isinstance(attention_outputs, tensorflow.Tensor):
+            attention_outputs = attention_outputs.numpy()
+        elif isinstance(attention_outputs, list):
+            attention_outputs = [
+                att.numpy() if isinstance(att, tensorflow.Tensor) else att
+                for att in attention_outputs
+            ]
 
         if not isinstance(attention_outputs, list):
             attention_outputs = [attention_outputs]
@@ -304,7 +315,6 @@ class AudioSpectrogramTransformer(ProcessAST):
         rollout = np.eye(processed_attentions[0].shape[0])
 
         for attention_matrix in processed_attentions:
-
             attention_normalized = attention_matrix / (attention_matrix.sum(axis=-1, keepdims=True) + 1e-10)
             attention_with_residual = 0.5 * attention_normalized + 0.5 * np.eye(attention_normalized.shape[0])
             rollout = np.matmul(attention_with_residual, rollout)
@@ -338,6 +348,7 @@ class AudioSpectrogramTransformer(ProcessAST):
                                  output_dir='attention_visualizations'):
         """
         Visualiza attention flow com rollout para múltiplas amostras.
+        MODIFICADO: Usa chamada direta ao invés de .predict() para evitar erro Triton.
         """
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
@@ -349,7 +360,14 @@ class AudioSpectrogramTransformer(ProcessAST):
 
             sample = data_samples[sample_idx:sample_idx + 1]
             attention_weights = self.extract_attention_weights(sample)
-            prediction = self.neural_network_model.predict(sample, verbose=0)
+
+            # CORREÇÃO: Usar chamada direta ao invés de predict
+            prediction = self.neural_network_model(sample, training=False)
+
+            # Converter para numpy se necessário
+            if isinstance(prediction, tensorflow.Tensor):
+                prediction = prediction.numpy()
+
             predicted_class = np.argmax(prediction[0])
             confidence = np.max(prediction[0])
 
@@ -480,7 +498,6 @@ class AudioSpectrogramTransformer(ProcessAST):
         rollout = self.compute_attention_rollout(attention_weights)
 
         if rollout is not None:
-
             rollout_safe = rollout + 1e-10
 
             im_rollout = ax_rollout.imshow(
@@ -575,7 +592,6 @@ class AudioSpectrogramTransformer(ProcessAST):
                                                fontweight='bold', fontsize=11)
                         ax_flow_dist.set_xlabel('Time', fontweight='bold', fontsize=9)
                         ax_flow_dist.set_ylabel('Frequency', fontweight='bold', fontsize=9)
-
 
                         for i in range(1, number_patches_x):
                             ax_flow_dist.axvline(x=i * patch_height - 0.5, color='white',
