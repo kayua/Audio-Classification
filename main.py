@@ -261,14 +261,6 @@ if __name__ == "__main__":
     main = Main()
     main.__start__()
 
-    available_models = [
-        MobileNetModel,
-        AudioLSTM,
-        AudioSpectrogramTransformer,
-        Conformer,
-        AudioWav2Vec2,
-        ResidualModel,
-        MLP
-    ]
+    available_models = [AudioSpectrogramTransformer]
 
     main.__exec__(available_models, "Results")

@@ -10,6 +10,10 @@ __author__ = 'Kayuã Oleques Paim'
 __version__ = '{1}.{0}.{4}'
 __last_update__ = '2025/10/18'
 
+import os
+os.environ['TF_XLA_FLAGS'] = '--tf_xla_auto_jit=0'
+
+
 try:
     import numpy as np
     import matplotlib.pyplot as plt
@@ -28,6 +32,7 @@ try:
     from tensorflow.keras.layers import LayerNormalization
     from tensorflow.keras.layers import MultiHeadAttention
 
+    tensorflow.config.optimizer.set_jit(False)
     from Engine.Layers.PositionalEmbeddingsLayer import PositionalEmbeddingsLayer
     from Engine.Models.Process.AST_Process import ProcessAST
 
