@@ -206,7 +206,7 @@ class MobileNetModel(MobileNetProcess, MobileNetGradientMaps):
             stats = self.generate_validation_visualizations(
                 validation_data=val_data,
                 validation_labels=val_labels,
-                num_samples=128,
+                num_samples=8,
                 output_dir='Maps_MobileNet',
                 xai_method=xai_method
             )

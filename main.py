@@ -261,6 +261,6 @@ if __name__ == "__main__":
     main = Main()
     main.__start__()
 
-    available_models = [MobileNetModel]
+    available_models = [ResidualModel]
 
     main.__exec__(available_models, "Results")
