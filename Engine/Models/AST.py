@@ -52,21 +52,17 @@ class DistillationCLSTokenLayer(Layer):
         self.dist_token = None
 
     def build(self, input_shape):
-        embedding_dim = input_shape[-1]
+        embedding_dimension = input_shape[-1]
 
-        self.cls_token = self.add_weight(
-            shape=(1, 1, embedding_dim),
-            initializer='random_normal',
-            trainable=True,
-            name='cls_token'
-        )
+        self.cls_token = self.add_weight(shape=(1, 1, embedding_dimension),
+                                         initializer='random_normal',
+                                         trainable=True,
+                                         name='cls_token')
 
-        self.dist_token = self.add_weight(
-            shape=(1, 1, embedding_dim),
-            initializer='random_normal',
-            trainable=True,
-            name='distillation_token'
-        )
+        self.dist_token = self.add_weight(shape=(1, 1, embedding_dimension),
+                                          initializer='random_normal',
+                                          trainable=True,
+                                          name='distillation_token')
 
         super().build(input_shape)
 
@@ -112,10 +108,7 @@ class AudioSpectrogramTransformer(ProcessAST):
         x = inputs
 
         for block_idx in range(self.number_blocks):
-            x_norm = LayerNormalization(
-                epsilon=self.normalization_epsilon,
-                name=f'norm1_block_{block_idx}'
-            )(x)
+            x_norm = LayerNormalization(epsilon=self.normalization_epsilon, name=f'norm1_block_{block_idx}')(x)
 
             attention_layer = MultiHeadAttention(
                 key_dim=self.projection_dimension,
@@ -124,26 +117,16 @@ class AudioSpectrogramTransformer(ProcessAST):
                 name=f'attention_block_{block_idx}'
             )
 
-            attention_output, attention_scores = attention_layer(
-                x_norm, x_norm,
-                return_attention_scores=True
-            )
+            attention_output, attention_scores = attention_layer(x_norm, x_norm, return_attention_scores=True)
 
             self.attention_layers.append((attention_layer, attention_scores))
             attention_output = Dropout(self.dropout, name=f'dropout1_block_{block_idx}')(attention_output)
             x = Add(name=f'add1_block_{block_idx}')([attention_output, x])
 
-            x_norm = LayerNormalization(
-                epsilon=self.normalization_epsilon,
-                name=f'norm2_block_{block_idx}'
-            )(x)
+            x_norm = LayerNormalization(epsilon=self.normalization_epsilon, name=f'norm2_block_{block_idx}')(x)
 
             ffn_dim = self.projection_dimension * 4
-            ffn_output = Dense(
-                ffn_dim,
-                activation=self.intermediary_activation,
-                name=f'ffn1_block_{block_idx}'
-            )(x_norm)
+            ffn_output = Dense(ffn_dim, activation=self.intermediary_activation, name=f'ffn1_block_{block_idx}')(x_norm)
             ffn_output = Dropout(self.dropout, name=f'dropout2_block_{block_idx}')(ffn_output)
             ffn_output = Dense(self.projection_dimension, name=f'ffn2_block_{block_idx}')(ffn_output)
             ffn_output = Dropout(self.dropout, name=f'dropout3_block_{block_idx}')(ffn_output)
@@ -189,17 +172,12 @@ class AudioSpectrogramTransformer(ProcessAST):
                 name='cls_mlp_hidden'
             )(cls_output)
             cls_logits = Dropout(self.dropout)(cls_logits)
-            cls_logits = Dense(
-                self.number_classes,
-                activation='softmax',
-                name='cls_head'
-            )(cls_logits)
+            cls_logits = Dense(self.number_classes, activation='softmax', name='cls_head')(cls_logits)
 
-            dist_logits = Dense(
-                self.projection_dimension,
-                activation=self.intermediary_activation,
-                name='dist_mlp_hidden'
-            )(dist_output)
+            dist_logits = Dense(self.projection_dimension,
+                                activation=self.intermediary_activation,
+                                name='dist_mlp_hidden')(dist_output)
+
             dist_logits = Dropout(self.dropout)(dist_logits)
             dist_logits = Dense(
                 self.number_classes,

@@ -160,23 +160,13 @@ class Conformer(ProcessConformer):
         return training_history
 
     def compile_model(self) -> None:
-        """Compiles the Conformer model."""
-        self.neural_network_model.compile(
-            optimizer=self.optimizer_function,
-            loss=self.loss_function,
-            metrics=['accuracy']
-        )
+
+        self.neural_network_model.compile(optimizer=self.optimizer_function,
+                                          loss=self.loss_function,
+                                          metrics=['accuracy'])
 
     def build_gradcam_model(self, target_layer_name: str = None) -> None:
-        """
-        Build an auxiliary model for GradCAM/GradCAM++ computation.
 
-        CORREÇÃO CRÍTICA: Usa 'conv_subsampling' por padrão, que ainda mantém
-        estrutura espacial 2D antes da transformação em sequência.
-
-        Args:
-            target_layer_name: Nome da camada alvo. Se None, usa 'conv_subsampling'
-        """
         if self.neural_network_model is None:
             raise ValueError("Model must be built before creating GradCAM model")
 
@@ -190,19 +180,13 @@ class Conformer(ProcessConformer):
 
     def compute_gradcam_plusplus(self, input_sample: numpy.ndarray, class_idx: int = None,
                                  target_layer_name: str = None) -> numpy.ndarray:
-        """
-        Compute Grad-CAM++ heatmap (VERSÃO CORRIGIDA).
 
-        CORREÇÕES:
-        - Axis corrigido no reduce_sum para arquiteturas com saída 3D
-        - Tratamento adequado de diferentes dimensionalidades de saída
-        """
         if self.gradcam_model is None or target_layer_name is not None:
             self.build_gradcam_model(target_layer_name)
 
-        # Ensure correct input shape
         if len(input_sample.shape) == 2:
             input_sample = numpy.expand_dims(input_sample, axis=0)
+
         elif len(input_sample.shape) == 3 and input_sample.shape[0] != 1:
             input_sample = input_sample[0:1]
 
@@ -210,7 +194,9 @@ class Conformer(ProcessConformer):
         input_tensor = tensorflow.convert_to_tensor(input_sample)
 
         with tensorflow.GradientTape() as tape1:
+
             with tensorflow.GradientTape() as tape2:
+
                 with tensorflow.GradientTape() as tape3:
                     layer_output, predictions = self.gradcam_model(input_tensor)
 
@@ -219,50 +205,34 @@ class Conformer(ProcessConformer):
 
                     class_score = predictions[:, class_idx]
 
-                # First-order gradients
                 grads = tape3.gradient(class_score, layer_output)
 
-            # Second-order gradients
             grads_2 = tape2.gradient(grads, layer_output)
 
-        # Third-order gradients
         grads_3 = tape1.gradient(grads_2, layer_output)
 
-        # ✅ CORREÇÃO: Axis correto para diferentes formas de saída
-        # Para saída 3D (batch, spatial/temporal, features): usar axis=2
-        # Para saída 4D (batch, height, width, features): usar axis=3
         if len(layer_output.shape) == 3:
-            reduce_axis = 2  # Features dimension
+            reduce_axis = 2
 
         elif len(layer_output.shape) == 4:
-            reduce_axis = 3  # Channel dimension
+            reduce_axis = 3
 
         else:
-            reduce_axis = -1  # Fallback
+            reduce_axis = -1
 
-        # Compute alpha weights (Grad-CAM++ formula) - CORRIGIDO
         numerator = grads_2
         denominator = 2.0 * grads_2 + tensorflow.reduce_sum(layer_output * grads_3,
                                                             axis=reduce_axis, keepdims=True) + 1e-10
 
         alpha = numerator / denominator
-
-        # ReLU on gradients
         relu_grads = tensorflow.maximum(grads, 0.0)
-
-        # Weighted combination
         weights = tensorflow.reduce_sum(alpha * relu_grads, axis=(1,))
-
-        # Compute weighted activation map
         layer_output_squeezed = layer_output[0]
         heatmap = layer_output_squeezed @ weights[..., tensorflow.newaxis]
         heatmap = tensorflow.squeeze(heatmap)
-
-        # Apply ReLU and normalize
         heatmap = tensorflow.maximum(heatmap, 0)
-
-        # Normalização robusta
         heatmap_max = tensorflow.math.reduce_max(heatmap)
+
         if heatmap_max > 1e-10:
             heatmap = heatmap / heatmap_max
 
