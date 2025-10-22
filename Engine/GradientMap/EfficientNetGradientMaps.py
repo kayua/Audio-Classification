@@ -1,0 +1,317 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+__author__ = 'Kayuã Oleques Paim'
+__email__ = 'kayuaolequesp@gmail.com.br'
+__version__ = '{1}.{0}.{0}'
+__initial_data__ = '2025/10/22'
+__last_update__ = '2025/10/22'
+__credits__ = ['unknown']
+
+# MIT License
+#
+# Copyright (c) 2025 unknown
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+try:
+    import sys
+    import numpy
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import matplotlib.cm as cm
+    from matplotlib.patches import Rectangle
+    from scipy.ndimage import zoom, gaussian_filter
+    import seaborn as sns
+
+    import tensorflow
+    from tensorflow.keras import Model
+    from tensorflow.keras.layers import Dense
+    from tensorflow.keras.layers import Input
+    from tensorflow.keras.layers import Layer
+    from tensorflow.keras.layers import Dropout
+    from tensorflow.keras.layers import Flatten
+    from tensorflow.keras.layers import Reshape
+    from tensorflow.keras.layers import Concatenate
+    from tensorflow.keras.layers import GlobalAveragePooling2D
+
+except ImportError as error:
+    print(error)
+    sys.exit(-1)
+
+
+class EfficientNetGradientMaps:
+
+    def __init__(self):
+        pass
+
+    def build_gradcam_model(self, target_layer_name: str = None) -> None:
+        """
+        Build an auxiliary model for GradCAM/GradCAM++ computation.
+
+        Args:
+            target_layer_name: Name of target layer. If None, uses last conv layer before pooling
+        """
+        if self.neural_network_model is None:
+            raise ValueError("Model must be built before creating GradCAM model")
+
+        # Find last convolutional layer if no target specified
+        if target_layer_name is None:
+            # Get last MBConv block or convolutional layer before global pooling
+            # EfficientNet typically has layers named like 'block7a_expand_conv', 'top_conv', etc.
+            target_layer_name = self._find_last_conv_layer()
+
+        target_layer = self.neural_network_model.get_layer(target_layer_name)
+
+        self.gradcam_model = Model(
+            inputs=self.neural_network_model.inputs,
+            outputs=[target_layer.output, self.neural_network_model.output]
+        )
+
+    def _find_last_conv_layer(self) -> str:
+        """
+        Find the last convolutional layer in the EfficientNet model.
+
+        Returns:
+            Name of the last convolutional layer
+        """
+        # Search for common EfficientNet layer patterns
+        layer_names = [layer.name for layer in self.neural_network_model.layers]
+
+        # Priority order for EfficientNet layers
+        target_patterns = [
+            'top_conv',  # Final conv layer before pooling
+            'block7',  # Last MBConv block
+            'block6',
+            'block5',
+            'conv',  # Any conv layer
+        ]
+
+        for pattern in target_patterns:
+            for layer_name in reversed(layer_names):
+                if pattern in layer_name and 'conv' in layer_name:
+                    return layer_name
+
+        # Fallback: return the last layer with 'conv' in its name
+        for layer_name in reversed(layer_names):
+            if 'conv' in layer_name.lower():
+                return layer_name
+
+        # If no conv layer found, try to use the last MBConv block
+        if hasattr(self, 'number_blocks'):
+            last_block_idx = self.number_blocks - 1
+            return f'block{last_block_idx}a_project_conv'
+
+        raise ValueError("Could not find a suitable convolutional layer for GradCAM")
+
+    def compute_gradcam_plusplus(self, input_sample: np.ndarray, class_idx: int = None,
+                                 target_layer_name: str = None) -> np.ndarray:
+        """
+        Compute Grad-CAM++ heatmap (improved version with better localization).
+
+        Args:
+            input_sample: Input image (2D or 3D array)
+            class_idx: Target class index (if None, uses predicted class)
+            target_layer_name: Target layer name (if None, uses default)
+
+        Returns:
+            Normalized heatmap as numpy array
+        """
+        if self.gradcam_model is None or target_layer_name is not None:
+            self.build_gradcam_model(target_layer_name)
+
+        # Ensure correct input shape
+        if len(input_sample.shape) == 2:
+            input_sample = np.expand_dims(input_sample, axis=-1)
+        if len(input_sample.shape) == 3:
+            input_sample = np.expand_dims(input_sample, axis=0)
+
+        input_sample = input_sample.astype(np.float32)
+        input_tensor = tensorflow.convert_to_tensor(input_sample)
+
+        with tensorflow.GradientTape() as tape1:
+            with tensorflow.GradientTape() as tape2:
+                with tensorflow.GradientTape() as tape3:
+                    layer_output, predictions = self.gradcam_model(input_tensor)
+
+                    if class_idx is None:
+                        class_idx = tensorflow.argmax(predictions[0]).numpy()
+
+                    class_score = predictions[:, class_idx]
+
+                grads = tape3.gradient(class_score, layer_output)
+            grads_2 = tape2.gradient(grads, layer_output)
+        grads_3 = tape1.gradient(grads_2, layer_output)
+
+        # For 4D output (batch, height, width, channels)
+        reduce_axis = 3 if len(layer_output.shape) == 4 else -1
+
+        # Compute alpha weights (Grad-CAM++ formula)
+        numerator = grads_2
+        denominator = 2.0 * grads_2 + tensorflow.reduce_sum(
+            layer_output * grads_3, axis=reduce_axis, keepdims=True
+        ) + 1e-10
+
+        alpha = numerator / denominator
+
+        # ReLU on gradients
+        relu_grads = tensorflow.maximum(grads, 0.0)
+
+        # Weighted combination
+        weights = tensorflow.reduce_sum(alpha * relu_grads, axis=(1, 2))
+
+        # Compute weighted activation map
+        layer_output_squeezed = layer_output[0]
+        heatmap = layer_output_squeezed @ weights[..., tensorflow.newaxis]
+        heatmap = tensorflow.squeeze(heatmap)
+
+        # Apply ReLU and normalize
+        heatmap = tensorflow.maximum(heatmap, 0)
+        heatmap_max = tensorflow.math.reduce_max(heatmap)
+        if heatmap_max > 1e-10:
+            heatmap = heatmap / heatmap_max
+
+        return heatmap.numpy()
+
+    def compute_gradcam(self, input_sample: np.ndarray, class_idx: int = None,
+                        target_layer_name: str = None) -> np.ndarray:
+        """
+        Standard Grad-CAM computation.
+
+        Args:
+            input_sample: Input image
+            class_idx: Target class index
+            target_layer_name: Target layer name
+
+        Returns:
+            Normalized heatmap
+        """
+        if self.gradcam_model is None or target_layer_name is not None:
+            self.build_gradcam_model(target_layer_name)
+
+        # Ensure correct shape
+        if len(input_sample.shape) == 2:
+            input_sample = np.expand_dims(input_sample, axis=-1)
+        if len(input_sample.shape) == 3:
+            input_sample = np.expand_dims(input_sample, axis=0)
+
+        input_sample = input_sample.astype(np.float32)
+        input_tensor = tensorflow.convert_to_tensor(input_sample)
+
+        with tensorflow.GradientTape() as tape:
+            layer_output, predictions = self.gradcam_model(input_tensor)
+
+            if class_idx is None:
+                class_idx = tensorflow.argmax(predictions[0]).numpy()
+
+            class_channel = predictions[:, class_idx]
+
+        grads = tape.gradient(class_channel, layer_output)
+
+        # Pool gradients
+        pooled_grads = tensorflow.reduce_mean(grads, axis=(0, 1, 2))
+
+        layer_output = layer_output[0]
+        heatmap = layer_output @ pooled_grads[..., tensorflow.newaxis]
+        heatmap = tensorflow.squeeze(heatmap)
+
+        # Normalize
+        heatmap = tensorflow.maximum(heatmap, 0)
+        heatmap_max = tensorflow.math.reduce_max(heatmap)
+        if heatmap_max > 1e-10:
+            heatmap = heatmap / heatmap_max
+
+        return heatmap.numpy()
+
+    def compute_scorecam(self, input_sample: np.ndarray, class_idx: int = None,
+                         target_layer_name: str = None, batch_size: int = 32) -> np.ndarray:
+        """
+        Compute Score-CAM heatmap (gradient-free method).
+
+        Args:
+            input_sample: Input image
+            class_idx: Target class index
+            target_layer_name: Target layer name
+            batch_size: Batch size for processing activation maps
+
+        Returns:
+            Normalized heatmap
+        """
+        if self.gradcam_model is None or target_layer_name is not None:
+            self.build_gradcam_model(target_layer_name)
+
+        # Ensure correct shape
+        if len(input_sample.shape) == 2:
+            input_sample = np.expand_dims(input_sample, axis=-1)
+        if len(input_sample.shape) == 3:
+            input_sample = np.expand_dims(input_sample, axis=0)
+
+        input_sample = input_sample.astype(np.float32)
+        input_tensor = tensorflow.convert_to_tensor(input_sample)
+
+        # Get activations
+        layer_output, predictions = self.gradcam_model(input_tensor)
+
+        if class_idx is None:
+            class_idx = tensorflow.argmax(predictions[0]).numpy()
+
+        # Get activation maps
+        activations = layer_output[0].numpy()
+        num_channels = activations.shape[-1]
+
+        weights = []
+        for i in range(num_channels):
+            act_map = activations[:, :, i]
+
+            # Normalize to [0, 1]
+            if act_map.max() > act_map.min():
+                act_map = (act_map - act_map.min()) / (act_map.max() - act_map.min())
+
+            # Upsample to input size
+            zoom_factors = (input_sample.shape[1] / act_map.shape[0],
+                            input_sample.shape[2] / act_map.shape[1])
+            upsampled = zoom(act_map, zoom_factors, order=1)
+
+            # Handle channel dimension
+            if input_sample.shape[-1] == 1:
+                upsampled = upsampled[:, :, np.newaxis]
+            elif input_sample.shape[-1] == 3:
+                upsampled = np.repeat(upsampled[:, :, np.newaxis], 3, axis=-1)
+
+            # Mask input
+            masked_input = input_sample[0] * upsampled
+            masked_input = np.expand_dims(masked_input, 0)
+
+            # Get score for masked input
+            masked_pred = self.neural_network_model.predict(masked_input, verbose=0)
+            score = masked_pred[0, class_idx]
+
+            weights.append(score)
+
+        weights = np.array(weights)
+        weights = np.maximum(weights, 0)
+
+        # Weighted combination
+        heatmap = np.tensordot(activations, weights, axes=([2], [0]))
+
+        heatmap = np.maximum(heatmap, 0)
+        if heatmap.max() > 0:
+            heatmap = heatmap / heatmap.max()
+
+        return heatmap
