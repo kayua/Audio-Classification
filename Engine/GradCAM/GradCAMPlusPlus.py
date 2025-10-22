@@ -64,7 +64,9 @@ class GradCamPlusPlus:
 
         logger.info("GradCam++ initialized")
 
-    def build_gradcam_model(self, target_layer_name: str, model: Optional[tensorflow.keras.Model] = None) -> None:
+    def build_gradcam_plus_plus_model(self,
+                                      target_layer_name: str,
+                                      model: Optional[tensorflow.keras.Model] = None) -> None:
         """
         Build Grad-CAM++ model that outputs both target layer activations and predictions.
 
@@ -113,11 +115,11 @@ class GradCamPlusPlus:
             logger.error(f"Error building Grad-CAM++ model: {str(e)}")
             raise
 
-    def compute_gradcam_plusplus(self,
-                                 input_sample: numpy.ndarray,
-                                 class_idx: Optional[int] = None,
-                                 target_layer_name: Optional[str] = None,
-                                 model: Optional[tensorflow.keras.Model] = None) -> numpy.ndarray:
+    def compute_gradcam_plus_plus(self,
+                                  input_sample: numpy.ndarray,
+                                  class_idx: Optional[int] = None,
+                                  target_layer_name: Optional[str] = None,
+                                  model: Optional[tensorflow.keras.Model] = None) -> numpy.ndarray:
         """
         Compute Grad-CAM++ heatmap for given input sample and class.
 
@@ -155,7 +157,7 @@ class GradCamPlusPlus:
             >>> )
             >>>
             >>> # Generate heatmap for target class (e.g., class 285 for 'Egyptian cat')
-            >>> heatmap = gradcam.compute_gradcam_plusplus(
+            >>> heatmap = gradcam.compute_gradcam_plus_plus(
             ...     input_sample=img,
             ...     class_idx=285,
             ...     target_layer_name='conv5_block3_out'
@@ -177,14 +179,14 @@ class GradCamPlusPlus:
                 if target_layer_name is None:
                     raise ValueError(
                         "target_layer_name must be provided when building Grad-CAM++ model for the first time")
-                self.build_gradcam_model(target_layer_name, model)
+                self.build_gradcam_plus_plus_model(target_layer_name, model)
 
             if self.gradcam_model is None:
                 raise RuntimeError("Grad-CAM++ model failed to build")
 
             # Input shape processing
             original_shape = input_sample.shape
-            processed_sample = self._preprocess_input(input_sample)
+            processed_sample = self._preprocess_input_gradcam_plus_plus(input_sample)
 
             # Convert to tensor
             input_tensor = tensorflow.convert_to_tensor(processed_sample)
@@ -248,7 +250,7 @@ class GradCamPlusPlus:
             raise
 
     @staticmethod
-    def _preprocess_input(input_sample: numpy.ndarray) -> numpy.ndarray:
+    def _preprocess_input_gradcam_plus_plus(input_sample: numpy.ndarray) -> numpy.ndarray:
         """
         Preprocess input sample to ensure correct shape and type.
 
@@ -337,8 +339,8 @@ class GradCamPlusPlus:
             logger.error("Error in weight computation. Check layer compatibility.")
             raise
 
-    def _generate_heatmap(self,
-                          layer_output: tensorflow.Tensor,
+    @staticmethod
+    def _generate_heatmap(layer_output: tensorflow.Tensor,
                           weights: tensorflow.Tensor) -> numpy.ndarray:
         """
         Generate final heatmap from layer outputs and computed weights.
