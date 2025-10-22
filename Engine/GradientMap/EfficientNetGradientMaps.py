@@ -1,35 +1,3 @@
-#!/usr/bin/python3
-# -*- coding: utf-8 -*-
-
-__author__ = 'Kayuã Oleques Paim'
-__email__ = 'kayuaolequesp@gmail.com.br'
-__version__ = '{1}.{0}.{0}'
-__initial_data__ = '2025/10/22'
-__last_update__ = '2025/10/22'
-__credits__ = ['unknown']
-
-# MIT License
-#
-# Copyright (c) 2025 unknown
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
 try:
     import sys
     import numpy
@@ -51,6 +19,17 @@ try:
     from tensorflow.keras.layers import Concatenate
     from tensorflow.keras.layers import GlobalAveragePooling2D
 
+    from tensorflow.keras.applications import EfficientNetB0
+    from tensorflow.keras.applications import EfficientNetB1
+    from tensorflow.keras.applications import EfficientNetB2
+    from tensorflow.keras.applications import EfficientNetB3
+    from tensorflow.keras.applications import EfficientNetB4
+    from tensorflow.keras.applications import EfficientNetB5
+    from tensorflow.keras.applications import EfficientNetB6
+    from tensorflow.keras.applications import EfficientNetB7
+
+    from Engine.Models.Process.EfficientNet_Process import ProcessEfficientNet
+
 except ImportError as error:
     print(error)
     sys.exit(-1)
@@ -65,84 +44,53 @@ class EfficientNetGradientMaps:
         """
         Build an auxiliary model for GradCAM/GradCAM++ computation.
 
+        Para EfficientNet, usa a última camada convolucional por padrão,
+        que mantém estrutura espacial 2D antes do pooling global.
+
         Args:
-            target_layer_name: Name of target layer. If None, uses last conv layer before pooling
+            target_layer_name: Nome da camada alvo. Se None, tenta encontrar
+                              automaticamente a última camada convolucional.
         """
         if self.neural_network_model is None:
             raise ValueError("Model must be built before creating GradCAM model")
 
-        # Find last convolutional layer if no target specified
         if target_layer_name is None:
-            # Get last MBConv block or convolutional layer before global pooling
-            # EfficientNet typically has layers named like 'block7a_expand_conv', 'top_conv', etc.
-            target_layer_name = self._find_last_conv_layer()
+            # Encontrar a última camada convolucional do EfficientNet
+            # Geralmente são camadas com nome começando com 'block' ou 'top_conv'
+            for layer in reversed(self.neural_network_model.layers):
+                if 'conv' in layer.name.lower() or 'block' in layer.name.lower():
+                    if len(layer.output_shape) == 4:  # Garantir que tem dimensão espacial
+                        target_layer_name = layer.name
+                        break
+
+            if target_layer_name is None:
+                # Fallback: usar uma camada específica conhecida
+                target_layer_name = 'top_conv'
 
         target_layer = self.neural_network_model.get_layer(target_layer_name)
 
-        self.gradcam_model = Model(
-            inputs=self.neural_network_model.inputs,
-            outputs=[target_layer.output, self.neural_network_model.output]
-        )
+        self.gradcam_model = Model(inputs=self.neural_network_model.inputs,
+                                   outputs=[target_layer.output, self.neural_network_model.output])
 
-    def _find_last_conv_layer(self) -> str:
+    def compute_gradcam_plusplus(self, input_sample: numpy.ndarray, class_idx: int = None,
+                                 target_layer_name: str = None) -> numpy.ndarray:
         """
-        Find the last convolutional layer in the EfficientNet model.
+        Compute Grad-CAM++ heatmap for EfficientNet (VERSÃO CORRIGIDA).
 
-        Returns:
-            Name of the last convolutional layer
-        """
-        # Search for common EfficientNet layer patterns
-        layer_names = [layer.name for layer in self.neural_network_model.layers]
-
-        # Priority order for EfficientNet layers
-        target_patterns = [
-            'top_conv',  # Final conv layer before pooling
-            'block7',  # Last MBConv block
-            'block6',
-            'block5',
-            'conv',  # Any conv layer
-        ]
-
-        for pattern in target_patterns:
-            for layer_name in reversed(layer_names):
-                if pattern in layer_name and 'conv' in layer_name:
-                    return layer_name
-
-        # Fallback: return the last layer with 'conv' in its name
-        for layer_name in reversed(layer_names):
-            if 'conv' in layer_name.lower():
-                return layer_name
-
-        # If no conv layer found, try to use the last MBConv block
-        if hasattr(self, 'number_blocks'):
-            last_block_idx = self.number_blocks - 1
-            return f'block{last_block_idx}a_project_conv'
-
-        raise ValueError("Could not find a suitable convolutional layer for GradCAM")
-
-    def compute_gradcam_plusplus(self, input_sample: np.ndarray, class_idx: int = None,
-                                 target_layer_name: str = None) -> np.ndarray:
-        """
-        Compute Grad-CAM++ heatmap (improved version with better localization).
-
-        Args:
-            input_sample: Input image (2D or 3D array)
-            class_idx: Target class index (if None, uses predicted class)
-            target_layer_name: Target layer name (if None, uses default)
-
-        Returns:
-            Normalized heatmap as numpy array
+        CORREÇÕES:
+        - Axis corrigido no reduce_sum para arquiteturas CNN 2D
+        - Tratamento adequado para saída 4D (batch, height, width, channels)
         """
         if self.gradcam_model is None or target_layer_name is not None:
             self.build_gradcam_model(target_layer_name)
 
-        # Ensure correct input shape
-        if len(input_sample.shape) == 2:
-            input_sample = np.expand_dims(input_sample, axis=-1)
+        # Ensure correct input shape (batch, height, width, channels)
         if len(input_sample.shape) == 3:
-            input_sample = np.expand_dims(input_sample, axis=0)
+            input_sample = numpy.expand_dims(input_sample, axis=0)
+        elif len(input_sample.shape) == 4 and input_sample.shape[0] != 1:
+            input_sample = input_sample[0:1]
 
-        input_sample = input_sample.astype(np.float32)
+        input_sample = input_sample.astype(numpy.float32)
         input_tensor = tensorflow.convert_to_tensor(input_sample)
 
         with tensorflow.GradientTape() as tape1:
@@ -155,63 +103,73 @@ class EfficientNetGradientMaps:
 
                     class_score = predictions[:, class_idx]
 
+                # First-order gradients
                 grads = tape3.gradient(class_score, layer_output)
+
+            # Second-order gradients
             grads_2 = tape2.gradient(grads, layer_output)
+
+        # Third-order gradients
         grads_3 = tape1.gradient(grads_2, layer_output)
 
-        # For 4D output (batch, height, width, channels)
-        reduce_axis = 3 if len(layer_output.shape) == 4 else -1
+        # ✅ CORREÇÃO: Para EfficientNet com saída 4D (batch, height, width, channels)
+        # usar axis=(1, 2) para dimensões espaciais
+        if len(layer_output.shape) == 4:
+            # Dimensões espaciais (height, width)
+            spatial_axes = (1, 2)
+        else:
+            # Fallback para outras dimensionalidades
+            spatial_axes = tuple(range(1, len(layer_output.shape) - 1))
 
-        # Compute alpha weights (Grad-CAM++ formula)
+        # Compute alpha weights (Grad-CAM++ formula) - CORRIGIDO
         numerator = grads_2
-        denominator = 2.0 * grads_2 + tensorflow.reduce_sum(
-            layer_output * grads_3, axis=reduce_axis, keepdims=True
-        ) + 1e-10
+        denominator = 2.0 * grads_2 + tensorflow.reduce_sum(layer_output * grads_3,
+                                                            axis=spatial_axes, keepdims=True) + 1e-10
 
         alpha = numerator / denominator
 
         # ReLU on gradients
         relu_grads = tensorflow.maximum(grads, 0.0)
 
-        # Weighted combination
-        weights = tensorflow.reduce_sum(alpha * relu_grads, axis=(1, 2))
+        # Weighted combination - calcular média ponderada ao longo das dimensões espaciais
+        weights = tensorflow.reduce_sum(alpha * relu_grads, axis=spatial_axes)
 
         # Compute weighted activation map
-        layer_output_squeezed = layer_output[0]
-        heatmap = layer_output_squeezed @ weights[..., tensorflow.newaxis]
-        heatmap = tensorflow.squeeze(heatmap)
+        layer_output_squeezed = layer_output[0]  # Remove batch dimension
+
+        # Para 4D: (height, width, channels) @ (channels,) -> (height, width)
+        if len(layer_output_squeezed.shape) == 3:
+            heatmap = tensorflow.reduce_sum(
+                layer_output_squeezed * weights[tensorflow.newaxis, tensorflow.newaxis, :],
+                axis=-1
+            )
+        else:
+            heatmap = layer_output_squeezed @ weights[..., tensorflow.newaxis]
+            heatmap = tensorflow.squeeze(heatmap)
 
         # Apply ReLU and normalize
         heatmap = tensorflow.maximum(heatmap, 0)
+
+        # Normalização robusta
         heatmap_max = tensorflow.math.reduce_max(heatmap)
         if heatmap_max > 1e-10:
             heatmap = heatmap / heatmap_max
 
         return heatmap.numpy()
 
-    def compute_gradcam(self, input_sample: np.ndarray, class_idx: int = None,
-                        target_layer_name: str = None) -> np.ndarray:
-        """
-        Standard Grad-CAM computation.
-
-        Args:
-            input_sample: Input image
-            class_idx: Target class index
-            target_layer_name: Target layer name
-
-        Returns:
-            Normalized heatmap
-        """
+    def compute_gradcam(self, input_sample: numpy.ndarray, class_idx: int = None,
+                        target_layer_name: str = None) -> numpy.ndarray:
+        """Standard Grad-CAM computation for EfficientNet."""
         if self.gradcam_model is None or target_layer_name is not None:
             self.build_gradcam_model(target_layer_name)
 
-        # Ensure correct shape
-        if len(input_sample.shape) == 2:
-            input_sample = np.expand_dims(input_sample, axis=-1)
         if len(input_sample.shape) == 3:
-            input_sample = np.expand_dims(input_sample, axis=0)
+            input_sample = numpy.expand_dims(input_sample, axis=0)
 
-        input_sample = input_sample.astype(np.float32)
+        elif len(input_sample.shape) == 4 and input_sample.shape[0] != 1:
+            input_sample = input_sample[0:1]
+
+        input_sample = input_sample.astype(numpy.float32)
         input_tensor = tensorflow.convert_to_tensor(input_sample)
 
         with tensorflow.GradientTape() as tape:
@@ -224,45 +182,49 @@ class EfficientNetGradientMaps:
 
         grads = tape.gradient(class_channel, layer_output)
 
-        # Pool gradients
-        pooled_grads = tensorflow.reduce_mean(grads, axis=(0, 1, 2))
+        # Para EfficientNet com saída 4D (batch, height, width, channels)
+        if len(layer_output.shape) == 4:
+            pooled_grads = tensorflow.reduce_mean(grads, axis=(0, 1, 2))
+
+        elif len(layer_output.shape) == 3:  # Fallback
+            pooled_grads = tensorflow.reduce_mean(grads, axis=(0, 1))
+
+        else:
+            pooled_grads = tensorflow.reduce_mean(grads, axis=0)
 
         layer_output = layer_output[0]
-        heatmap = layer_output @ pooled_grads[..., tensorflow.newaxis]
-        heatmap = tensorflow.squeeze(heatmap)
 
-        # Normalize
+        # Compute weighted combination
+        if len(layer_output.shape) == 3:  # (height, width, channels)
+            heatmap = tensorflow.reduce_sum(
+                layer_output * pooled_grads[tensorflow.newaxis, tensorflow.newaxis, :],
+                axis=-1
+            )
+        else:
+            heatmap = layer_output @ pooled_grads[..., tensorflow.newaxis]
+            heatmap = tensorflow.squeeze(heatmap)
+
+        # Normalização robusta
         heatmap = tensorflow.maximum(heatmap, 0)
         heatmap_max = tensorflow.math.reduce_max(heatmap)
+
         if heatmap_max > 1e-10:
             heatmap = heatmap / heatmap_max
 
         return heatmap.numpy()
 
-    def compute_scorecam(self, input_sample: np.ndarray, class_idx: int = None,
-                         target_layer_name: str = None, batch_size: int = 32) -> np.ndarray:
+    def compute_scorecam(self, input_sample: numpy.ndarray, class_idx: int = None,
+                         target_layer_name: str = None, batch_size: int = 32) -> numpy.ndarray:
         """
-        Compute Score-CAM heatmap (gradient-free method).
-
-        Args:
-            input_sample: Input image
-            class_idx: Target class index
-            target_layer_name: Target layer name
-            batch_size: Batch size for processing activation maps
-
-        Returns:
-            Normalized heatmap
+        Compute Score-CAM heatmap (gradient-free method) for EfficientNet.
         """
         if self.gradcam_model is None or target_layer_name is not None:
             self.build_gradcam_model(target_layer_name)
 
-        # Ensure correct shape
-        if len(input_sample.shape) == 2:
-            input_sample = np.expand_dims(input_sample, axis=-1)
         if len(input_sample.shape) == 3:
-            input_sample = np.expand_dims(input_sample, axis=0)
+            input_sample = numpy.expand_dims(input_sample, axis=0)
 
-        input_sample = input_sample.astype(np.float32)
+        input_sample = input_sample.astype(numpy.float32)
         input_tensor = tensorflow.convert_to_tensor(input_sample)
 
         # Get activations
@@ -273,30 +235,43 @@ class EfficientNetGradientMaps:
 
         # Get activation maps
         activations = layer_output[0].numpy()
-        num_channels = activations.shape[-1]
+
+        # Para EfficientNet: (height, width, channels)
+        if len(activations.shape) == 3:
+            num_channels = activations.shape[-1]
+        else:
+            num_channels = activations.shape[-1]
 
         weights = []
+
         for i in range(num_channels):
-            act_map = activations[:, :, i]
+            # Extract channel activation map
+            if len(activations.shape) == 3:  # (height, width, channels)
+                act_map = activations[:, :, i]
+            else:
+                act_map = activations[:, i] if len(activations.shape) == 2 else activations[i]
 
             # Normalize to [0, 1]
             if act_map.max() > act_map.min():
                 act_map = (act_map - act_map.min()) / (act_map.max() - act_map.min())
 
             # Upsample to input size
-            zoom_factors = (input_sample.shape[1] / act_map.shape[0],
-                            input_sample.shape[2] / act_map.shape[1])
-            upsampled = zoom(act_map, zoom_factors, order=1)
+            if len(act_map.shape) == 2:  # 2D activation map
+                zoom_factors = (input_sample.shape[1] / act_map.shape[0],
+                                input_sample.shape[2] / act_map.shape[1])
+                upsampled = zoom(act_map, zoom_factors, order=1)
 
-            # Handle channel dimension
-            if input_sample.shape[-1] == 1:
-                upsampled = upsampled[:, :, np.newaxis]
-            elif input_sample.shape[-1] == 3:
-                upsampled = np.repeat(upsampled[:, :, np.newaxis], 3, axis=-1)
+                # Replicate across channels
+                upsampled = numpy.repeat(upsampled[:, :, numpy.newaxis],
+                                         input_sample.shape[3], axis=2)
+            else:  # 1D activation map (fallback)
+                upsampled = zoom(act_map, (input_sample.shape[1] / act_map.shape[0],), order=1)
+                upsampled = numpy.tile(upsampled[:, numpy.newaxis, numpy.newaxis],
+                                       (1, input_sample.shape[2], input_sample.shape[3]))
 
             # Mask input
             masked_input = input_sample[0] * upsampled
-            masked_input = np.expand_dims(masked_input, 0)
+            masked_input = numpy.expand_dims(masked_input, 0)
 
             # Get score for masked input
             masked_pred = self.neural_network_model.predict(masked_input, verbose=0)
@@ -304,13 +279,20 @@ class EfficientNetGradientMaps:
 
             weights.append(score)
 
-        weights = np.array(weights)
-        weights = np.maximum(weights, 0)
+        weights = numpy.array(weights)
+        weights = numpy.maximum(weights, 0)
 
         # Weighted combination
-        heatmap = np.tensordot(activations, weights, axes=([2], [0]))
+        if len(activations.shape) == 3:  # (height, width, channels)
+            heatmap = numpy.tensordot(activations, weights, axes=([2], [0]))
+        elif len(activations.shape) == 2:  # (sequence, features) - fallback
+            heatmap = numpy.dot(activations, weights)
+        else:
+            heatmap = numpy.tensordot(activations, weights, axes=([-1], [0]))
 
-        heatmap = np.maximum(heatmap, 0)
+        heatmap = numpy.squeeze(heatmap)
+        heatmap = numpy.maximum(heatmap, 0)
+
         if heatmap.max() > 0:
             heatmap = heatmap / heatmap.max()
 
