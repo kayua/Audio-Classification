@@ -212,13 +212,13 @@ class ResidualModel(ResidualProcess):
 
     def build_gradcam_model(self, target_layer_name: str = None) -> None:
         """
-        Build an auxiliary model for GradCAM/GradCAM++ computation.
+        Build an auxiliary model for Visualization/Visualization++ computation.
 
         Args:
             target_layer_name: Name of target layer. If None, uses last conv layer before flatten
         """
         if self.neural_network_model is None:
-            raise ValueError("Model must be built before creating GradCAM model")
+            raise ValueError("Model must be built before creating Visualization model")
 
         # Find last convolutional layer if no target specified
         if target_layer_name is None:
@@ -476,7 +476,7 @@ class ResidualModel(ResidualProcess):
                             confidence: float = None, xai_method: str = 'gradcam++',
                             save_path: str = None, show_plot: bool = True) -> None:
         """
-        Modern, visually appealing GradCAM visualization with enhanced aesthetics.
+        Modern, visually appealing Visualization visualization with enhanced aesthetics.
 
         Args:
             input_sample: Input image
