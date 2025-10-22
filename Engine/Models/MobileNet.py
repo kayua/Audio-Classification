@@ -8,6 +8,8 @@ __initial_data__ = '2025/04/1'
 __last_update__ = '2025/04/1'
 __credits__ = ['unknown']
 
+from Engine.GradientMap.MobileNetGradientMaps import MobileNetGradientMaps
+
 # MIT License
 #
 # Copyright (c) 2025 unknown
@@ -33,7 +35,7 @@ __credits__ = ['unknown']
 
 try:
     import sys
-    import numpy as np
+    import numpy
     import matplotlib.pyplot as plt
     import matplotlib.cm as cm
     from matplotlib.patches import Rectangle
@@ -42,9 +44,16 @@ try:
 
     import tensorflow
     from tensorflow.keras import Model
-    from tensorflow.keras.layers import Dense, Input, Dropout, Flatten
-    from tensorflow.keras.layers import Conv2D, DepthwiseConv2D, BatchNormalization
-    from tensorflow.keras.layers import Add, GlobalAveragePooling2D, Activation
+    from tensorflow.keras.layers import Add
+    from tensorflow.keras.layers import Dense
+    from tensorflow.keras.layers import Input
+    from tensorflow.keras.layers import Dropout
+    from tensorflow.keras.layers import Flatten
+    from tensorflow.keras.layers import Conv2D
+    from tensorflow.keras.layers import DepthwiseConv2D
+    from tensorflow.keras.layers import BatchNormalization
+    from tensorflow.keras.layers import GlobalAveragePooling2D
+    from tensorflow.keras.layers import Activation
 
     from Engine.Models.Process.MobileNet_Process import MobileNetProcess
 
@@ -53,37 +62,10 @@ except ImportError as error:
     sys.exit(-1)
 
 
-class MobileNetModel(MobileNetProcess):
-    """
-    Enhanced MobileNetModel with COMPLETE Explainable AI (XAI) capabilities
-
-    FUNCIONALIDADES XAI IMPLEMENTADAS:
-    ==================================
-    1. ✅ Grad-CAM: Visualização padrão de mapas de ativação
-    2. ✅ Grad-CAM++: Versão melhorada com ponderação mais precisa
-    3. ✅ Score-CAM: Método sem gradientes (gradient-free)
-    4. ✅ Visualizações modernas e interativas
-    5. ✅ Geração automática para validação
-    6. ✅ Análise comparativa de múltiplos métodos XAI
-    """
+class MobileNetModel(MobileNetProcess, MobileNetGradientMaps):
 
     def __init__(self, arguments):
-        """
-        Initialize the MobileNetModel class with XAI capabilities.
 
-        Args:
-            @input_dimension (tuple): The shape of the input data (e.g., (128, 128, 3) for RGB images).
-            @convolutional_padding (str): Padding strategy for convolution layers (e.g., 'same' or 'valid').
-            @intermediary_activation (str): Activation function used in intermediary layers (e.g., 'relu').
-            @last_layer_activation (str): Activation function for the output layer (e.g., 'softmax').
-            @number_classes (int): The number of output classes for classification.
-            @size_convolutional_filters (tuple): The size of the convolutional filters (e.g., (3, 3)).
-            @alpha (float): Width multiplier for MobileNet (controls network width).
-            @filters_per_block (list[int]): A list containing the number of filters for each block.
-            @loss_function (str): The loss function used during model training (e.g., 'categorical_crossentropy').
-            @optimizer_function (str): The optimizer function used during model training (e.g., 'adam').
-            @dropout_rate (float): The dropout rate for regularization.
-        """
         MobileNetProcess.__init__(self, arguments)
         self.neural_network_model = None
         self.gradcam_model = None
@@ -104,12 +86,12 @@ class MobileNetModel(MobileNetProcess):
         plt.style.use('seaborn-v0_8-darkgrid')
         sns.set_palette("husl")
 
-    def _depthwise_separable_conv(self, x, filters, block_idx, strides=(1, 1)):
+    def _depthwise_separable_conv(self, neural_network_flow, filters, block_idx, strides=(1, 1)):
         """
         Depthwise Separable Convolution block (core of MobileNet).
 
         Args:
-            x: Input tensor
+            neural_network_flow: Input tensor
             filters: Number of output filters
             block_idx: Block index for naming
             strides: Strides for depthwise convolution
@@ -118,27 +100,27 @@ class MobileNetModel(MobileNetProcess):
             Output tensor
         """
         # Depthwise Convolution
-        x = DepthwiseConv2D(
+        neural_network_flow = DepthwiseConv2D(
             kernel_size=self.size_convolutional_filters,
             strides=strides,
             padding=self.convolutional_padding,
-            name=f'depthwise_conv_block_{block_idx}'
-        )(x)
-        x = BatchNormalization(name=f'depthwise_bn_block_{block_idx}')(x)
-        x = Activation(self.intermediary_activation, name=f'depthwise_act_block_{block_idx}')(x)
+            name=f'depthwise_conv_block_{block_idx}')(neural_network_flow)
+
+        neural_network_flow = BatchNormalization(name=f'depthwise_bn_block_{block_idx}')(neural_network_flow)
+        neural_network_flow = Activation(self.intermediary_activation,
+                                         name=f'depthwise_act_block_{block_idx}')(neural_network_flow)
 
         # Pointwise Convolution (1x1 conv)
-        x = Conv2D(
-            filters,
-            kernel_size=(1, 1),
-            strides=(1, 1),
-            padding='same',
-            name=f'pointwise_conv_block_{block_idx}'
-        )(x)
-        x = BatchNormalization(name=f'pointwise_bn_block_{block_idx}')(x)
-        x = Activation(self.intermediary_activation, name=f'pointwise_act_block_{block_idx}')(x)
+        neural_network_flow = Conv2D(filters,
+                                     kernel_size=(1, 1),
+                                     strides=(1, 1),
+                                     padding='same',
+                                     name=f'pointwise_conv_block_{block_idx}')(neural_network_flow)
+        neural_network_flow = BatchNormalization(name=f'pointwise_bn_block_{block_idx}')(neural_network_flow)
+        neural_network_flow = Activation(self.intermediary_activation,
+                                         name=f'pointwise_act_block_{block_idx}')(neural_network_flow)
 
-        return x
+        return neural_network_flow
 
     def build_model(self):
         """
@@ -150,15 +132,13 @@ class MobileNetModel(MobileNetProcess):
         inputs = Input(shape=self.input_shape, name='input_layer')
 
         # Initial standard convolution
-        x = Conv2D(
-            int(32 * self.alpha),
-            kernel_size=self.size_convolutional_filters,
-            strides=(2, 2),
-            padding=self.convolutional_padding,
-            name='initial_conv'
-        )(inputs)
-        x = BatchNormalization(name='initial_bn')(x)
-        x = Activation(self.intermediary_activation, name='initial_activation')(x)
+        neural_network_flow = Conv2D(int(32 * self.alpha),
+                   kernel_size=self.size_convolutional_filters,
+                   strides=(2, 2),
+                   padding=self.convolutional_padding,
+                   name='initial_conv')(inputs)
+        neural_network_flow = BatchNormalization(name='initial_bn')(neural_network_flow)
+        neural_network_flow = Activation(self.intermediary_activation, name='initial_activation')(neural_network_flow)
 
         # Depthwise Separable Convolution blocks
         for block_idx, filters in enumerate(self.filters_per_block):
@@ -168,31 +148,21 @@ class MobileNetModel(MobileNetProcess):
             # Determine stride (reduce spatial dimensions every few blocks)
             stride = (2, 2) if block_idx in [1, 3, 5] else (1, 1)
 
-            x = self._depthwise_separable_conv(
-                x,
-                filters,
-                block_idx,
-                strides=stride
-            )
+            neural_network_flow = self._depthwise_separable_conv(neural_network_flow,
+                                                                 filters, block_idx, strides=stride)
 
             # Add dropout after each block
-            x = Dropout(
-                self.dropout_rate,
-                name=f'dropout_block_{block_idx}'
-            )(x)
+            neural_network_flow = Dropout(self.dropout_rate, name=f'dropout_block_{block_idx}')(neural_network_flow)
 
         # Global Average Pooling
-        x = GlobalAveragePooling2D(name='global_avg_pooling')(x)
+        neural_network_flow = GlobalAveragePooling2D(name='global_avg_pooling')(neural_network_flow)
 
         # Final dropout before classification
-        x = Dropout(self.dropout_rate, name='final_dropout')(x)
+        neural_network_flow = Dropout(self.dropout_rate, name='final_dropout')(neural_network_flow)
 
         # Output layer
-        outputs = Dense(
-            self.number_classes,
-            activation=self.last_layer_activation,
-            name='output_layer'
-        )(x)
+        outputs = Dense(self.number_classes,
+                        activation=self.last_layer_activation, name='output_layer')(neural_network_flow)
 
         self.neural_network_model = Model(inputs=inputs, outputs=outputs, name=self.model_name)
         self.neural_network_model.summary()
@@ -201,7 +171,7 @@ class MobileNetModel(MobileNetProcess):
                           epochs: int, batch_size: int, validation_data: tuple = None,
                           generate_gradcam: bool = True, num_gradcam_samples: int = 30,
                           gradcam_output_dir: str = './mapas_de_ativacao',
-                          xai_method: str = 'gradcam++') -> tensorflow.keras.callbacks.History:
+                          xai_method: str = 'scorecam') -> tensorflow.keras.callbacks.History:
         """
         Compile and train the model with enhanced XAI visualization.
 
@@ -219,11 +189,9 @@ class MobileNetModel(MobileNetProcess):
         Returns:
             Training history object
         """
-        self.neural_network_model.compile(
-            optimizer=self.optimizer_function,
-            loss=self.loss_function,
-            metrics=['accuracy']
-        )
+        self.neural_network_model.compile(optimizer=self.optimizer_function,
+                                          loss=self.loss_function,
+                                          metrics=['accuracy'])
 
         training_history = self.neural_network_model.fit(
             train_data, train_labels,
@@ -245,233 +213,14 @@ class MobileNetModel(MobileNetProcess):
 
         return training_history
 
-    def build_gradcam_model(self, target_layer_name: str = None) -> None:
-        """
-        Build an auxiliary model for GradCAM/GradCAM++ computation.
-
-        Args:
-            target_layer_name: Name of target layer. If None, uses last pointwise conv layer
-        """
-        if self.neural_network_model is None:
-            raise ValueError("Model must be built before creating GradCAM model")
-
-        # Find last pointwise convolution layer if no target specified
-        if target_layer_name is None:
-            # Get last block's pointwise conv
-            last_block_idx = len(self.filters_per_block) - 1
-            target_layer_name = f'pointwise_conv_block_{last_block_idx}'
-
-        target_layer = self.neural_network_model.get_layer(target_layer_name)
-
-        self.gradcam_model = Model(
-            inputs=self.neural_network_model.inputs,
-            outputs=[target_layer.output, self.neural_network_model.output]
-        )
-
-    def compute_gradcam_plusplus(self, input_sample: np.ndarray, class_idx: int = None,
-                                 target_layer_name: str = None) -> np.ndarray:
-        """
-        Compute Grad-CAM++ heatmap (improved version with better localization).
-
-        Args:
-            input_sample: Input image (2D or 3D array)
-            class_idx: Target class index (if None, uses predicted class)
-            target_layer_name: Target layer name (if None, uses default)
-
-        Returns:
-            Normalized heatmap as numpy array
-        """
-        if self.gradcam_model is None or target_layer_name is not None:
-            self.build_gradcam_model(target_layer_name)
-
-        # Ensure correct input shape
-        if len(input_sample.shape) == 2:
-            input_sample = np.expand_dims(input_sample, axis=-1)
-        if len(input_sample.shape) == 3:
-            input_sample = np.expand_dims(input_sample, axis=0)
-
-        input_sample = input_sample.astype(np.float32)
-        input_tensor = tensorflow.convert_to_tensor(input_sample)
-
-        with tensorflow.GradientTape() as tape1:
-            with tensorflow.GradientTape() as tape2:
-                with tensorflow.GradientTape() as tape3:
-                    layer_output, predictions = self.gradcam_model(input_tensor)
-
-                    if class_idx is None:
-                        class_idx = tensorflow.argmax(predictions[0]).numpy()
-
-                    class_score = predictions[:, class_idx]
-
-                grads = tape3.gradient(class_score, layer_output)
-            grads_2 = tape2.gradient(grads, layer_output)
-        grads_3 = tape1.gradient(grads_2, layer_output)
-
-        # For 4D output (batch, height, width, channels)
-        reduce_axis = 3 if len(layer_output.shape) == 4 else -1
-
-        # Compute alpha weights (Grad-CAM++ formula)
-        numerator = grads_2
-        denominator = 2.0 * grads_2 + tensorflow.reduce_sum(
-            layer_output * grads_3, axis=reduce_axis, keepdims=True
-        ) + 1e-10
-
-        alpha = numerator / denominator
-
-        # ReLU on gradients
-        relu_grads = tensorflow.maximum(grads, 0.0)
-
-        # Weighted combination
-        weights = tensorflow.reduce_sum(alpha * relu_grads, axis=(1, 2))
-
-        # Compute weighted activation map
-        layer_output_squeezed = layer_output[0]
-        heatmap = layer_output_squeezed @ weights[..., tensorflow.newaxis]
-        heatmap = tensorflow.squeeze(heatmap)
-
-        # Apply ReLU and normalize
-        heatmap = tensorflow.maximum(heatmap, 0)
-        heatmap_max = tensorflow.math.reduce_max(heatmap)
-        if heatmap_max > 1e-10:
-            heatmap = heatmap / heatmap_max
-
-        return heatmap.numpy()
-
-    def compute_gradcam(self, input_sample: np.ndarray, class_idx: int = None,
-                        target_layer_name: str = None) -> np.ndarray:
-        """
-        Standard Grad-CAM computation.
-
-        Args:
-            input_sample: Input image
-            class_idx: Target class index
-            target_layer_name: Target layer name
-
-        Returns:
-            Normalized heatmap
-        """
-        if self.gradcam_model is None or target_layer_name is not None:
-            self.build_gradcam_model(target_layer_name)
-
-        # Ensure correct shape
-        if len(input_sample.shape) == 2:
-            input_sample = np.expand_dims(input_sample, axis=-1)
-        if len(input_sample.shape) == 3:
-            input_sample = np.expand_dims(input_sample, axis=0)
-
-        input_sample = input_sample.astype(np.float32)
-        input_tensor = tensorflow.convert_to_tensor(input_sample)
-
-        with tensorflow.GradientTape() as tape:
-            layer_output, predictions = self.gradcam_model(input_tensor)
-
-            if class_idx is None:
-                class_idx = tensorflow.argmax(predictions[0]).numpy()
-
-            class_channel = predictions[:, class_idx]
-
-        grads = tape.gradient(class_channel, layer_output)
-
-        # Pool gradients
-        pooled_grads = tensorflow.reduce_mean(grads, axis=(0, 1, 2))
-
-        layer_output = layer_output[0]
-        heatmap = layer_output @ pooled_grads[..., tensorflow.newaxis]
-        heatmap = tensorflow.squeeze(heatmap)
-
-        # Normalize
-        heatmap = tensorflow.maximum(heatmap, 0)
-        heatmap_max = tensorflow.math.reduce_max(heatmap)
-        if heatmap_max > 1e-10:
-            heatmap = heatmap / heatmap_max
-
-        return heatmap.numpy()
-
-    def compute_scorecam(self, input_sample: np.ndarray, class_idx: int = None,
-                         target_layer_name: str = None, batch_size: int = 32) -> np.ndarray:
-        """
-        Compute Score-CAM heatmap (gradient-free method).
-
-        Args:
-            input_sample: Input image
-            class_idx: Target class index
-            target_layer_name: Target layer name
-            batch_size: Batch size for processing activation maps
-
-        Returns:
-            Normalized heatmap
-        """
-        if self.gradcam_model is None or target_layer_name is not None:
-            self.build_gradcam_model(target_layer_name)
-
-        # Ensure correct shape
-        if len(input_sample.shape) == 2:
-            input_sample = np.expand_dims(input_sample, axis=-1)
-        if len(input_sample.shape) == 3:
-            input_sample = np.expand_dims(input_sample, axis=0)
-
-        input_sample = input_sample.astype(np.float32)
-        input_tensor = tensorflow.convert_to_tensor(input_sample)
-
-        # Get activations
-        layer_output, predictions = self.gradcam_model(input_tensor)
-
-        if class_idx is None:
-            class_idx = tensorflow.argmax(predictions[0]).numpy()
-
-        # Get activation maps
-        activations = layer_output[0].numpy()
-        num_channels = activations.shape[-1]
-
-        weights = []
-        for i in range(num_channels):
-            act_map = activations[:, :, i]
-
-            # Normalize to [0, 1]
-            if act_map.max() > act_map.min():
-                act_map = (act_map - act_map.min()) / (act_map.max() - act_map.min())
-
-            # Upsample to input size
-            zoom_factors = (input_sample.shape[1] / act_map.shape[0],
-                            input_sample.shape[2] / act_map.shape[1])
-            upsampled = zoom(act_map, zoom_factors, order=1)
-
-            # Handle channel dimension
-            if input_sample.shape[-1] == 1:
-                upsampled = upsampled[:, :, np.newaxis]
-            elif input_sample.shape[-1] == 3:
-                upsampled = np.repeat(upsampled[:, :, np.newaxis], 3, axis=-1)
-
-            # Mask input
-            masked_input = input_sample[0] * upsampled
-            masked_input = np.expand_dims(masked_input, 0)
-
-            # Get score for masked input
-            masked_pred = self.neural_network_model.predict(masked_input, verbose=0)
-            score = masked_pred[0, class_idx]
-
-            weights.append(score)
-
-        weights = np.array(weights)
-        weights = np.maximum(weights, 0)
-
-        # Weighted combination
-        heatmap = np.tensordot(activations, weights, axes=([2], [0]))
-
-        heatmap = np.maximum(heatmap, 0)
-        if heatmap.max() > 0:
-            heatmap = heatmap / heatmap.max()
-
-        return heatmap
-
     @staticmethod
-    def smooth_heatmap(heatmap: np.ndarray, sigma: float = 2.0) -> np.ndarray:
+    def smooth_heatmap(heatmap: numpy.ndarray, sigma: float = 2.0) -> numpy.ndarray:
         """Apply Gaussian smoothing to heatmap for better visualization."""
         return gaussian_filter(heatmap, sigma=sigma)
 
     @staticmethod
-    def interpolate_heatmap(heatmap: np.ndarray, target_shape: tuple,
-                            smooth: bool = True) -> np.ndarray:
+    def interpolate_heatmap(heatmap: numpy.ndarray, target_shape: tuple,
+                            smooth: bool = True) -> numpy.ndarray:
         """
         Interpolate heatmap to target shape with optional smoothing.
 
@@ -483,8 +232,8 @@ class MobileNetModel(MobileNetProcess):
         Returns:
             Interpolated heatmap
         """
-        if not isinstance(heatmap, np.ndarray):
-            heatmap = np.array(heatmap)
+        if not isinstance(heatmap, numpy.ndarray):
+            heatmap = numpy.array(heatmap)
 
         # For 2D heatmap
         if len(heatmap.shape) == 2:
@@ -506,9 +255,9 @@ class MobileNetModel(MobileNetProcess):
 
         return interpolated
 
-    def plot_gradcam_modern(self, input_sample: np.ndarray, heatmap: np.ndarray,
+    def plot_gradcam_modern(self, input_sample: numpy.ndarray, heatmap: numpy.ndarray,
                             class_idx: int, predicted_class: int, true_label: int = None,
-                            confidence: float = None, xai_method: str = 'gradcam++',
+                            confidence: float = None, xai_method: str = 'scorecam',
                             save_path: str = None, show_plot: bool = True) -> None:
         """
         Modern, visually appealing GradCAM visualization with enhanced aesthetics.
@@ -528,7 +277,7 @@ class MobileNetModel(MobileNetProcess):
         if len(input_sample.shape) == 4:
             input_sample = input_sample[0]
         if len(input_sample.shape) == 3 and input_sample.shape[-1] == 1:
-            input_sample = np.squeeze(input_sample, axis=-1)
+            input_sample = numpy.squeeze(input_sample, axis=-1)
 
         # Enhanced interpolation with smoothing
         interpolated_heatmap = self.interpolate_heatmap(heatmap, input_sample.shape[:2], smooth=True)
@@ -579,8 +328,8 @@ class MobileNetModel(MobileNetProcess):
 
         # 4. Temporal Importance Profile
         ax4 = fig.add_subplot(gs[0, 3])
-        temporal_importance = np.mean(interpolated_heatmap, axis=0)
-        time_steps = np.arange(len(temporal_importance))
+        temporal_importance = numpy.mean(interpolated_heatmap, axis=0)
+        time_steps = numpy.arange(len(temporal_importance))
 
         temporal_smooth = gaussian_filter(temporal_importance, sigma=2)
 
@@ -618,8 +367,8 @@ class MobileNetModel(MobileNetProcess):
         else:
             plt.close()
 
-    def generate_validation_visualizations(self, validation_data: np.ndarray,
-                                           validation_labels: np.ndarray,
+    def generate_validation_visualizations(self, validation_data: numpy.ndarray,
+                                           validation_labels: numpy.ndarray,
                                            num_samples: int = 10,
                                            output_dir: str = './gradcam_outputs',
                                            target_layer_name: str = None,
@@ -646,26 +395,26 @@ class MobileNetModel(MobileNetProcess):
         os.makedirs(output_dir, exist_ok=True)
 
         predictions = self.neural_network_model.predict(validation_data, verbose=0)
-        predicted_classes = np.argmax(predictions, axis=1)
-        confidences = np.max(predictions, axis=1)
+        predicted_classes = numpy.argmax(predictions, axis=1)
+        confidences = numpy.max(predictions, axis=1)
 
         if len(validation_labels.shape) > 1:
-            true_labels = np.argmax(validation_labels, axis=1)
+            true_labels = numpy.argmax(validation_labels, axis=1)
         else:
             true_labels = validation_labels
 
-        correct_indices = np.where(predicted_classes == true_labels)[0]
-        incorrect_indices = np.where(predicted_classes != true_labels)[0]
+        correct_indices = numpy.where(predicted_classes == true_labels)[0]
+        incorrect_indices = numpy.where(predicted_classes != true_labels)[0]
 
         num_correct = min(num_samples // 2, len(correct_indices))
         num_incorrect = min(num_samples - num_correct, len(incorrect_indices))
 
-        selected_correct = np.random.choice(correct_indices, num_correct, replace=False) if len(
+        selected_correct = numpy.random.choice(correct_indices, num_correct, replace=False) if len(
             correct_indices) > 0 else []
-        selected_incorrect = np.random.choice(incorrect_indices, num_incorrect, replace=False) if len(
+        selected_incorrect = numpy.random.choice(incorrect_indices, num_incorrect, replace=False) if len(
             incorrect_indices) > 0 else []
 
-        selected_indices = np.concatenate([selected_correct, selected_incorrect])
+        selected_indices = numpy.concatenate([selected_correct, selected_incorrect])
 
         stats = {
             'total_samples': len(selected_indices),
@@ -722,7 +471,7 @@ class MobileNetModel(MobileNetProcess):
 
         return stats
 
-    def explain_prediction_comprehensive(self, input_sample: np.ndarray,
+    def explain_prediction_comprehensive(self, input_sample: numpy.ndarray,
                                          class_names: list = None,
                                          save_path: str = None,
                                          show_plot: bool = True) -> dict:
@@ -745,18 +494,18 @@ class MobileNetModel(MobileNetProcess):
             input_sample_plot = input_sample.copy()
 
         if len(input_sample_plot.shape) == 3 and input_sample_plot.shape[-1] == 1:
-            input_sample_plot = np.squeeze(input_sample_plot, axis=-1)
+            input_sample_plot = numpy.squeeze(input_sample_plot, axis=-1)
 
         # Get predictions
         if len(input_sample.shape) == 2:
-            input_sample_batch = np.expand_dims(input_sample, axis=(0, -1))
+            input_sample_batch = numpy.expand_dims(input_sample, axis=(0, -1))
         elif len(input_sample.shape) == 3 and input_sample.shape[0] != 1:
-            input_sample_batch = np.expand_dims(input_sample, axis=0)
+            input_sample_batch = numpy.expand_dims(input_sample, axis=0)
         else:
             input_sample_batch = input_sample
 
         predictions = self.neural_network_model.predict(input_sample_batch, verbose=0)
-        predicted_class = np.argmax(predictions[0])
+        predicted_class = numpy.argmax(predictions[0])
         confidence = predictions[0][predicted_class]
 
         # Compute heatmaps
@@ -825,13 +574,13 @@ class MobileNetModel(MobileNetProcess):
 
         # Temporal comparison
         ax8 = fig.add_subplot(gs[2, 2])
-        temporal_gc = np.mean(heatmap_gc_interp, axis=0)
-        temporal_gcpp = np.mean(heatmap_pp_interp, axis=0)
+        temporal_gc = numpy.mean(heatmap_gc_interp, axis=0)
+        temporal_gcpp = numpy.mean(heatmap_pp_interp, axis=0)
 
         temporal_gc_smooth = gaussian_filter(temporal_gc, sigma=2)
         temporal_gcpp_smooth = gaussian_filter(temporal_gcpp, sigma=2)
 
-        time_steps = np.arange(len(temporal_gc))
+        time_steps = numpy.arange(len(temporal_gc))
         ax8.plot(time_steps, temporal_gc_smooth, linewidth=2, label='Grad-CAM', color='#3498db')
         ax8.plot(time_steps, temporal_gcpp_smooth, linewidth=2, label='Grad-CAM++', color='#e74c3c')
         ax8.fill_between(time_steps, temporal_gc_smooth, alpha=0.2, color='#3498db')
