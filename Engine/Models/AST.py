@@ -11,7 +11,7 @@ __version__ = '{1}.{0}.{4}'
 __last_update__ = '2025/10/18'
 
 try:
-    import numpy as np
+    import numpy
     import matplotlib.pyplot as plt
     from matplotlib.colors import LogNorm
     import seaborn as sns
@@ -259,7 +259,7 @@ class AudioSpectrogramTransformer(ProcessAST):
             self.build_attention_model()
 
         if len(data_sample.shape) == 3:
-            data_sample = np.expand_dims(data_sample, axis=0)
+            data_sample = numpy.expand_dims(data_sample, axis=0)
 
         # CORREÇÃO: Usar chamada direta ao invés de predict
         attention_outputs = self.attention_model(data_sample, training=False)
@@ -296,10 +296,10 @@ class AudioSpectrogramTransformer(ProcessAST):
         for attention in attention_weights:
             if len(attention.shape) == 4:
                 # [batch, heads, query, key] -> média sobre heads
-                attention_avg = np.mean(attention[0], axis=0)
+                attention_avg = numpy.mean(attention[0], axis=0)
             elif len(attention.shape) == 3:
                 if attention.shape[0] == self.number_heads:
-                    attention_avg = np.mean(attention, axis=0)
+                    attention_avg = numpy.mean(attention, axis=0)
                 else:
                     attention_avg = attention[0]
             elif len(attention.shape) == 2:
@@ -312,12 +312,12 @@ class AudioSpectrogramTransformer(ProcessAST):
             return None
 
         # A = 0.5 * Attention + 0.5 * Identity
-        rollout = np.eye(processed_attentions[0].shape[0])
+        rollout = numpy.eye(processed_attentions[0].shape[0])
 
         for attention_matrix in processed_attentions:
             attention_normalized = attention_matrix / (attention_matrix.sum(axis=-1, keepdims=True) + 1e-10)
-            attention_with_residual = 0.5 * attention_normalized + 0.5 * np.eye(attention_normalized.shape[0])
-            rollout = np.matmul(attention_with_residual, rollout)
+            attention_with_residual = 0.5 * attention_normalized + 0.5 * numpy.eye(attention_normalized.shape[0])
+            rollout = numpy.matmul(attention_with_residual, rollout)
 
         return rollout
 
@@ -354,7 +354,7 @@ class AudioSpectrogramTransformer(ProcessAST):
         output_path.mkdir(parents=True, exist_ok=True)
 
         num_samples = min(num_samples, len(data_samples))
-        sample_indices = np.random.choice(len(data_samples), num_samples, replace=False)
+        sample_indices = numpy.random.choice(len(data_samples), num_samples, replace=False)
 
         for idx, sample_idx in enumerate(sample_indices):
 
@@ -368,10 +368,10 @@ class AudioSpectrogramTransformer(ProcessAST):
             if isinstance(prediction, tensorflow.Tensor):
                 prediction = prediction.numpy()
 
-            predicted_class = np.argmax(prediction[0])
-            confidence = np.max(prediction[0])
+            predicted_class = numpy.argmax(prediction[0])
+            confidence = numpy.max(prediction[0])
 
-            true_class = np.argmax(labels[sample_idx]) if labels is not None else None
+            true_class = numpy.argmax(labels[sample_idx]) if labels is not None else None
 
             self._plot_unified_attention_analysis(attention_weights,
                                                   sample_idx,
@@ -400,7 +400,7 @@ class AudioSpectrogramTransformer(ProcessAST):
 
         if num_patches != expected_patches:
 
-            number_patches_y = int(np.sqrt(num_patches))
+            number_patches_y = int(numpy.sqrt(num_patches))
             while num_patches % number_patches_y != 0:
                 number_patches_y += 1
             number_patches_x = num_patches // number_patches_y
@@ -414,10 +414,10 @@ class AudioSpectrogramTransformer(ProcessAST):
                     row_patches.append(sample_data[patch_idx])
                     patch_idx += 1
             if row_patches:
-                reconstructed_rows.append(np.hstack(row_patches))
+                reconstructed_rows.append(numpy.hstack(row_patches))
 
         if reconstructed_rows:
-            reconstructed_spectrogram = np.vstack(reconstructed_rows)
+            reconstructed_spectrogram = numpy.vstack(reconstructed_rows)
             return reconstructed_spectrogram, (number_patches_x, number_patches_y)
 
         return None, None
@@ -451,10 +451,10 @@ class AudioSpectrogramTransformer(ProcessAST):
         processed_attentions = []
         for attention in attention_weights:
             if len(attention.shape) == 4:
-                attention_avg = np.mean(attention[0], axis=0)
+                attention_avg = numpy.mean(attention[0], axis=0)
             elif len(attention.shape) == 3:
                 if attention.shape[0] == self.number_heads:
-                    attention_avg = np.mean(attention, axis=0)
+                    attention_avg = numpy.mean(attention, axis=0)
                 else:
                     attention_avg = attention[0]
             elif len(attention.shape) == 2:
@@ -534,15 +534,15 @@ class AudioSpectrogramTransformer(ProcessAST):
                     row_patches = []
                     for time_idx in range(number_patches_x):
                         if patch_idx < len(flow_patches):
-                            flow_patch = np.full((patch_height, patch_width), flow_patches[patch_idx])
+                            flow_patch = numpy.full((patch_height, patch_width), flow_patches[patch_idx])
                             row_patches.append(flow_patch)
                             patch_idx += 1
 
                     if row_patches:
-                        flow_reconstructed_rows.append(np.hstack(row_patches))
+                        flow_reconstructed_rows.append(numpy.hstack(row_patches))
 
                 if flow_reconstructed_rows:
-                    flow_reconstructed = np.vstack(flow_reconstructed_rows)
+                    flow_reconstructed = numpy.vstack(flow_reconstructed_rows)
 
                     im_flow = ax_flow_cls.imshow(flow_reconstructed, cmap='hot', aspect='auto',
                                                  origin='lower', interpolation='bilinear', alpha=0.8)
@@ -577,14 +577,14 @@ class AudioSpectrogramTransformer(ProcessAST):
                         for time_idx in range(number_patches_x):
                             if patch_idx < len(flow_patches):
                                 # Criar patch com o valor de flow
-                                flow_patch = np.full((patch_height, patch_width), flow_patches[patch_idx])
+                                flow_patch = numpy.full((patch_height, patch_width), flow_patches[patch_idx])
                                 row_patches.append(flow_patch)
                                 patch_idx += 1
                         if row_patches:
-                            flow_reconstructed_rows.append(np.hstack(row_patches))
+                            flow_reconstructed_rows.append(numpy.hstack(row_patches))
 
                     if flow_reconstructed_rows:
-                        flow_reconstructed = np.vstack(flow_reconstructed_rows)
+                        flow_reconstructed = numpy.vstack(flow_reconstructed_rows)
 
                         im_flow = ax_flow_dist.imshow(flow_reconstructed, cmap='plasma', aspect='auto',
                                                       origin='lower', interpolation='bilinear', alpha=0.8)
@@ -622,9 +622,9 @@ class AudioSpectrogramTransformer(ProcessAST):
                 cbar.ax.tick_params(labelsize=7)
 
         ax_avg = fig.add_subplot(gs[2, :num_blocks])
-        avg_attentions = [np.mean(att) for att in processed_attentions]
+        avg_attentions = [numpy.mean(att) for att in processed_attentions]
         blocks = [f'B{i + 1}' for i in range(len(avg_attentions))]
-        colors = plt.cm.viridis(np.linspace(0.3, 0.9, len(blocks)))
+        colors = plt.cm.viridis(numpy.linspace(0.3, 0.9, len(blocks)))
         bars = ax_avg.bar(blocks, avg_attentions, color=colors, alpha=0.8,
                           edgecolor='black', linewidth=1.2)
 
@@ -639,7 +639,7 @@ class AudioSpectrogramTransformer(ProcessAST):
         ax_avg.grid(True, alpha=0.3, axis='y')
 
         ax_hist = fig.add_subplot(gs[2, num_blocks:])
-        all_weights = np.concatenate([att.flatten() for att in processed_attentions])
+        all_weights = numpy.concatenate([att.flatten() for att in processed_attentions])
         ax_hist.hist(all_weights, bins=50, color='#16A085', alpha=0.7, edgecolor='black', linewidth=0.8)
         ax_hist.axvline(all_weights.mean(), color='red', linestyle='--', linewidth=2,
                         label=f'Mean: {all_weights.mean():.3f}')
@@ -651,9 +651,9 @@ class AudioSpectrogramTransformer(ProcessAST):
 
         for attention_avg in processed_attentions:
             attention_safe = attention_avg + 1e-10
-            attention_norm = attention_safe / np.sum(attention_safe, axis=1, keepdims=True)
-            entropy_per_query = -np.sum(attention_norm * np.log(attention_norm + 1e-10), axis=1)
-            entropies.append(np.mean(entropy_per_query))
+            attention_norm = attention_safe / numpy.sum(attention_safe, axis=1, keepdims=True)
+            entropy_per_query = -numpy.sum(attention_norm * numpy.log(attention_norm + 1e-10), axis=1)
+            entropies.append(numpy.mean(entropy_per_query))
 
         ax_entropy.plot(blocks, entropies, marker='o', linewidth=3, markersize=10,
                         color='#E74C3C', markeredgecolor='black', markeredgewidth=1.5)
@@ -672,15 +672,15 @@ class AudioSpectrogramTransformer(ProcessAST):
         ax_stats.axis('off')
 
         stats_text = "Global Statistics\n" + "=" * 80 + "\n\n"
-        all_attentions = np.concatenate([att.flatten() for att in processed_attentions])
+        all_attentions = numpy.concatenate([att.flatten() for att in processed_attentions])
         stats_text += f"Overall Average: {all_attentions.mean():.4f} | "
         stats_text += f"Standard Deviation: {all_attentions.std():.4f} | "
-        stats_text += f"Median: {np.median(all_attentions):.4f}\n"
+        stats_text += f"Median: {numpy.median(all_attentions):.4f}\n"
 
         if flow_cls is not None:
-            stats_text += f"\n CLS Flow - Top 5 patches: {np.argsort(flow_cls[2:])[-5:][::-1]}\n"
+            stats_text += f"\n CLS Flow - Top 5 patches: {numpy.argsort(flow_cls[2:])[-5:][::-1]}\n"
         if self.use_distillation and flow_dist is not None:
-            stats_text += f" DIST Flow - Top 5 patches: {np.argsort(flow_dist[2:])[-5:][::-1]}\n"
+            stats_text += f" DIST Flow - Top 5 patches: {numpy.argsort(flow_dist[2:])[-5:][::-1]}\n"
 
         ax_stats.text(0.05, 0.95, stats_text, transform=ax_stats.transAxes,
                       fontsize=10, verticalalignment='top', family='monospace',
