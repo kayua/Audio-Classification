@@ -261,6 +261,6 @@ if __name__ == "__main__":
     main = Main()
     main.__start__()
 
-    available_models = [AudioSpectrogramTransformer]
+    available_models = [Conformer]
 
     main.__exec__(available_models, "Results")
