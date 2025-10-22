@@ -8,8 +8,6 @@ __initial_data__ = '2025/04/1'
 __last_update__ = '2025/04/1'
 __credits__ = ['unknown']
 
-from Engine.Arguments.ArgumentsMobileNet import add_mobilenet_arguments
-
 # MIT License
 #
 # Copyright (c) 2025 unknown
@@ -49,9 +47,13 @@ try:
     from Engine.Arguments.ArgumentsConformer import add_conformer_arguments
     from Engine.Arguments.ArgumentsWav2Vec2 import add_wav_to_vec_arguments
 
+    from Engine.Arguments.ArgumentsMobileNet import add_mobilenet_arguments
+
     from Engine.Arguments.ArgumentsROCPlotter import add_roc_plotter_arguments
 
     from Engine.Arguments.ArgumentsLossPlotter import add_loss_plotter_arguments
+
+    from Engine.Arguments.ArgumentsEfficientNet import add_efficientnet_arguments
 
     from Engine.Arguments.ArgumentsConfusionMatrix import add_confusion_matrix_arguments
 
@@ -150,6 +152,7 @@ class Arguments:
         self.input_arguments = add_residual_arguments(self.input_arguments)
         self.input_arguments = add_wav_to_vec_arguments(self.input_arguments)
         self.input_arguments = add_mobilenet_arguments(self.input_arguments)
+        self.input_arguments = add_efficientnet_arguments(self.input_arguments)
         self.input_arguments = add_comparative_metrics_plotter_arguments(self.input_arguments)
         self.input_arguments = add_confusion_matrix_arguments(self.input_arguments)
         self.input_arguments = add_loss_plotter_arguments(self.input_arguments)
