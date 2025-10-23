@@ -40,7 +40,6 @@ except ImportError as error:
     print(error)
     sys.exit(-1)
 
-
 DEFAULT_OVERLAP = 1
 
 DEFAULT_SIZE_BATCH = 32
@@ -66,6 +65,15 @@ DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
 
 
 def add_efficientnet_arguments(parser):
+    """
+    Adiciona argumentos do EfficientNet ao parser.
+
+    IMPORTANTE: Para usar pesos pré-treinados do ImageNet, a entrada deve ter:
+    - Mínimo 32x32 pixels (variável por versão)
+    - 3 canais (RGB)
+
+    Se a entrada não for compatível, o modelo será treinado do zero.
+    """
 
     parser.add_argument('--efficientnet_optimizer_function', type=str, default=DEFAULT_OPTIMIZER_FUNCTION,
                         help='Optimizer to use during training (default: adam)'
@@ -76,7 +84,8 @@ def add_efficientnet_arguments(parser):
                         )
 
     parser.add_argument('--efficientnet_input_dimension', default=DEFAULT_INPUT_DIMENSION,
-                        help='Dimensions of the input data (height, width, channels)'
+                        help='Dimensions of the input data (height, width, channels). '
+                             'Note: For ImageNet weights, needs to be (>=32, >=32, 3)'
                         )
 
     parser.add_argument('--efficientnet_hop_length', type=int, default=DEFAULT_HOP_LENGTH,
@@ -87,7 +96,8 @@ def add_efficientnet_arguments(parser):
                         help='Factor applied to FFT window size (default: 40)'
                         )
 
-    parser.add_argument('--efficientnet_number_filters_spectrogram', type=int, default=DEFAULT_NUMBER_FILTERS_SPECTROGRAM,
+    parser.add_argument('--efficientnet_number_filters_spectrogram', type=int,
+                        default=DEFAULT_NUMBER_FILTERS_SPECTROGRAM,
                         help='Number of filters for spectrogram generation (default: 512)'
                         )
 
@@ -115,16 +125,19 @@ def add_efficientnet_arguments(parser):
                         help='Size of the FFT window (default: 1024)'
                         )
 
-    parser.add_argument('--efficientnet_use_pretrained', type=bool, default=False,
-                        help='Use pretrained ImageNet weights (default: False)'
+    parser.add_argument('--efficientnet_use_pretrained', action='store_true',
+                        help='Use pretrained ImageNet weights. Only works if input dimensions are compatible '
+                             '(>=32x32x3). If dimensions are incompatible, will train from scratch automatically.'
                         )
 
-    parser.add_argument('--efficientnet_fine_tune', type=bool, default=False,
-                        help='Fine-tune the pretrained model (default: False)'
+    parser.add_argument('--efficientnet_freeze_base', action='store_true',
+                        help='Freeze the base EfficientNet layers (only train classification head). '
+                             'Only effective when using pretrained weights.'
                         )
 
-    parser.add_argument('--efficientnet_freeze_layers', type=int, default=0,
-                        help='Number of layers to freeze from the beginning (default: 0)'
+    parser.add_argument('--efficientnet_fine_tune_at', type=int, default=None,
+                        help='Layer index from which to start fine-tuning. Layers before this will be frozen. '
+                             'None means train all layers (default: None)'
                         )
 
     return parser
