@@ -17,18 +17,22 @@ try:
     import seaborn as sns
     from pathlib import Path
     import tensorflow
+
     from tensorflow.keras import models
     from tensorflow.keras.layers import Add
     from tensorflow.keras.layers import Input
     from tensorflow.keras.layers import Layer
     from tensorflow.keras.layers import Dense
+
     from tensorflow.keras.layers import Dropout
     from tensorflow.keras.layers import Flatten
+
     from tensorflow.keras.layers import TimeDistributed
     from tensorflow.keras.layers import LayerNormalization
     from tensorflow.keras.layers import MultiHeadAttention
 
     from Engine.Layers.PositionalEmbeddingsLayer import PositionalEmbeddingsLayer
+    from Engine.Layers.DistillationCLSTokenLayer import DistillationCLSTokenLayer
     from Engine.Models.Process.AST_Process import ProcessAST
 
 except ImportError as error:
@@ -38,52 +42,28 @@ except ImportError as error:
     sys.exit(-1)
 
 
-class DistillationCLSTokenLayer(Layer):
-    """
-    Adiciona CLS token E Distillation token ao início da sequência.
-    """
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.cls_token = None
-        self.dist_token = None
-
-    def build(self, input_shape):
-        embedding_dim = input_shape[-1]
-
-        self.cls_token = self.add_weight(
-            shape=(1, 1, embedding_dim),
-            initializer='random_normal',
-            trainable=True,
-            name='cls_token'
-        )
-
-        self.dist_token = self.add_weight(
-            shape=(1, 1, embedding_dim),
-            initializer='random_normal',
-            trainable=True,
-            name='distillation_token'
-        )
-
-        super().build(input_shape)
-
-    def call(self, inputs: tensorflow.Tensor) -> tensorflow.Tensor:
-        batch_size = tensorflow.shape(inputs)[0]
-        cls_tokens = tensorflow.tile(self.cls_token, [batch_size, 1, 1])
-        dist_tokens = tensorflow.tile(self.dist_token, [batch_size, 1, 1])
-        return tensorflow.concat([cls_tokens, dist_tokens, inputs], axis=1)
-
-    def get_config(self):
-        return super().get_config()
-
 
 class AudioSpectrogramTransformer(ProcessAST):
-    """
-    Audio Spectrogram Transformer com Distillation Token.
-    Inclui visualizações de Attention Flow e Attention Rollout.
-    """
 
     def __init__(self, arguments):
+        """
+        Initialize the Audio Spectrogram Transformer.
+
+        Args:
+            arguments (object): Configuration object containing model parameters with attributes:
+                - ast_head_size: Size of attention heads
+                - ast_number_heads: Number of attention heads
+                - ast_number_blocks: Number of transformer blocks
+                - number_classes: Number of output classes
+                - ast_patch_size: Tuple of (height, width) for patches
+                - ast_dropout: Dropout rate
+                - ast_optimizer_function: Optimizer name
+                - ast_loss_function: Loss function name
+                - ast_normalization_epsilon: Epsilon for layer normalization
+                - ast_intermediary_activation: Activation for intermediate layers
+                - ast_projection_dimension: Dimension for token projection
+                - ast_number_filters_spectrogram: Number of spectrogram filters
+        """
         super().__init__(arguments)
         self.neural_network_model = None
         self.attention_model = None
@@ -105,52 +85,81 @@ class AudioSpectrogramTransformer(ProcessAST):
         self.use_distillation = True
 
     def transformer_encoder(self, inputs: tensorflow.Tensor) -> tensorflow.Tensor:
-        """Transformer encoder com Pre-LN."""
-        x = inputs
+        """
+        Build the transformer encoder with multiple blocks.
+
+        Each transformer block consists of:
+        1. Layer normalization
+        2. Multi-head self-attention with residual connection
+        3. Layer normalization
+        4. Feed-forward network with residual connection
+
+        Args:
+            inputs (tensorflow.Tensor): Input tensor of shape (batch_size, sequence_length, projection_dim)
+
+        Returns:
+            tensorflow.Tensor: Output tensor of same shape as inputs after transformer processing
+        """
+        neural_network_flow = inputs
 
         for block_idx in range(self.number_blocks):
-            x_norm = LayerNormalization(
-                epsilon=self.normalization_epsilon,
-                name=f'norm1_block_{block_idx}'
-            )(x)
+            neural_network_flow_normalized = LayerNormalization(epsilon=self.normalization_epsilon,
+                                                                name=f'norm1_block_{block_idx}')(neural_network_flow)
 
-            attention_layer = MultiHeadAttention(
-                key_dim=self.projection_dimension,
-                num_heads=self.number_heads,
-                dropout=self.dropout,
-                name=f'attention_block_{block_idx}'
-            )
+            attention_layer = MultiHeadAttention(key_dim=self.projection_dimension,
+                                                 num_heads=self.number_heads,
+                                                 dropout=self.dropout,
+                                                 name=f'attention_block_{block_idx}')
 
-            attention_output, attention_scores = attention_layer(
-                x_norm, x_norm,
-                return_attention_scores=True
-            )
+            attention_output, attention_scores = attention_layer(neural_network_flow_normalized,
+                                                                 neural_network_flow_normalized,
+                                                                 return_attention_scores=True)
 
             self.attention_layers.append((attention_layer, attention_scores))
             attention_output = Dropout(self.dropout, name=f'dropout1_block_{block_idx}')(attention_output)
-            x = Add(name=f'add1_block_{block_idx}')([attention_output, x])
+            neural_network_flow = Add(name=f'add1_block_{block_idx}')([attention_output, neural_network_flow])
 
-            x_norm = LayerNormalization(
-                epsilon=self.normalization_epsilon,
-                name=f'norm2_block_{block_idx}'
-            )(x)
+            neural_network_flow_normalized = LayerNormalization(epsilon=self.normalization_epsilon,
+                                        name=f'norm2_block_{block_idx}')(neural_network_flow)
 
             ffn_dim = self.projection_dimension * 4
-            ffn_output = Dense(
-                ffn_dim,
-                activation=self.intermediary_activation,
-                name=f'ffn1_block_{block_idx}'
-            )(x_norm)
-            ffn_output = Dropout(self.dropout, name=f'dropout2_block_{block_idx}')(ffn_output)
-            ffn_output = Dense(self.projection_dimension, name=f'ffn2_block_{block_idx}')(ffn_output)
-            ffn_output = Dropout(self.dropout, name=f'dropout3_block_{block_idx}')(ffn_output)
-            x = Add(name=f'add2_block_{block_idx}')([ffn_output, x])
+            classification_head_output = Dense(ffn_dim,
+                                               activation=self.intermediary_activation,
+                                               name=f'ffn1_block_{block_idx}')(neural_network_flow_normalized)
 
-        x = LayerNormalization(epsilon=self.normalization_epsilon, name='final_norm')(x)
-        return x
+            classification_head_output = Dropout(self.dropout,
+                                                 name=f'dropout2_block_{block_idx}')(classification_head_output)
+            classification_head_output = Dense(self.projection_dimension,
+                                               name=f'ffn2_block_{block_idx}')(classification_head_output)
+            classification_head_output = Dropout(self.dropout,
+                                                 name=f'dropout3_block_{block_idx}')(classification_head_output)
+            neural_network_flow = Add(name=f'add2_block_{block_idx}')([classification_head_output, neural_network_flow])
+
+        neural_network_flow = LayerNormalization(epsilon=self.normalization_epsilon, name='final_norm')(neural_network_flow)
+
+        return neural_network_flow
 
     def build_model(self, number_patches: int = 8) -> tensorflow.keras.models.Model:
-        """Constrói o modelo AST com distillation token."""
+        """
+        Build the complete Audio Spectrogram Transformer model.
+
+        Model Architecture:
+        1. Input patches processing and flattening
+        2. Linear projection to embedding dimension
+        3. Addition of CLS and/or distillation tokens
+        4. Positional embeddings
+        5. Transformer encoder blocks
+        6. Classification heads with optional distillation
+
+        Args:
+            number_patches (int): Number of patches extracted from the spectrogram
+
+        Returns:
+            tensorflow.keras.models.Model: Compiled transformer model
+
+        Raises:
+            ValueError: If required components are not properly initialized
+        """
         self.attention_layers = []
 
         inputs = Input(shape=(number_patches, self.patch_size[0], self.patch_size[1]))
@@ -165,10 +174,9 @@ class AudioSpectrogramTransformer(ProcessAST):
             neural_model_flow = CLSTokenLayer()(linear_projection)
             num_special_tokens = 1
 
-        positional_embeddings_layer = PositionalEmbeddingsLayer(
-            number_patches + num_special_tokens - 1,
-            self.projection_dimension
-        )(neural_model_flow)
+        positional_embeddings_layer = PositionalEmbeddingsLayer(number_patches + num_special_tokens - 1,
+                                                                self.projection_dimension)(neural_model_flow)
+
         neural_model_flow = neural_model_flow + positional_embeddings_layer
 
         neural_model_flow = self.transformer_encoder(neural_model_flow)
@@ -180,48 +188,40 @@ class AudioSpectrogramTransformer(ProcessAST):
             cls_output = Dropout(self.dropout, name='cls_dropout')(cls_output)
             dist_output = Dropout(self.dropout, name='dist_dropout')(dist_output)
 
-            cls_logits = Dense(
-                self.projection_dimension,
-                activation=self.intermediary_activation,
-                name='cls_mlp_hidden'
-            )(cls_output)
+            cls_logits = Dense(self.projection_dimension,
+                               activation=self.intermediary_activation,
+                               name='cls_mlp_hidden')(cls_output)
+
             cls_logits = Dropout(self.dropout)(cls_logits)
-            cls_logits = Dense(
-                self.number_classes,
-                activation='softmax',
-                name='cls_head'
-            )(cls_logits)
+            cls_logits = Dense(self.number_classes,
+                               activation='softmax',
+                               name='cls_head')(cls_logits)
 
-            dist_logits = Dense(
-                self.projection_dimension,
-                activation=self.intermediary_activation,
-                name='dist_mlp_hidden'
-            )(dist_output)
-            dist_logits = Dropout(self.dropout)(dist_logits)
-            dist_logits = Dense(
-                self.number_classes,
-                activation='softmax',
-                name='dist_head'
-            )(dist_logits)
+            distillation_logits = Dense(self.projection_dimension,
+                                        activation=self.intermediary_activation,
+                                        name='dist_mlp_hidden')(dist_output)
 
-            outputs = tensorflow.keras.layers.Average(name='average_predictions')([cls_logits, dist_logits])
+            distillation_logits = Dropout(self.dropout)(distillation_logits)
+
+            distillation_logits = Dense(self.number_classes,
+                                        activation='softmax',
+                                        name='dist_head')(distillation_logits)
+
+            outputs = tensorflow.keras.layers.Average(name='average_predictions')([cls_logits, distillation_logits])
 
         else:
             cls_output = neural_model_flow[:, 0, :]
             cls_output = Dropout(self.dropout)(cls_output)
 
-            mlp_hidden = Dense(
-                self.projection_dimension,
-                activation=self.intermediary_activation,
-                name='mlp_head_hidden'
-            )(cls_output)
-            mlp_hidden = Dropout(self.dropout)(mlp_hidden)
+            feedforward_hidden = Dense(self.projection_dimension,
+                                       activation=self.intermediary_activation,
+                                       name='mlp_head_hidden')(cls_output)
 
-            outputs = Dense(
-                self.number_classes,
-                activation='softmax',
-                name='classification_head'
-            )(mlp_hidden)
+            feedforward_hidden = Dropout(self.dropout)(feedforward_hidden)
+
+            outputs = Dense(self.number_classes,
+                            activation='softmax',
+                            name='classification_head')(feedforward_hidden)
 
         self.neural_network_model = models.Model(inputs, outputs, name=self.model_name)
         self.neural_network_model.summary()
@@ -229,7 +229,15 @@ class AudioSpectrogramTransformer(ProcessAST):
         return self.neural_network_model
 
     def build_attention_model(self):
-        """Constrói modelo para extrair attention weights."""
+        """
+        Build a model specifically for extracting attention weights.
+
+        Returns:
+            tensorflow.keras.models.Model: Model that outputs attention scores from all layers
+
+        Raises:
+            ValueError: If main model hasn't been built yet
+        """
         if self.neural_network_model is None:
             raise ValueError("The main model must be built before creating attention model.")
 
@@ -239,16 +247,32 @@ class AudioSpectrogramTransformer(ProcessAST):
             print("Warning: No attention scores found in the model.")
             return None
 
-        self.attention_model = models.Model(
-            inputs=self.neural_network_model.input,
-            outputs=attention_score_tensors,
-            name='attention_extractor'
-        )
+        self.attention_model = models.Model(inputs=self.neural_network_model.input,
+                                            outputs=attention_score_tensors,
+                                            name='attention_extractor')
 
         return self.attention_model
 
     def extract_attention_weights(self, data_sample):
-        """Extract attention weights for a given input sample."""
+        """
+        Extract attention weights from all transformer blocks for a given input sample.
+
+        Args:
+            data_sample (np.ndarray): Input data sample of shape (patches, height, width)
+                                    or (batch_size, patches, height, width)
+
+        Returns:
+            list: List of attention weight matrices from all transformer blocks
+
+        Example:
+            ```python
+            # For a single sample
+            attention_weights = model.extract_attention_weights(sample_data)
+
+            # For batch processing
+            batch_attention = [model.extract_attention_weights(sample) for sample in batch]
+            ```
+        """
         if self.attention_model is None:
             self.build_attention_model()
 
@@ -264,22 +288,25 @@ class AudioSpectrogramTransformer(ProcessAST):
 
     def compute_attention_rollout(self, attention_weights):
         """
-        Computa o Attention Rollout através de todas as camadas.
+        Compute attention rollout to understand global attention patterns.
 
-        Rollout mostra como a atenção se acumula através das camadas,
-        multiplicando as matrizes de atenção sucessivamente.
+        Attention rollout combines attention matrices across layers to show
+        how information flows through the entire transformer architecture.
 
         Args:
-            attention_weights: Lista de matrizes de atenção de cada camada
+            attention_weights (list): List of attention weight matrices from all blocks
 
         Returns:
-            np.ndarray: Matriz de rollout final
-        """
+            np.ndarray: Rollout matrix showing cumulative attention flow
 
+        Reference:
+            Abnar et al. "Quantifying Attention Flow in Transformers" (2020)
+        """
         processed_attentions = []
+
         for attention in attention_weights:
             if len(attention.shape) == 4:
-                # [batch, heads, query, key] -> média sobre heads
+
                 attention_avg = np.mean(attention[0], axis=0)
             elif len(attention.shape) == 3:
                 if attention.shape[0] == self.number_heads:
@@ -295,7 +322,6 @@ class AudioSpectrogramTransformer(ProcessAST):
         if not processed_attentions:
             return None
 
-        # A = 0.5 * Attention + 0.5 * Identity
         rollout = np.eye(processed_attentions[0].shape[0])
 
         for attention_matrix in processed_attentions:
@@ -308,17 +334,17 @@ class AudioSpectrogramTransformer(ProcessAST):
 
     def compute_attention_flow(self, attention_weights, target_token=0):
         """
-        Computa o Attention Flow para um token específico.
+        Compute attention flow from a specific token to all other tokens.
 
-        Flow mostra quanto cada patch contribui para a predição final,
-        seguindo o caminho de atenção do token de classe (CLS).
+        This shows how much each patch is influenced by the target token (usually CLS or DIST token)
+        throughout the entire transformer architecture.
 
         Args:
-            attention_weights: Lista de matrizes de atenção
-            target_token: Índice do token alvo (0 = CLS, 1 = DIST)
+            attention_weights (list): List of attention weight matrices
+            target_token (int): Index of the token to compute flow from (0 for CLS, 1 for DIST)
 
         Returns:
-            np.ndarray: Vetor de flow para cada posição
+            np.ndarray: Attention flow vector showing influence of target token on all tokens
         """
         rollout = self.compute_attention_rollout(attention_weights)
 
@@ -332,7 +358,31 @@ class AudioSpectrogramTransformer(ProcessAST):
     def visualize_attention_flow(self, data_samples, labels=None, num_samples=4,
                                  output_dir='attention_visualizations'):
         """
-        Visualiza attention flow com rollout para múltiplas amostras.
+        Generate comprehensive attention visualization for multiple data samples.
+
+        Creates unified visualization plots including:
+        - Input spectrogram with patch boundaries
+        - Attention rollout matrix
+        - CLS and DIST token attention flows overlaid on spectrogram
+        - Individual block attention maps
+        - Statistical analysis of attention patterns
+
+        Args:
+            data_samples (np.ndarray): Batch of input samples
+            labels (np.ndarray, optional): Ground truth labels for evaluation
+            num_samples (int): Number of samples to visualize
+            output_dir (str): Directory to save visualization images
+
+        Example:
+            ```python
+            # Visualize attention for validation set
+            model.visualize_attention_flow(
+                data_samples=X_val,
+                labels=y_val,
+                num_samples=8,
+                output_dir='attention_analysis'
+            )
+            ```
         """
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
@@ -361,7 +411,13 @@ class AudioSpectrogramTransformer(ProcessAST):
     @staticmethod
     def _reconstruct_spectrogram(sample_data):
         """
-        Reconstrói o espectrograma a partir dos patches.
+        Reconstruct spectrogram from patch representation.
+
+        Args:
+            sample_data (np.ndarray): Patch data of shape (num_patches, height, width)
+
+        Returns:
+            tuple: (reconstructed_spectrogram, (patches_x, patches_y)) or (None, None) if reconstruction fails
         """
         if len(sample_data.shape) != 3:
             return None, None
@@ -403,7 +459,10 @@ class AudioSpectrogramTransformer(ProcessAST):
                                          predicted_class=None, true_class=None, confidence=None,
                                          output_path=None):
         """
-        Visualização unificada com Spectrogram, Attention Flow e Attention Rollout.
+        Create comprehensive attention analysis visualization.
+
+        Internal method that generates a multi-panel figure showing various aspects
+        of attention mechanisms in the transformer.
         """
         num_blocks = len(attention_weights)
 
@@ -678,7 +737,32 @@ class AudioSpectrogramTransformer(ProcessAST):
     def compile_and_train(self, train_data, train_labels, epochs: int,
                           batch_size: int, validation_data=None,
                           visualize_attention: bool = True):
+        """
+        Compile and train the Audio Spectrogram Transformer model.
 
+        Args:
+            train_data (np.ndarray): Training data samples
+            train_labels (np.ndarray): Training labels
+            epochs (int): Number of training epochs
+            batch_size (int): Training batch size
+            validation_data (tuple, optional): (val_data, val_labels) for validation
+            visualize_attention (bool): Whether to generate attention visualizations after training
+
+        Returns:
+            tensorflow.keras.callbacks.History: Training history object
+
+        Example:
+            ```python
+            history = model.compile_and_train(
+                train_data=X_train,
+                train_labels=y_train,
+                epochs=100,
+                batch_size=32,
+                validation_data=(X_val, y_val),
+                visualize_attention=True
+            )
+            ```
+        """
         self.neural_network_model.compile(optimizer=self.optimizer_function,
                                           loss=self.loss_function,
                                           metrics=['accuracy'])
