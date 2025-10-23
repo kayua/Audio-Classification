@@ -8,7 +8,6 @@ __initial_data__ = '2025/04/1'
 __last_update__ = '2025/04/1'
 __credits__ = ['unknown']
 
-from Engine.GradientMap.ConformerGradientMaps import ConformerGradientMaps
 
 # MIT License
 #
@@ -57,6 +56,7 @@ try:
     from Engine.Layers.ConformerBlock import ConformerBlock
     from Engine.Layers.TransposeLayer import TransposeLayer
     from Engine.Models.Process.Conformer_Process import ProcessConformer
+    from Engine.GradientMap.ConformerGradientMaps import ConformerGradientMaps
     from Engine.Layers.ConvolutionalSubsampling import ConvolutionalSubsampling
 
 except ImportError as error:
@@ -66,18 +66,44 @@ except ImportError as error:
 
 class Conformer(ProcessConformer, ConformerGradientMaps):
     """
-    Enhanced Conformer with FIXED Explainable AI (XAI) capabilities
+    Conformer Model Implementation with Integrated XAI Capabilities.
 
-    CORREÇÕES IMPLEMENTADAS:
-    ========================
-    1. ✅ Camada alvo corrigida: usa 'conv_subsampling' por padrão (mantém estrutura 2D)
-    2. ✅ Grad-CAM++ axis corrigido para arquitetura Transformer
-    3. ✅ Interpolação melhorada para lidar com saídas 2D convolucionais
-    4. ✅ Avisos sobre limitações da arquitetura Transformer
-    5. ✅ Tratamento adequado de heatmaps com diferentes dimensionalidades
+    This class implements a Conformer neural network architecture that combines
+    convolutional layers with transformer blocks for sequence processing tasks.
+    It includes comprehensive Explainable AI (XAI) methods for model interpretability.
+
+    The model features:
+    - Convolutional subsampling for input processing
+    - Multiple Conformer blocks with multi-head attention
+    - Global average pooling for sequence aggregation
+    - Integrated Grad-CAM, Grad-CAM++, and Score-CAM visualization
+    - Advanced heatmap interpolation and smoothing
+    - Comprehensive visualization capabilities
+
+    Inherits from:
+        ProcessConformer: Base processing functionality
+        ConformerGradientMaps: Gradient-based XAI methods
     """
 
     def __init__(self, arguments):
+        """
+        Initialize the Conformer model with configuration parameters.
+
+        Args:
+            arguments (object): Configuration object containing model parameters.
+                Expected attributes:
+                - conformer_loss_function: Loss function for model compilation
+                - conformer_optimizer_function: Optimizer for training
+                - conformer_number_filters_spectrogram: Number of filters for spectrogram
+                - conformer_input_dimension: Input shape dimensions
+                - conformer_number_conformer_blocks: Number of Conformer blocks
+                - conformer_embedding_dimension: Dimension of embedding space
+                - conformer_number_heads: Number of attention heads
+                - number_classes: Number of output classes
+                - conformer_size_kernel: Kernel size for convolutional layers
+                - conformer_dropout_rate: Dropout rate for regularization
+                - conformer_last_layer_activation: Activation function for output layer
+        """
         ProcessConformer.__init__(self, arguments)
         self.neural_network_model = None
         self.gradcam_model = None
@@ -94,12 +120,25 @@ class Conformer(ProcessConformer, ConformerGradientMaps):
         self.last_layer_activation = arguments.conformer_last_layer_activation
         self.model_name = "Conformer"
 
-        # Set modern style for all plots
         plt.style.use('seaborn-v0_8-darkgrid')
         sns.set_palette("husl")
 
     def build_model(self) -> None:
-        """Build the Conformer model architecture using Keras."""
+        """
+        Build the Conformer neural network architecture.
+
+        The architecture consists of:
+        1. Input layer
+        2. Convolutional subsampling
+        3. Transpose layer for dimension rearrangement
+        4. Embedding dense layer
+        5. Multiple Conformer blocks
+        6. Global average pooling
+        7. Output classification layer
+
+        Returns:
+            None: The model is stored in self.neural_network_model
+        """
         inputs = Input(shape=self.input_dimension, name='input_layer')
 
         neural_network_flow = ConvolutionalSubsampling(name='conv_subsampling')(inputs)
@@ -107,14 +146,12 @@ class Conformer(ProcessConformer, ConformerGradientMaps):
         neural_network_flow = Dense(self.embedding_dimension, name='embedding_dense')(neural_network_flow)
 
         for i in range(self.number_conformer_blocks):
-            neural_network_flow = ConformerBlock(
-                self.embedding_dimension,
-                self.number_heads,
-                self.input_dimension[0] // 2,
-                self.kernel_size,
-                self.dropout_rate,
-                name=f'conformer_block_{i}'
-            )(neural_network_flow)
+            neural_network_flow = ConformerBlock(self.embedding_dimension,
+                                                 self.number_heads,
+                                                 self.input_dimension[0] // 2,
+                                                 self.kernel_size,
+                                                 self.dropout_rate,
+                                                 name=f'conformer_block_{i}')(neural_network_flow)
 
         neural_network_flow = GlobalAveragePooling1D(name='global_avg_pooling')(neural_network_flow)
         neural_network_flow = Dense(self.number_classes,
@@ -127,14 +164,34 @@ class Conformer(ProcessConformer, ConformerGradientMaps):
 
     def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor,
                           epochs: int, batch_size: int, validation_data: tuple = None,
-                          generate_gradcam: bool = True, num_gradcam_samples: int = 30,
-                          gradcam_output_dir: str = './mapas_de_ativacao',
-                          xai_method: str = 'gradcam++') -> tensorflow.keras.callbacks.History:
+                          generate_gradcam: bool = True, xai_method: str = 'gradcam++') -> tensorflow.keras.callbacks.History:
         """
-        Compile and train the Conformer model with enhanced XAI visualization.
+        Compile and train the Conformer model with optional XAI visualization generation.
 
         Args:
-            xai_method (str): 'gradcam', 'gradcam++', or 'scorecam'
+            train_data (tensorflow.Tensor): Training input data
+            train_labels (tensorflow.Tensor): Training target labels
+            epochs (int): Number of training epochs
+            batch_size (int): Batch size for training
+            validation_data (tuple, optional): Validation data as (val_data, val_labels)
+            generate_gradcam (bool): Whether to generate Grad-CAM visualizations
+            xai_method (str): XAI method to use ('gradcam', 'gradcam++', 'scorecam')
+
+        Returns:
+            tensorflow.keras.callbacks.History: Training history object
+
+        Example:
+            >>> conformer = Conformer(arguments)
+            >>> conformer.build_model()
+            >>> history = conformer.compile_and_train(
+            ...     train_data=X_train,
+            ...     train_labels=y_train,
+            ...     epochs=50,
+            ...     batch_size=32,
+            ...     validation_data=(X_val, y_val),
+            ...     generate_gradcam=True,
+            ...     xai_method='gradcam++'
+            ... )
         """
         self.neural_network_model.compile(optimizer=self.optimizer_function,
                                           loss=self.loss_function,
@@ -151,41 +208,62 @@ class Conformer(ProcessConformer, ConformerGradientMaps):
         if generate_gradcam and validation_data is not None:
             val_data, val_labels = validation_data
 
-            stats = self.generate_validation_visualizations(
-                validation_data=val_data,
-                validation_labels=val_labels,
-                num_samples=128,
-                output_dir='Maps_Conformer',
-                xai_method=xai_method
-            )
+            self.generate_validation_visualizations(validation_data=val_data,
+                                                    validation_labels=val_labels,
+                                                    num_samples=128,
+                                                    output_dir='Maps_Conformer',
+                                                    xai_method=xai_method)
 
         return training_history
 
     def compile_model(self) -> None:
-        """Compiles the Conformer model."""
-        self.neural_network_model.compile(
-            optimizer=self.optimizer_function,
-            loss=self.loss_function,
-            metrics=['accuracy']
-        )
+        """
+        Compile the model without training.
+
+        This method prepares the model for training by compiling it with
+        the specified optimizer, loss function, and metrics.
+        """
+        self.neural_network_model.compile(optimizer=self.optimizer_function,
+                                          loss=self.loss_function,
+                                          metrics=['accuracy'])
 
     @staticmethod
     def smooth_heatmap(heatmap: numpy.ndarray, sigma: float = 2.0) -> numpy.ndarray:
-        """Apply Gaussian smoothing to heatmap for better visualization."""
+        """
+        Apply Gaussian smoothing to a heatmap.
+
+        Args:
+            heatmap (numpy.ndarray): Input heatmap to smooth
+            sigma (float): Standard deviation for Gaussian kernel
+
+        Returns:
+            numpy.ndarray: Smoothed heatmap
+        """
         return gaussian_filter(heatmap, sigma=sigma)
 
     @staticmethod
     def interpolate_heatmap(heatmap: numpy.ndarray, target_shape: tuple,
                             smooth: bool = True) -> numpy.ndarray:
         """
-        INTERPOLAÇÃO CORRIGIDA: Agora lida adequadamente com heatmaps 1D e 2D.
+        Interpolate heatmap to target shape using cubic interpolation.
 
         Args:
-            heatmap: Input heatmap (pode ser 1D ou 2D)
-            target_shape: Target dimensions (altura, largura)
-            smooth: Apply Gaussian smoothing after interpolation
+            heatmap (numpy.ndarray): Input heatmap (1D or 2D)
+            target_shape (tuple): Desired output shape (height, width)
+            smooth (bool): Whether to apply Gaussian smoothing after interpolation
+
+        Returns:
+            numpy.ndarray: Interpolated heatmap of target shape
+
+        Raises:
+            ValueError: If heatmap has unexpected dimensions
+
+        Example:
+            >>> heatmap_1d = np.array([0.1, 0.5, 0.9])
+            >>> target_shape = (100, 50)
+            >>> interpolated = Conformer.interpolate_heatmap(heatmap_1d, target_shape)
         """
-        # Converter para array numpy se necessário
+
         if not isinstance(heatmap, numpy.ndarray):
             heatmap = numpy.array(heatmap)
 
@@ -221,7 +299,38 @@ class Conformer(ProcessConformer, ConformerGradientMaps):
                             confidence: float = None, xai_method: str = 'gradcam++',
                             save_path: str = None, show_plot: bool = True) -> None:
         """
-        Modern, visually appealing GradCAM visualization with enhanced aesthetics.
+        Generate modern Grad-CAM visualization with multiple subplots.
+
+        Creates a comprehensive visualization containing:
+        - Original input spectrogram
+        - Activation heatmap
+        - Overlay of heatmap on input
+        - Temporal importance profile
+
+        Args:
+            input_sample (np.ndarray): Input data sample
+            heatmap (np.ndarray): Computed activation heatmap
+            class_idx (int): Class index used for heatmap computation
+            predicted_class (int): Model's predicted class
+            true_label (int, optional): Ground truth label for comparison
+            confidence (float, optional): Prediction confidence score
+            xai_method (str): XAI method used for visualization
+            save_path (str, optional): Path to save the visualization
+            show_plot (bool): Whether to display the plot
+
+        Example:
+            >>> sample = X_test[0]  # Shape: (time_steps, frequency_bins)
+            >>> heatmap = conformer.compute_gradcam(sample, class_idx=1)
+            >>> conformer.plot_gradcam_modern(
+            ...     input_sample=sample,
+            ...     heatmap=heatmap,
+            ...     class_idx=1,
+            ...     predicted_class=1,
+            ...     true_label=1,
+            ...     confidence=0.95,
+            ...     xai_method='gradcam++',
+            ...     save_path='visualization.png'
+            ... )
         """
         if len(input_sample.shape) == 3:
             input_sample = input_sample[0]
@@ -232,7 +341,7 @@ class Conformer(ProcessConformer, ConformerGradientMaps):
         gs = fig.add_gridspec(1, 4, wspace=0.3)
 
         cmap_input = 'viridis'
-        cmap_heatmap = 'jet'  # Melhor contraste
+        cmap_heatmap = 'jet'
 
         ax1 = fig.add_subplot(gs[0, 0])
         im1 = ax1.imshow(input_sample, cmap=cmap_input, aspect='auto', interpolation='bilinear')
@@ -318,6 +427,31 @@ class Conformer(ProcessConformer, ConformerGradientMaps):
                                            xai_method: str = 'gradcam++') -> dict:
         """
         Generate enhanced XAI visualizations for validation samples.
+
+        This method creates comprehensive visualizations for both correctly and
+        incorrectly classified samples to help understand model behavior.
+
+        Args:
+            validation_data (np.ndarray): Validation dataset
+            validation_labels (np.ndarray): Validation labels
+            num_samples (int): Number of samples to visualize
+            output_dir (str): Directory to save visualizations
+            target_layer_name (str, optional): Specific layer for Grad-CAM computation
+            xai_method (str): XAI method ('gradcam', 'gradcam++', 'scorecam')
+
+        Returns:
+            dict: Statistics about the visualized samples
+
+        Example:
+            >>> stats = conformer.generate_validation_visualizations(
+            ...     validation_data=X_val,
+            ...     validation_labels=y_val,
+            ...     num_samples=20,
+            ...     output_dir='./xai_visualizations',
+            ...     xai_method='gradcam++'
+            ... )
+            >>> print(f"Correct predictions: {stats['correct_predictions']}")
+            >>> print(f"Incorrect predictions: {stats['incorrect_predictions']}")
         """
         import os
 
@@ -405,6 +539,33 @@ class Conformer(ProcessConformer, ConformerGradientMaps):
                                          show_plot: bool = True) -> dict:
         """
         Generate comprehensive explanation with multiple XAI methods comparison.
+
+        Creates a detailed visualization comparing different XAI methods and
+        providing extensive model interpretation insights.
+
+        Args:
+            input_sample (np.ndarray): Input sample to explain
+            class_names (list, optional): Names for each class
+            save_path (str, optional): Path to save the comprehensive visualization
+            show_plot (bool): Whether to display the plot
+
+        Returns:
+            dict: Comprehensive explanation data including:
+                - predicted_class: Predicted class index
+                - confidence: Prediction confidence
+                - class_probabilities: Probability distribution
+                - heatmaps: Various heatmap computations
+                - temporal_importance: Temporal analysis data
+
+        Example:
+            >>> sample = X_test[0]
+            >>> explanation = conformer.explain_prediction_comprehensive(
+            ...     input_sample=sample,
+            ...     class_names=['Class_0', 'Class_1', 'Class_2'],
+            ...     save_path='comprehensive_explanation.png'
+            ... )
+            >>> print(f"Predicted: {explanation['predicted_class']}")
+            >>> print(f"Confidence: {explanation['confidence']:.3f}")
         """
         # Prepare sample
         if len(input_sample.shape) == 3:
