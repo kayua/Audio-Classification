@@ -5,10 +5,8 @@ __author__ = 'Kayuã Oleques Paim'
 __email__ = 'kayuaolequesp@gmail.com.br'
 __version__ = '{1}.{0}.{0}'
 __initial_data__ = '2025/04/1'
-__last_update__ = '2025/04/1'
+__last_update__ = '2025/10/23'
 __credits__ = ['unknown']
-
-from Engine.GradientMap.EfficientNetGradientMaps import EfficientNetGradientMaps
 
 # MIT License
 #
@@ -32,6 +30,7 @@ from Engine.GradientMap.EfficientNetGradientMaps import EfficientNetGradientMaps
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from Engine.GradientMap.EfficientNetGradientMaps import EfficientNetGradientMaps
 
 try:
     import sys
@@ -43,25 +42,23 @@ try:
     from scipy.ndimage import zoom, gaussian_filter
     import seaborn as sns
 
+    import tensorflow as tf
     import tensorflow
     from tensorflow.keras import Model
+    from tensorflow.keras.layers import Layer
     from tensorflow.keras.layers import Dense
     from tensorflow.keras.layers import Input
-    from tensorflow.keras.layers import Layer
     from tensorflow.keras.layers import Dropout
     from tensorflow.keras.layers import Flatten
     from tensorflow.keras.layers import Reshape
     from tensorflow.keras.layers import Concatenate
+    from tensorflow.keras.layers import Conv2D
+    from tensorflow.keras.layers import DepthwiseConv2D
+    from tensorflow.keras.layers import BatchNormalization
+    from tensorflow.keras.layers import Activation
+    from tensorflow.keras.layers import Add
     from tensorflow.keras.layers import GlobalAveragePooling2D
-
-    from tensorflow.keras.applications import EfficientNetB0
-    from tensorflow.keras.applications import EfficientNetB1
-    from tensorflow.keras.applications import EfficientNetB2
-    from tensorflow.keras.applications import EfficientNetB3
-    from tensorflow.keras.applications import EfficientNetB4
-    from tensorflow.keras.applications import EfficientNetB5
-    from tensorflow.keras.applications import EfficientNetB6
-    from tensorflow.keras.applications import EfficientNetB7
+    from tensorflow.keras.layers import Multiply
 
     from Engine.Models.Process.EfficientNet_Process import ProcessEfficientNet
 
@@ -70,17 +67,306 @@ except ImportError as error:
     sys.exit(-1)
 
 
+# ============================================================================
+# COMPONENTES PERSONALIZADOS DO EFFICIENTNET
+# ============================================================================
+
+class Swish(Layer):
+    """
+    Swish activation function: x * sigmoid(x)
+    Também conhecida como SiLU (Sigmoid Linear Unit)
+    """
+
+    def call(self, inputs):
+        return inputs * tf.nn.sigmoid(inputs)
+
+
+class SEBlock(Layer):
+    """
+    Squeeze-and-Excitation Block
+
+    Aplica atenção aos canais da feature map, permitindo que o modelo
+    aprenda quais canais são mais importantes.
+
+    Args:
+        filters: Número de filtros de saída
+        se_ratio: Razão de redução no squeeze (padrão: 0.25)
+    """
+
+    def __init__(self, filters, se_ratio=0.25, **kwargs):
+        super(SEBlock, self).__init__(**kwargs)
+        self.filters = filters
+        self.se_ratio = se_ratio
+        self.num_reduced_filters = max(1, int(filters * se_ratio))
+
+    def build(self, input_shape):
+        self.squeeze = GlobalAveragePooling2D(name=f'{self.name}_squeeze')
+        self.excitation_1 = Dense(
+            self.num_reduced_filters,
+            activation='swish',
+            name=f'{self.name}_excite_fc1'
+        )
+        self.excitation_2 = Dense(
+            self.filters,
+            activation='sigmoid',
+            name=f'{self.name}_excite_fc2'
+        )
+
+    def call(self, inputs):
+        # Squeeze: Global Average Pooling
+        se = self.squeeze(inputs)
+        # Excitation: FC -> Swish -> FC -> Sigmoid
+        se = self.excitation_1(se)
+        se = self.excitation_2(se)
+        # Scale: Multiply input by channel weights
+        se = tf.reshape(se, [-1, 1, 1, self.filters])
+        return inputs * se
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            'filters': self.filters,
+            'se_ratio': self.se_ratio
+        })
+        return config
+
+
+class MBConvBlock(Layer):
+    """
+    Mobile Inverted Bottleneck Convolution Block (MBConv)
+
+    Componente fundamental do EfficientNet. Consiste em:
+    1. Expansion: Conv 1x1 para aumentar canais
+    2. Depthwise Conv: Convolução espacial eficiente
+    3. SE Block: Atenção aos canais
+    4. Projection: Conv 1x1 para reduzir canais
+    5. Skip connection (se aplicável)
+
+    Args:
+        filters_in: Canais de entrada
+        filters_out: Canais de saída
+        kernel_size: Tamanho do kernel depthwise
+        strides: Stride da convolução depthwise
+        expand_ratio: Fator de expansão (padrão: 6)
+        se_ratio: Razão do SE block (padrão: 0.25)
+        drop_rate: Taxa de dropout estocástico (padrão: 0)
+    """
+
+    def __init__(self, filters_in, filters_out, kernel_size, strides,
+                 expand_ratio=6, se_ratio=0.25, drop_rate=0.0, **kwargs):
+        super(MBConvBlock, self).__init__(**kwargs)
+
+        self.filters_in = filters_in
+        self.filters_out = filters_out
+        self.kernel_size = kernel_size
+        self.strides = strides
+        self.expand_ratio = expand_ratio
+        self.se_ratio = se_ratio
+        self.drop_rate = drop_rate
+
+        # Se stride=1 e canais iguais, usa skip connection
+        self.use_residual = (strides == 1 and filters_in == filters_out)
+
+        # Número de filtros expandidos
+        self.filters_expanded = filters_in * expand_ratio
+
+    def build(self, input_shape):
+        # 1. Expansion phase (se expand_ratio > 1)
+        if self.expand_ratio != 1:
+            self.expand_conv = Conv2D(
+                self.filters_expanded,
+                kernel_size=1,
+                padding='same',
+                use_bias=False,
+                name=f'{self.name}_expand_conv'
+            )
+            self.expand_bn = BatchNormalization(name=f'{self.name}_expand_bn')
+            self.expand_activation = Swish(name=f'{self.name}_expand_swish')
+
+        # 2. Depthwise Convolution
+        self.depthwise_conv = DepthwiseConv2D(
+            kernel_size=self.kernel_size,
+            strides=self.strides,
+            padding='same',
+            use_bias=False,
+            name=f'{self.name}_dwconv'
+        )
+        self.depthwise_bn = BatchNormalization(name=f'{self.name}_dwconv_bn')
+        self.depthwise_activation = Swish(name=f'{self.name}_dwconv_swish')
+
+        # 3. Squeeze-and-Excitation
+        if self.se_ratio > 0:
+            self.se_block = SEBlock(
+                self.filters_expanded if self.expand_ratio != 1 else self.filters_in,
+                se_ratio=self.se_ratio,
+                name=f'{self.name}_se'
+            )
+
+        # 4. Projection phase
+        self.project_conv = Conv2D(
+            self.filters_out,
+            kernel_size=1,
+            padding='same',
+            use_bias=False,
+            name=f'{self.name}_project_conv'
+        )
+        self.project_bn = BatchNormalization(name=f'{self.name}_project_bn')
+
+        # 5. Stochastic Depth (opcional)
+        if self.drop_rate > 0 and self.use_residual:
+            self.dropout = Dropout(
+                self.drop_rate,
+                noise_shape=(None, 1, 1, 1),
+                name=f'{self.name}_drop'
+            )
+
+    def call(self, inputs, training=None):
+        x = inputs
+
+        # 1. Expansion
+        if self.expand_ratio != 1:
+            x = self.expand_conv(x)
+            x = self.expand_bn(x, training=training)
+            x = self.expand_activation(x)
+
+        # 2. Depthwise Convolution
+        x = self.depthwise_conv(x)
+        x = self.depthwise_bn(x, training=training)
+        x = self.depthwise_activation(x)
+
+        # 3. Squeeze-and-Excitation
+        if self.se_ratio > 0:
+            x = self.se_block(x)
+
+        # 4. Projection
+        x = self.project_conv(x)
+        x = self.project_bn(x, training=training)
+
+        # 5. Skip connection + Stochastic Depth
+        if self.use_residual:
+            if self.drop_rate > 0:
+                x = self.dropout(x, training=training)
+            x = Add(name=f'{self.name}_add')([inputs, x])
+
+        return x
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({
+            'filters_in': self.filters_in,
+            'filters_out': self.filters_out,
+            'kernel_size': self.kernel_size,
+            'strides': self.strides,
+            'expand_ratio': self.expand_ratio,
+            'se_ratio': self.se_ratio,
+            'drop_rate': self.drop_rate
+        })
+        return config
+
+
+# ============================================================================
+# CONFIGURAÇÕES DE SCALING PARA CADA VERSÃO DO EFFICIENTNET
+# ============================================================================
+
+EFFICIENTNET_CONFIGS = {
+    'B0': {
+        'width_coefficient': 1.0,
+        'depth_coefficient': 1.0,
+        'resolution': 224,
+        'dropout_rate': 0.2
+    },
+    'B1': {
+        'width_coefficient': 1.0,
+        'depth_coefficient': 1.1,
+        'resolution': 240,
+        'dropout_rate': 0.2
+    },
+    'B2': {
+        'width_coefficient': 1.1,
+        'depth_coefficient': 1.2,
+        'resolution': 260,
+        'dropout_rate': 0.3
+    },
+    'B3': {
+        'width_coefficient': 1.2,
+        'depth_coefficient': 1.4,
+        'resolution': 300,
+        'dropout_rate': 0.3
+    },
+    'B4': {
+        'width_coefficient': 1.4,
+        'depth_coefficient': 1.8,
+        'resolution': 380,
+        'dropout_rate': 0.4
+    },
+    'B5': {
+        'width_coefficient': 1.6,
+        'depth_coefficient': 2.2,
+        'resolution': 456,
+        'dropout_rate': 0.4
+    },
+    'B6': {
+        'width_coefficient': 1.8,
+        'depth_coefficient': 2.6,
+        'resolution': 528,
+        'dropout_rate': 0.5
+    },
+    'B7': {
+        'width_coefficient': 2.0,
+        'depth_coefficient': 3.1,
+        'resolution': 600,
+        'dropout_rate': 0.5
+    }
+}
+
+# Configuração base dos blocos (B0)
+BASE_BLOCKS_CONFIG = [
+    # (expand_ratio, channels, num_blocks, kernel_size, stride)
+    (1, 16, 1, 3, 1),  # Stage 1
+    (6, 24, 2, 3, 2),  # Stage 2
+    (6, 40, 2, 5, 2),  # Stage 3
+    (6, 80, 3, 3, 2),  # Stage 4
+    (6, 112, 3, 5, 1),  # Stage 5
+    (6, 192, 4, 5, 2),  # Stage 6
+    (6, 320, 1, 3, 1),  # Stage 7
+]
+
+
+def round_filters(filters, width_coefficient, divisor=8):
+    """Arredonda o número de filtros baseado no width coefficient."""
+    filters *= width_coefficient
+    new_filters = max(divisor, int(filters + divisor / 2) // divisor * divisor)
+    # Garante que não diminui mais de 10%
+    if new_filters < 0.9 * filters:
+        new_filters += divisor
+    return int(new_filters)
+
+
+def round_repeats(repeats, depth_coefficient):
+    """Arredonda o número de repetições baseado no depth coefficient."""
+    return int(np.ceil(depth_coefficient * repeats))
+
+
+# ============================================================================
+# CLASSE PRINCIPAL DO EFFICIENTNET FROM SCRATCH
+# ============================================================================
+
 class EfficientNet(ProcessEfficientNet, EfficientNetGradientMaps):
     """
-    Enhanced EfficientNet with FIXED Explainable AI (XAI) capabilities
+    EfficientNet FROM SCRATCH - Implementação Totalmente Personalizável
 
-    ARQUITETURA ADAPTADA PARA EFFICIENTNET:
-    =======================================
-    1. ✅ CNN 2D com compound scaling (B0-B7)
-    2. ✅ Grad-CAM++ otimizado para arquitetura convolucional
-    3. ✅ Interpolação para mapas de ativação 2D
-    4. ✅ Visualizações modernas e detalhadas
-    5. ✅ Suporte completo para Score-CAM e Grad-CAM
+    Esta implementação constrói o EfficientNet do zero usando os blocos
+    MBConv, SE blocks e compound scaling, sem depender do Keras Applications.
+
+    CARACTERÍSTICAS:
+    ===============
+    1. ✅ Compound Scaling personalizável (width, depth, resolution)
+    2. ✅ MBConv blocks com Squeeze-and-Excitation
+    3. ✅ Suporte para todas as versões (B0-B7)
+    4. ✅ Stochastic Depth para regularização
+    5. ✅ Swish activation function
+    6. ✅ Grad-CAM++ e XAI integrados
+    7. ✅ Totalmente personalizável e extensível
     """
 
     def __init__(self, arguments):
@@ -91,115 +377,134 @@ class EfficientNet(ProcessEfficientNet, EfficientNetGradientMaps):
         self.optimizer_function = arguments.efficientnet_optimizer_function
         self.number_filters_spectrogram = arguments.efficientnet_number_filters_spectrogram
         self.input_dimension = arguments.efficientnet_input_dimension
-        self.efficientnet_version = arguments.efficientnet_version  # 'B0', 'B1', ..., 'B7'
+        self.efficientnet_version = arguments.efficientnet_version
         self.number_classes = arguments.number_classes
         self.dropout_rate = arguments.efficientnet_dropout_rate
         self.last_layer_activation = arguments.efficientnet_last_layer_activation
-        self.model_name = f"EfficientNet{self.efficientnet_version}"
+        self.model_name = f"EfficientNet{self.efficientnet_version}_Custom"
 
-        # Transfer learning options
-        self.use_pretrained = getattr(arguments, 'efficientnet_use_pretrained', False)
-        self.freeze_base = getattr(arguments, 'efficientnet_freeze_base', False)
-        self.fine_tune_at = getattr(arguments, 'efficientnet_fine_tune_at', None)
+        # Parâmetros personalizáveis
+        self.se_ratio = getattr(arguments, 'efficientnet_se_ratio', 0.25)
+        self.stochastic_depth_rate = getattr(arguments, 'efficientnet_stochastic_depth', 0.2)
 
-        # Set modern style for all plots
+        # Custom scaling (opcional - sobrescreve config padrão)
+        self.custom_width = getattr(arguments, 'efficientnet_custom_width', None)
+        self.custom_depth = getattr(arguments, 'efficientnet_custom_depth', None)
+
+        # Set modern style
         plt.style.use('seaborn-v0_8-darkgrid')
         sns.set_palette("husl")
 
     def build_model(self) -> None:
-        """Build the EfficientNet model architecture using Keras Applications."""
+        """
+        Constrói o modelo EfficientNet from scratch.
+        """
+        print(f"\n{'=' * 70}")
+        print(f"🔨 CONSTRUINDO EFFICIENTNET-{self.efficientnet_version} FROM SCRATCH")
+        print(f"{'=' * 70}")
+
+        # Obter configuração de scaling
+        if self.efficientnet_version not in EFFICIENTNET_CONFIGS:
+            raise ValueError(f"Versão inválida: {self.efficientnet_version}. "
+                             f"Escolha entre: {list(EFFICIENTNET_CONFIGS.keys())}")
+
+        config = EFFICIENTNET_CONFIGS[self.efficientnet_version]
+        width_coef = self.custom_width or config['width_coefficient']
+        depth_coef = self.custom_depth or config['depth_coefficient']
+
+        print(f"📊 Width Coefficient: {width_coef}")
+        print(f"📊 Depth Coefficient: {depth_coef}")
+        print(f"📊 SE Ratio: {self.se_ratio}")
+        print(f"📊 Stochastic Depth: {self.stochastic_depth_rate}")
+        print(f"{'=' * 70}\n")
+
         inputs = Input(shape=self.input_dimension, name='input_layer')
 
-        # Select EfficientNet version
-        efficientnet_models = {
-            'B0': EfficientNetB0,
-            'B1': EfficientNetB1,
-            'B2': EfficientNetB2,
-            'B3': EfficientNetB3,
-            'B4': EfficientNetB4,
-            'B5': EfficientNetB5,
-            'B6': EfficientNetB6,
-            'B7': EfficientNetB7
-        }
+        # Stem: Initial Convolution
+        x = Conv2D(
+            round_filters(32, width_coef),
+            kernel_size=3,
+            strides=2,
+            padding='same',
+            use_bias=False,
+            name='stem_conv'
+        )(inputs)
+        x = BatchNormalization(name='stem_bn')(x)
+        x = Swish(name='stem_swish')(x)
 
-        if self.efficientnet_version not in efficientnet_models:
-            raise ValueError(f"Invalid EfficientNet version: {self.efficientnet_version}. "
-                             f"Choose from: {list(efficientnet_models.keys())}")
+        # Building blocks
+        block_num = 0
+        total_blocks = sum([round_repeats(config[2], depth_coef)
+                            for config in BASE_BLOCKS_CONFIG])
 
-        EfficientNetModel = efficientnet_models[self.efficientnet_version]
+        for stage_idx, (expand_ratio, channels, num_blocks, kernel_size, stride) in enumerate(BASE_BLOCKS_CONFIG):
+            # Aplicar scaling
+            num_blocks = round_repeats(num_blocks, depth_coef)
+            channels = round_filters(channels, width_coef)
 
-        # Determine if we can use ImageNet weights
-        # ImageNet weights require specific minimum sizes and 3 channels
-        min_sizes = {'B0': 32, 'B1': 32, 'B2': 32, 'B3': 40, 'B4': 48, 'B5': 56, 'B6': 64, 'B7': 72}
-        min_size = min_sizes.get(self.efficientnet_version, 32)
+            print(f"Stage {stage_idx + 1}: {num_blocks} blocks, {channels} channels")
 
-        can_use_imagenet = (
-                self.input_dimension[0] >= min_size and
-                self.input_dimension[1] >= min_size and
-                self.input_dimension[2] == 3
-        )
+            for block_idx in range(num_blocks):
+                # Calcular drop rate progressivo (stochastic depth)
+                drop_rate = self.stochastic_depth_rate * float(block_num) / total_blocks
 
-        # Decide on weights
-        use_pretrained = getattr(self, 'use_pretrained', False)
-        if use_pretrained and can_use_imagenet:
-            weights = 'imagenet'
-            print(f"✅ Usando pesos pré-treinados do ImageNet para EfficientNet-{self.efficientnet_version}")
-        else:
-            weights = None
-            if use_pretrained and not can_use_imagenet:
-                print(f"⚠️  Dimensões de entrada {self.input_dimension} incompatíveis com ImageNet.")
-                print(f"    Mínimo necessário: ({min_size}, {min_size}, 3)")
-                print(f"    Treinando EfficientNet-{self.efficientnet_version} do zero.")
-            else:
-                print(f"🔨 Construindo EfficientNet-{self.efficientnet_version} do zero (sem pesos pré-treinados)")
+                # Stride apenas no primeiro bloco de cada stage
+                block_stride = stride if block_idx == 0 else 1
 
-        # Create base model
-        try:
-            base_model = EfficientNetModel(
-                include_top=False,
-                weights=weights,
-                input_tensor=inputs,
-                pooling=None
-            )
-        except Exception as e:
-            # Fallback: criar sem pesos pré-treinados
-            print(f"⚠️  Erro ao carregar com weights='{weights}': {str(e)}")
-            print(f"    Tentando novamente sem pesos pré-treinados...")
-            base_model = EfficientNetModel(
-                include_top=False,
-                weights=None,
-                input_tensor=inputs,
-                pooling=None
-            )
+                # Canais de entrada
+                filters_in = int(x.shape[-1])
 
-        # Freeze base model if specified
-        if self.freeze_base:
-            base_model.trainable = False
-            print(f"🔒 Base do modelo congelada (não treináve)")
-        elif self.fine_tune_at is not None:
-            # Fine-tune from a specific layer
-            base_model.trainable = True
-            for layer in base_model.layers[:self.fine_tune_at]:
-                layer.trainable = False
-            print(f"🔓 Fine-tuning a partir da camada {self.fine_tune_at}")
-        else:
-            print(f"🔓 Todas as camadas treináveis")
+                x = MBConvBlock(
+                    filters_in=filters_in,
+                    filters_out=channels,
+                    kernel_size=kernel_size,
+                    strides=block_stride,
+                    expand_ratio=expand_ratio,
+                    se_ratio=self.se_ratio,
+                    drop_rate=drop_rate,
+                    name=f'block{stage_idx + 1}{chr(97 + block_idx)}'
+                )(x)
 
-        # Add custom classification head
-        neural_network_flow = base_model.output
-        neural_network_flow = GlobalAveragePooling2D(name='global_avg_pooling')(neural_network_flow)
+                block_num += 1
 
+        # Head: Final Convolution
+        x = Conv2D(
+            round_filters(1280, width_coef),
+            kernel_size=1,
+            padding='same',
+            use_bias=False,
+            name='head_conv'
+        )(x)
+        x = BatchNormalization(name='head_bn')(x)
+        x = Swish(name='head_swish')(x)
+
+        # Global Average Pooling
+        x = GlobalAveragePooling2D(name='global_avg_pool')(x)
+
+        # Dropout
         if self.dropout_rate > 0:
-            neural_network_flow = Dropout(self.dropout_rate, name='dropout')(neural_network_flow)
+            x = Dropout(self.dropout_rate, name='top_dropout')(x)
 
-        neural_network_flow = Dense(
+        # Classification head
+        outputs = Dense(
             self.number_classes,
             activation=self.last_layer_activation,
             name='output_layer'
-        )(neural_network_flow)
+        )(x)
 
-        self.neural_network_model = Model(inputs=inputs, outputs=neural_network_flow, name=self.model_name)
+        # Criar modelo
+        self.neural_network_model = Model(inputs=inputs, outputs=outputs, name=self.model_name)
+
+        print(f"\n{'=' * 70}")
+        print(f"✅ MODELO CONSTRUÍDO COM SUCESSO!")
+        print(f"{'=' * 70}")
+
         self.neural_network_model.summary()
+
+        # Contar parâmetros
+        total_params = self.neural_network_model.count_params()
+        print(f"\n📈 Total de parâmetros: {total_params:,}")
+        print(f"{'=' * 70}\n")
 
     def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor,
                           epochs: int, batch_size: int, validation_data: tuple = None,
@@ -207,19 +512,20 @@ class EfficientNet(ProcessEfficientNet, EfficientNetGradientMaps):
                           gradcam_output_dir: str = './mapas_de_ativacao',
                           xai_method: str = 'gradcam++') -> tensorflow.keras.callbacks.History:
         """
-        Compile and train the EfficientNet model with enhanced XAI visualization.
-
-        Args:
-            xai_method (str): 'gradcam', 'gradcam++', or 'scorecam'
+        Compila e treina o modelo EfficientNet personalizado.
         """
-        self.neural_network_model.compile(optimizer=self.optimizer_function,
-                                          loss=self.loss_function,
-                                          metrics=['accuracy'])
+        self.neural_network_model.compile(
+            optimizer=self.optimizer_function,
+            loss=self.loss_function,
+            metrics=['accuracy']
+        )
 
-        training_history = self.neural_network_model.fit(train_data, train_labels,
-                                                         epochs=epochs,
-                                                         batch_size=batch_size,
-                                                         validation_data=validation_data)
+        training_history = self.neural_network_model.fit(
+            train_data, train_labels,
+            epochs=epochs,
+            batch_size=batch_size,
+            validation_data=validation_data
+        )
 
         if validation_data is not None:
             print(f"Acurácia Final (Validação): {training_history.history['val_accuracy'][-1]:.4f}")
@@ -231,14 +537,14 @@ class EfficientNet(ProcessEfficientNet, EfficientNetGradientMaps):
                 validation_data=val_data,
                 validation_labels=val_labels,
                 num_samples=128,
-                output_dir='Maps_EfficientNet',
+                output_dir='Maps_EfficientNet_Custom',
                 xai_method=xai_method
             )
 
         return training_history
 
     def compile_model(self) -> None:
-        """Compiles the EfficientNet model."""
+        """Compila o modelo EfficientNet."""
         self.neural_network_model.compile(
             optimizer=self.optimizer_function,
             loss=self.loss_function,
@@ -247,31 +553,21 @@ class EfficientNet(ProcessEfficientNet, EfficientNetGradientMaps):
 
     @staticmethod
     def smooth_heatmap(heatmap: numpy.ndarray, sigma: float = 2.0) -> numpy.ndarray:
-        """Apply Gaussian smoothing to heatmap for better visualization."""
+        """Aplica suavização Gaussiana ao heatmap."""
         return gaussian_filter(heatmap, sigma=sigma)
 
     @staticmethod
     def interpolate_heatmap(heatmap: numpy.ndarray, target_shape: tuple,
                             smooth: bool = True) -> numpy.ndarray:
-        """
-        INTERPOLAÇÃO para EfficientNet: Mapeia heatmaps 2D para spectrogramas.
-
-        Args:
-            heatmap: Input heatmap (2D spatial)
-            target_shape: Target dimensions (altura, largura)
-            smooth: Apply Gaussian smoothing after interpolation
-        """
-        # Converter para array numpy se necessário
+        """Interpola heatmap para o tamanho do espectrograma."""
         if not isinstance(heatmap, numpy.ndarray):
             heatmap = numpy.array(heatmap)
 
         if len(heatmap.shape) == 2:
-            # Heatmap 2D - fazer zoom direto
             zoom_factors = (target_shape[0] / heatmap.shape[0], target_shape[1] / heatmap.shape[1])
             interpolated = zoom(heatmap, zoom_factors, order=3)
 
         elif len(heatmap.shape) == 1:
-            # Fallback para 1D: expandir para 2D
             temporal_interp = zoom(heatmap, (target_shape[1] / heatmap.shape[0],), order=3)
             freq_profile = numpy.linspace(1.0, 0.6, target_shape[0])
             interpolated = freq_profile[:, numpy.newaxis] * temporal_interp[numpy.newaxis, :]
@@ -279,7 +575,6 @@ class EfficientNet(ProcessEfficientNet, EfficientNetGradientMaps):
         else:
             raise ValueError(f"Heatmap shape inesperado: {heatmap.shape}")
 
-        # Garantir dimensões corretas
         if interpolated.shape != target_shape:
             zoom_factors_adjust = (target_shape[0] / interpolated.shape[0],
                                    target_shape[1] / interpolated.shape[1])
@@ -294,14 +589,10 @@ class EfficientNet(ProcessEfficientNet, EfficientNetGradientMaps):
                             class_idx: int, predicted_class: int, true_label: int = None,
                             confidence: float = None, xai_method: str = 'gradcam++',
                             save_path: str = None, show_plot: bool = True) -> None:
-        """
-        Modern, visually appealing GradCAM visualization with enhanced aesthetics.
-        """
-        # Preparar amostra - EfficientNet usa 3 canais
+        """Visualização moderna do GradCAM."""
         if len(input_sample.shape) == 4:
             input_sample = input_sample[0]
 
-        # Usar apenas o primeiro canal para visualização
         if len(input_sample.shape) == 3:
             input_sample_2d = input_sample[:, :, 0]
         else:
@@ -313,11 +604,12 @@ class EfficientNet(ProcessEfficientNet, EfficientNetGradientMaps):
         gs = fig.add_gridspec(1, 4, wspace=0.3)
 
         cmap_input = 'viridis'
-        cmap_heatmap = 'jet'  # Melhor contraste
+        cmap_heatmap = 'jet'
 
+        # 1. Espectrograma Original
         ax1 = fig.add_subplot(gs[0, 0])
         im1 = ax1.imshow(input_sample_2d, cmap=cmap_input, aspect='auto', interpolation='bilinear')
-        ax1.set_title(' Spectrogram', fontsize=13, fontweight='bold', pad=15)
+        ax1.set_title('🎵 Spectrogram', fontsize=13, fontweight='bold', pad=15)
         ax1.set_xlabel('Temporal Frames', fontsize=10)
         ax1.set_ylabel('Frequency Bins', fontsize=10)
         ax1.grid(False)
@@ -328,8 +620,7 @@ class EfficientNet(ProcessEfficientNet, EfficientNetGradientMaps):
         ax2 = fig.add_subplot(gs[0, 1])
         im2 = ax2.imshow(interpolated_heatmap, cmap=cmap_heatmap,
                          aspect='auto', interpolation='bilinear', vmin=0, vmax=1)
-
-        ax2.set_title(f' Activation Map ({xai_method.upper()})', fontsize=13, fontweight='bold', pad=15)
+        ax2.set_title(f'🔥 Activation Map ({xai_method.upper()})', fontsize=13, fontweight='bold', pad=15)
         ax2.set_xlabel('Temporal Frames', fontsize=10)
         ax2.set_ylabel('Frequency Bins', fontsize=10)
         ax2.grid(False)
@@ -339,12 +630,11 @@ class EfficientNet(ProcessEfficientNet, EfficientNetGradientMaps):
         # 3. Overlay
         ax3 = fig.add_subplot(gs[0, 2])
         input_normalized = (input_sample_2d - input_sample_2d.min()) / (
-                    input_sample_2d.max() - input_sample_2d.min() + 1e-10)
+                input_sample_2d.max() - input_sample_2d.min() + 1e-10)
         ax3.imshow(input_normalized, cmap='gray', aspect='auto', interpolation='bilinear')
         im3 = ax3.imshow(interpolated_heatmap, cmap=cmap_heatmap,
                          alpha=0.4, aspect='auto', interpolation='bilinear', vmin=0, vmax=1)
-
-        ax3.set_title('Overlap', fontsize=13, fontweight='bold', pad=15)
+        ax3.set_title('🎨 Overlap', fontsize=13, fontweight='bold', pad=15)
         ax3.set_xlabel('Temporal Frames', fontsize=10)
         ax3.set_ylabel('Frequency Bins', fontsize=10)
         ax3.grid(False)
@@ -355,7 +645,6 @@ class EfficientNet(ProcessEfficientNet, EfficientNetGradientMaps):
         ax4 = fig.add_subplot(gs[0, 3])
         temporal_importance = np.mean(interpolated_heatmap, axis=0)
         time_steps = np.arange(len(temporal_importance))
-
         temporal_smooth = gaussian_filter(temporal_importance, sigma=2)
 
         ax4.fill_between(time_steps, temporal_smooth, alpha=0.3, color='#FF6B6B')
@@ -365,7 +654,7 @@ class EfficientNet(ProcessEfficientNet, EfficientNetGradientMaps):
 
         ax4.set_xlabel('Temporal Frame', fontsize=10)
         ax4.set_ylabel('Average Importance', fontsize=10)
-        ax4.set_title('Temporal Importance Profile', fontsize=13, fontweight='bold', pad=15)
+        ax4.set_title('📈 Temporal Importance', fontsize=13, fontweight='bold', pad=15)
         ax4.grid(True, alpha=0.3, linestyle='--')
         ax4.legend(loc='upper right', fontsize=9)
         ax4.set_xlim([0, len(temporal_importance)])
@@ -380,7 +669,7 @@ class EfficientNet(ProcessEfficientNet, EfficientNetGradientMaps):
         else:
             suptitle = f'Predicted: Class {predicted_class}{conf_str}'
 
-        fig.suptitle(suptitle, fontsize=15, fontweight='bold', y=0.98)
+        fig.suptitle(f'{suptitle} - {self.model_name}', fontsize=15, fontweight='bold', y=0.98)
 
         plt.tight_layout(rect=[0, 0, 1, 0.96])
 
@@ -398,11 +687,8 @@ class EfficientNet(ProcessEfficientNet, EfficientNetGradientMaps):
                                            output_dir: str = './gradcam_outputs',
                                            target_layer_name: str = None,
                                            xai_method: str = 'gradcam++') -> dict:
-        """
-        Generate enhanced XAI visualizations for validation samples.
-        """
+        """Gera visualizações XAI para amostras de validação."""
         import os
-
         os.makedirs(output_dir, exist_ok=True)
 
         predictions = self.neural_network_model.predict(validation_data, verbose=0)
@@ -436,19 +722,17 @@ class EfficientNet(ProcessEfficientNet, EfficientNetGradientMaps):
         for i, idx in enumerate(selected_indices):
             try:
                 sample = validation_data[idx]
-
                 true_label = true_labels[idx]
                 predicted = predicted_classes[idx]
                 confidence = confidences[idx]
 
-                # Compute heatmap based on selected method
                 if xai_method.lower() == 'gradcam++':
                     heatmap = self.compute_gradcam_plusplus(sample, class_idx=predicted,
                                                             target_layer_name=target_layer_name)
                 elif xai_method.lower() == 'scorecam':
                     heatmap = self.compute_scorecam(sample, class_idx=predicted,
                                                     target_layer_name=target_layer_name)
-                else:  # standard gradcam
+                else:
                     heatmap = self.compute_gradcam(sample, class_idx=predicted,
                                                    target_layer_name=target_layer_name)
 
@@ -476,144 +760,6 @@ class EfficientNet(ProcessEfficientNet, EfficientNetGradientMaps):
                 continue
 
         return stats
-
-    def explain_prediction_comprehensive(self, input_sample: np.ndarray,
-                                         class_names: list = None,
-                                         save_path: str = None,
-                                         show_plot: bool = True) -> dict:
-        """
-        Generate comprehensive explanation with multiple XAI methods comparison.
-        """
-        # Prepare sample
-        if len(input_sample.shape) == 4:
-            input_sample_2d = input_sample[0, :, :, 0]  # Usar primeiro canal
-            input_sample_batch = input_sample
-        elif len(input_sample.shape) == 3:
-            input_sample_2d = input_sample[:, :, 0]
-            input_sample_batch = np.expand_dims(input_sample, axis=0)
-        else:
-            input_sample_2d = input_sample.copy()
-            input_sample_batch = np.expand_dims(np.expand_dims(input_sample, axis=-1), axis=0)
-
-        # Get predictions
-        predictions = self.neural_network_model.predict(input_sample_batch, verbose=0)
-        predicted_class = np.argmax(predictions[0])
-        confidence = predictions[0][predicted_class]
-
-        # Compute heatmaps
-        heatmap_gradcam = self.compute_gradcam(input_sample_batch[0], class_idx=predicted_class)
-        heatmap_gradcampp = self.compute_gradcam_plusplus(input_sample_batch[0], class_idx=predicted_class)
-
-        # Interpolate
-        heatmap_gc_interp = self.interpolate_heatmap(heatmap_gradcam, input_sample_2d.shape, smooth=True)
-        heatmap_pp_interp = self.interpolate_heatmap(heatmap_gradcampp, input_sample_2d.shape, smooth=True)
-
-        # Create figure
-        fig = plt.figure(figsize=(20, 14), facecolor='white')
-        gs = fig.add_gridspec(3, 3, hspace=0.35, wspace=0.3)
-
-        cmap_input = 'viridis'
-        cmap_heat = 'jet'
-
-        # Row 1: Grad-CAM
-        ax1 = fig.add_subplot(gs[0, 0])
-        im1 = ax1.imshow(input_sample_2d, cmap=cmap_input, aspect='auto')
-        ax1.set_title('Espectrograma Original', fontsize=12, fontweight='bold')
-        plt.colorbar(im1, ax=ax1, fraction=0.046, pad=0.04)
-
-        ax2 = fig.add_subplot(gs[0, 1])
-        im2 = ax2.imshow(heatmap_gc_interp, cmap=cmap_heat, aspect='auto', vmin=0, vmax=1)
-        ax2.set_title('Grad-CAM', fontsize=12, fontweight='bold')
-        plt.colorbar(im2, ax=ax2, fraction=0.046, pad=0.04)
-
-        ax3 = fig.add_subplot(gs[0, 2])
-        ax3.imshow(input_sample_2d, cmap='gray', aspect='auto')
-        ax3.imshow(heatmap_gc_interp, cmap=cmap_heat, alpha=0.5, aspect='auto', vmin=0, vmax=1)
-        ax3.set_title('Grad-CAM Overlay', fontsize=12, fontweight='bold')
-
-        # Row 2: Grad-CAM++
-        ax4 = fig.add_subplot(gs[1, 0])
-        im4 = ax4.imshow(input_sample_2d, cmap=cmap_input, aspect='auto')
-        ax4.set_title('Espectrograma Original', fontsize=12, fontweight='bold')
-        plt.colorbar(im4, ax=ax4, fraction=0.046, pad=0.04)
-
-        ax5 = fig.add_subplot(gs[1, 1])
-        im5 = ax5.imshow(heatmap_pp_interp, cmap=cmap_heat, aspect='auto', vmin=0, vmax=1)
-        ax5.set_title('Grad-CAM++ (Melhorado)', fontsize=12, fontweight='bold')
-        plt.colorbar(im5, ax=ax5, fraction=0.046, pad=0.04)
-
-        ax6 = fig.add_subplot(gs[1, 2])
-        ax6.imshow(input_sample_2d, cmap='gray', aspect='auto')
-        ax6.imshow(heatmap_pp_interp, cmap=cmap_heat, alpha=0.5, aspect='auto', vmin=0, vmax=1)
-        ax6.set_title('Grad-CAM++ Overlay', fontsize=12, fontweight='bold')
-
-        # Row 3: Analysis
-        ax7 = fig.add_subplot(gs[2, :2])
-        if class_names is None:
-            class_names = [f'Classe {i}' for i in range(len(predictions[0]))]
-
-        colors = ['#2ecc71' if i == predicted_class else '#95a5a6' for i in range(len(predictions[0]))]
-        bars = ax7.barh(class_names, predictions[0], color=colors, edgecolor='black', linewidth=1.5)
-        ax7.set_xlabel('Probabilidade', fontsize=11, fontweight='bold')
-        ax7.set_title(f'Predição: {class_names[predicted_class]} (Confiança: {confidence:.1%})',
-                      fontsize=13, fontweight='bold')
-        ax7.set_xlim([0, 1])
-        ax7.grid(axis='x', alpha=0.3)
-
-        for bar, prob in zip(bars, predictions[0]):
-            ax7.text(bar.get_width() + 0.01, bar.get_y() + bar.get_height() / 2,
-                     f'{prob:.3f}', ha='left', va='center', fontsize=10)
-
-        # Temporal comparison
-        ax8 = fig.add_subplot(gs[2, 2])
-        temporal_gc = np.mean(heatmap_gc_interp, axis=0)
-        temporal_gcpp = np.mean(heatmap_pp_interp, axis=0)
-
-        temporal_gc_smooth = gaussian_filter(temporal_gc, sigma=2)
-        temporal_gcpp_smooth = gaussian_filter(temporal_gcpp, sigma=2)
-
-        time_steps = np.arange(len(temporal_gc))
-        ax8.plot(time_steps, temporal_gc_smooth, linewidth=2, label='Grad-CAM', color='#3498db')
-        ax8.plot(time_steps, temporal_gcpp_smooth, linewidth=2, label='Grad-CAM++', color='#e74c3c')
-        ax8.fill_between(time_steps, temporal_gc_smooth, alpha=0.2, color='#3498db')
-        ax8.fill_between(time_steps, temporal_gcpp_smooth, alpha=0.2, color='#e74c3c')
-
-        ax8.set_xlabel('Frame Temporal', fontsize=10)
-        ax8.set_ylabel('Importância', fontsize=10)
-        ax8.set_title('Comparação Temporal', fontsize=12, fontweight='bold')
-        ax8.legend(loc='best', fontsize=9)
-        ax8.grid(True, alpha=0.3)
-        ax8.set_ylim([0, 1])
-
-        fig.suptitle(f'Análise Explicativa Abrangente - {self.model_name} XAI',
-                     fontsize=16, fontweight='bold', y=0.98)
-
-        plt.tight_layout(rect=[0, 0, 1, 0.96])
-
-        if save_path:
-            plt.savefig(save_path, dpi=300, bbox_inches='tight')
-
-        if show_plot:
-            plt.show()
-        else:
-            plt.close()
-
-        explanation = {
-            'predicted_class': int(predicted_class),
-            'confidence': float(confidence),
-            'class_probabilities': predictions[0].tolist(),
-            'heatmap_gradcam': heatmap_gradcam,
-            'heatmap_gradcampp': heatmap_gradcampp,
-            'heatmap_gradcam_interpolated': heatmap_gc_interp,
-            'heatmap_gradcampp_interpolated': heatmap_pp_interp,
-            'temporal_importance_gradcam': temporal_gc,
-            'temporal_importance_gradcampp': temporal_gcpp
-        }
-
-        if class_names:
-            explanation['predicted_class_name'] = class_names[predicted_class]
-
-        return explanation
 
     # Properties
     @property
@@ -695,19 +841,3 @@ class EfficientNet(ProcessEfficientNet, EfficientNetGradientMaps):
     @model_name.setter
     def model_name(self, value):
         self._model_name = value
-
-    @property
-    def freeze_base(self):
-        return self._freeze_base
-
-    @freeze_base.setter
-    def freeze_base(self, value):
-        self._freeze_base = value
-
-    @property
-    def fine_tune_at(self):
-        return self._fine_tune_at
-
-    @fine_tune_at.setter
-    def fine_tune_at(self, value):
-        self._fine_tune_at = value

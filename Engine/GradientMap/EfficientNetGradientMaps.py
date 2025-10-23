@@ -41,30 +41,20 @@ class EfficientNetGradientMaps:
         pass
 
     def build_gradcam_model(self, target_layer_name: str = None) -> None:
-        """
-        Build an auxiliary model for GradCAM/GradCAM++ computation.
 
-        Para EfficientNet, usa a última camada convolucional por padrão,
-        que mantém estrutura espacial 2D antes do pooling global.
-
-        Args:
-            target_layer_name: Nome da camada alvo. Se None, tenta encontrar
-                              automaticamente a última camada convolucional.
-        """
         if self.neural_network_model is None:
             raise ValueError("Model must be built before creating GradCAM model")
 
         if target_layer_name is None:
-            # Encontrar a última camada convolucional do EfficientNet
-            # Geralmente são camadas com nome começando com 'block' ou 'top_conv'
+
             for layer in reversed(self.neural_network_model.layers):
                 if 'conv' in layer.name.lower() or 'block' in layer.name.lower():
-                    if len(layer.output_shape) == 4:  # Garantir que tem dimensão espacial
+                    if len(layer.output_shape) == 4:
                         target_layer_name = layer.name
                         break
 
             if target_layer_name is None:
-                # Fallback: usar uma camada específica conhecida
+
                 target_layer_name = 'top_conv'
 
         target_layer = self.neural_network_model.get_layer(target_layer_name)
@@ -74,13 +64,8 @@ class EfficientNetGradientMaps:
 
     def compute_gradcam_plusplus(self, input_sample: numpy.ndarray, class_idx: int = None,
                                  target_layer_name: str = None) -> numpy.ndarray:
-        """
-        Compute Grad-CAM++ heatmap for EfficientNet (VERSÃO CORRIGIDA).
 
-        CORREÇÕES:
-        - Axis corrigido no reduce_sum para arquiteturas CNN 2D
-        - Tratamento adequado para saída 4D (batch, height, width, channels)
-        """
+
         if self.gradcam_model is None or target_layer_name is not None:
             self.build_gradcam_model(target_layer_name)
 
