@@ -9,6 +9,7 @@ __last_update__ = '2025/04/1'
 __credits__ = ['unknown']
 
 from Engine.Models import MLP
+from Engine.Models.ConvNetX import ConvNeXtModel
 from Engine.Models.EfficientNet import EfficientNet
 from Engine.Models.MobileNet import MobileNetModel
 from Engine.Models.Process.MLP_Process import MLPProcess
@@ -262,6 +263,6 @@ if __name__ == "__main__":
     main = Main()
     main.__start__()
 
-    available_models = [Conformer]
+    available_models = [ConvNeXtModel]
 
     main.__exec__(available_models, "Results")
