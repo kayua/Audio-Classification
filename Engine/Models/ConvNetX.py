@@ -8,7 +8,8 @@ __initial_data__ = '2025/04/1'
 __last_update__ = '2025/04/1'
 __credits__ = ['unknown']
 
-from Engine.GradientMap.ConvNeXtGradientMaps import ConvNeXtGradientMaps
+from Engine.GradientMap.ConvNextGradientMaps import ConvNeXtGradientMaps
+from Engine.Models.Process.ConvNetX_Process import ConvNetXProcess
 
 # MIT License
 #
@@ -57,7 +58,6 @@ try:
     from tensorflow.keras.layers import Layer
     from tensorflow.keras import initializers
 
-    from Engine.Models.Process.ConvNeXt_Process import ConvNeXtProcess
 
 except ImportError as error:
     print(error)
@@ -88,11 +88,11 @@ class LayerScale(Layer):
         return config
 
 
-class ConvNeXtModel(ConvNeXtProcess, ConvNeXtGradientMaps):
+class ConvNeXtModel(ConvNetXProcess, ConvNeXtGradientMaps):
 
     def __init__(self, arguments):
 
-        ConvNeXtProcess.__init__(self, arguments)
+        ConvNetXProcess.__init__(self, arguments)
         self.neural_network_model = None
         self.gradcam_model = None
         self.loss_function = arguments.convnext_loss_function

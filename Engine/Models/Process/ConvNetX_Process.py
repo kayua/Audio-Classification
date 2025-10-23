@@ -58,7 +58,7 @@ except ImportError as error:
     sys.exit(-1)
 
 
-class ConvNeXtProcess(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
+class ConvNetXProcess(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
 
     def __init__(self, arguments):
 

@@ -21,7 +21,6 @@ try:
     from tensorflow.keras.layers import GlobalAveragePooling2D
     from tensorflow.keras.layers import Activation
 
-    from Engine.Models.Process.ConvNeXt_Process import ConvNeXtProcess
 
 except ImportError as error:
     print(error)
