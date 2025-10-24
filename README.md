@@ -58,26 +58,21 @@ The models leverage advanced signal processing techniques and transformer-based 
 - **📦 Easy Integration**: Simple API for quick prototyping and deployment
 - **🐳 Docker Support**: Containerized execution for reproducibility
 
----
+## 🏗️ Implemented Models
 
-1. [ ] ## 🏗️ Implemented Models
-2. [ ] 
-3. [ ] The library includes the following architectures, each optimized for acoustic classification tasks:
-4. [ ] 
-5. [ ] | Model | Type | Description | Key Features |
-6. [ ] |-------|------|-------------|--------------|
-7. [ ] | **AST** | Transformer | Audio Spectrogram Transformer | Self-attention on spectrogram patches |
-8. [ ] | **Conformer** | Hybrid | Convolution-augmented Transformer | Combines CNN and transformer blocks |
-9. [ ] | **ConvNetX** | CNN | Modern ConvNet architecture | Efficient convolutional design |
-10. [ ] | **EfficientNet** | CNN | Compound scaling CNN | Optimized depth, width, and resolution |
-11. [ ] | **LSTM** | RNN | Long Short-Term Memory | Sequential temporal modeling |
-12. [ ] | **MLP** | Feedforward | Multi-Layer Perceptron | Fully connected baseline |
-13. [ ] | **MobileNet** | CNN | Lightweight mobile architecture | Depthwise separable convolutions |
-14. [ ] | **ResidualModel** | CNN | Residual Neural Network | Skip connections for deep training |
-15. [ ] | **Wav2Vec2** | Transformer | Self-supervised audio encoder | Contrastive learning on raw waveforms |
-16. [ ] 
-17. [ ] 
----
+The library includes the following architectures, each optimized for acoustic classification tasks:
+
+| Model | Type | Description | Key Features |
+|-------|------|-------------|--------------|
+| **AST** | Transformer | Audio Spectrogram Transformer | Self-attention on spectrogram patches |
+| **Conformer** | Hybrid | Convolution-augmented Transformer | Combines CNN and transformer blocks |
+| **ConvNetX** | CNN | Modern ConvNet architecture | Efficient convolutional design |
+| **EfficientNet** | CNN | Compound scaling CNN | Optimized depth, width, and resolution |
+| **LSTM** | RNN | Long Short-Term Memory | Sequential temporal modeling |
+| **MLP** | Feedforward | Multi-Layer Perceptron | Fully connected baseline |
+| **MobileNet** | CNN | Lightweight mobile architecture | Depthwise separable convolutions |
+| **ResidualModel** | CNN | Residual Neural Network | Skip connections for deep training |
+| **Wav2Vec2** | Transformer | Self-supervised audio encoder | Contrastive learning on raw waveforms |
 
 ## 📦 Installation
 
