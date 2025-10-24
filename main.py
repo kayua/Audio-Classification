@@ -12,6 +12,7 @@ from Engine.Models import MLP
 from Engine.Models.ConvNetX import ConvNeXtModel
 from Engine.Models.EfficientNet import EfficientNet
 from Engine.Models.MobileNet import MobileNetModel
+from Engine.Models.MobileNetV2 import MobileNetV2Model
 from Engine.Models.Process.MLP_Process import MLPProcess
 
 # MIT License
@@ -263,6 +264,6 @@ if __name__ == "__main__":
     main = Main()
     main.__start__()
 
-    available_models = [MobileNetV2]
+    available_models = [MobileNetV2Model]
 
     main.__exec__(available_models, "Results")

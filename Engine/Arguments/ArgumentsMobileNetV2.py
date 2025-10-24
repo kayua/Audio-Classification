@@ -34,17 +34,17 @@ DEFAULT_INTERMEDIARY_ACTIVATION = 'relu6'
 DEFAULT_LAST_LAYER_ACTIVATION = 'softmax'
 DEFAULT_NUMBER_FILTERS_SPECTROGRAM = 512
 DEFAULT_SIZE_CONVOLUTIONAL_FILTERS = (3, 3)
-DEFAULT_FILTERS_PER_BLOCK = [16, 24, 32, 64, 96, 160, 320]
+DEFAULT_FILTERS_PER_BLOCK = [8, 12, 16, 24, 32, 64, 128]
 DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
 DEFAULT_INVERTED_RESIDUAL_BLOCKS = [
     # (expansion_factor, output_channels, num_blocks, stride)
-    (1, 16, 1, 1),
-    (6, 24, 2, 2),
-    (6, 32, 3, 2),
-    (6, 64, 4, 2),
-    (6, 96, 3, 1),
-    (6, 160, 3, 2),
-    (6, 320, 1, 1),
+    (1, 8, 1, 1),
+    (6, 12, 2, 2),
+    (6, 16, 3, 2),
+    (6, 24, 4, 2),
+    (6, 32, 3, 1),
+    (6, 64, 3, 2),
+    (6, 128, 1, 1),
 ]
 
 

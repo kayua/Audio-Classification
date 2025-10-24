@@ -69,7 +69,7 @@ class MobileNetV2Model(MobileNetV2Process, MobileNetV2GradientMaps):
         MobileNetV2Process.__init__(self, arguments)
         self.neural_network_model = None
         self.gradcam_model = None
-        self.loss_function = arguments.mobilenetv2_loss_function
+        self.loss_function = arguments.mobilenet_loss_function
         self.alpha = arguments.mobilenetv2_alpha
         self.expansion_factor = arguments.mobilenetv2_expansion_factor
         self.filters_per_block = arguments.mobilenetv2_filters_per_block
@@ -88,7 +88,8 @@ class MobileNetV2Model(MobileNetV2Process, MobileNetV2GradientMaps):
         plt.style.use('seaborn-v0_8-darkgrid')
         sns.set_palette("husl")
 
-    def _make_divisible(self, value, divisor=8):
+    @staticmethod
+    def _make_divisible(value, divisor=8):
         """
         Ensure that all layers have a channel number divisible by divisor.
         This is important for hardware efficiency.

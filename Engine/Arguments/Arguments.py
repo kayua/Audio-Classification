@@ -9,6 +9,7 @@ __last_update__ = '2025/04/1'
 __credits__ = ['unknown']
 
 from Engine.Arguments.ArgumentsConvNext import add_convnext_arguments
+from Engine.Arguments.ArgumentsMobileNetV2 import add_mobilenetv2_arguments
 
 # MIT License
 #
@@ -154,6 +155,7 @@ class Arguments:
         self.input_arguments = add_residual_arguments(self.input_arguments)
         self.input_arguments = add_wav_to_vec_arguments(self.input_arguments)
         self.input_arguments = add_mobilenet_arguments(self.input_arguments)
+        self.input_arguments = add_mobilenetv2_arguments(self.input_arguments)
         self.input_arguments = add_convnext_arguments(self.input_arguments)
         self.input_arguments = add_efficientnet_arguments(self.input_arguments)
         self.input_arguments = add_comparative_metrics_plotter_arguments(self.input_arguments)
