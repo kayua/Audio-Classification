@@ -55,36 +55,9 @@ except ImportError as error:
 
 
 class ResidualModel(ResidualProcess, ResidualGradientMaps):
-    """
-    Enhanced ResidualModel with COMPLETE Explainable AI (XAI) capabilities
-
-    FUNCIONALIDADES XAI IMPLEMENTADAS:
-    ==================================
-    1. ✅ Grad-CAM: Visualização padrão de mapas de ativação
-    2. ✅ Grad-CAM++: Versão melhorada com ponderação mais precisa
-    3. ✅ Score-CAM: Método sem gradientes (gradient-free)
-    4. ✅ Visualizações modernas e interativas
-    5. ✅ Geração automática para validação
-    6. ✅ Análise comparativa de múltiplos métodos XAI
-    """
 
     def __init__(self, arguments):
-        """
-        Initialize the ResidualModel class with XAI capabilities.
 
-        Args:
-            @input_dimension (tuple): The shape of the input data (e.g., (128, 128, 3) for RGB images).
-            @convolutional_padding (str): Padding strategy for convolution layers (e.g., 'same' or 'valid').
-            @intermediary_activation (str): Activation function used in intermediary layers (e.g., 'relu').
-            @last_layer_activation (str): Activation function for the output layer (e.g., 'softmax').
-            @number_classes (int): The number of output classes for classification.
-            @size_convolutional_filters (tuple): The size of the convolutional filters (e.g., (3, 3)).
-            @size_pooling (tuple): The size of the pooling filters (e.g., (2, 2)).
-            @filters_per_block (list[int]): A list containing the number of filters for each residual block.
-            @loss_function (str): The loss function used during model training (e.g., 'categorical_crossentropy').
-            @optimizer_function (str): The optimizer function used during model training (e.g., 'adam').
-            @dropout_rate (float): The dropout rate for regularization.
-        """
         ResidualProcess.__init__(self, arguments)
         self.neural_network_model = None
         self.gradcam_model = None
@@ -106,12 +79,7 @@ class ResidualModel(ResidualProcess, ResidualGradientMaps):
         sns.set_palette("husl")
 
     def build_model(self):
-        """
-        Build the model architecture using Keras Functional API with proper layer naming for XAI.
 
-        This method defines the structure of the residual convolutional network with named layers
-        to enable XAI visualization on specific layers.
-        """
         inputs = Input(shape=self.input_shape, name='input_layer')
         neural_network_flow = inputs
 
@@ -120,22 +88,18 @@ class ResidualModel(ResidualProcess, ResidualGradientMaps):
             residual_flow = neural_network_flow
 
             # First conv layer in block
-            neural_network_flow = Conv2D(
-                number_filters,
-                self.size_convolutional_filters,
-                activation=self.intermediary_activation,
-                padding=self.convolutional_padding,
-                name=f'conv_block_{block_idx}_layer_1'
-            )(neural_network_flow)
+            neural_network_flow = Conv2D(number_filters,
+                                         self.size_convolutional_filters,
+                                         activation=self.intermediary_activation,
+                                         padding=self.convolutional_padding,
+                                         name=f'conv_block_{block_idx}_layer_1')(neural_network_flow)
 
             # Second conv layer in block
-            neural_network_flow = Conv2D(
-                number_filters,
-                self.size_convolutional_filters,
-                activation=self.intermediary_activation,
-                padding=self.convolutional_padding,
-                name=f'conv_block_{block_idx}_layer_2'
-            )(neural_network_flow)
+            neural_network_flow = Conv2D(number_filters,
+                                         self.size_convolutional_filters,
+                                         activation=self.intermediary_activation,
+                                         padding=self.convolutional_padding,
+                                         name=f'conv_block_{block_idx}_layer_2')(neural_network_flow)
 
             # Residual connection
             neural_network_flow = Concatenate(name=f'residual_concat_{block_idx}')(

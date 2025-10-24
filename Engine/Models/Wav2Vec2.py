@@ -72,28 +72,56 @@ except ImportError as error:
 
 
 
-
 class AudioWav2Vec2(MaskCreator, Wav2Vec2Process):
     """
-    Complete Wav2Vec2 Implementation with all corrections applied.
+    Wav2Vec2 implementation for self-supervised audio representation learning.
 
-    CORRECTED FEATURES:
-    ✅ InfoNCE contrastive loss with negative sampling
-    ✅ Diversity loss for codebook usage
-    ✅ Dynamic training (targets computed per batch)
-    ✅ Loss computed only on masked positions
-    ✅ Encoder adjustable during fine-tuning
-    ✅ Proper perplexity calculation (scalar)
+    This class implements the complete Wav2Vec2 architecture including:
+    - Convolutional feature encoder
+    - Contextualized transformer representations
+    - Vector quantization with Gumbel softmax
+    - Contrastive learning with diversity loss
+    - Two-phase training procedure
 
-    XAI FEATURES:
-    ✅ Grad-CAM, Grad-CAM++, Score-CAM
-    ✅ Modern visualizations
-    ✅ Automatic validation generation
-    ✅ FIXED: Proper gradcam_model reconstruction after fine-tuning
-    ✅ FIXED: Detailed logging for debugging
+    Attributes:
+        neural_network_model (tf.keras.Model): The main Wav2Vec2 model
+        gradcam_model (tf.keras.Model): Model for Grad-CAM visualization
+        list_filters_encoder (list): List of filters for convolutional encoder
+        loss_function: Loss function for supervised training
+        optimizer_function: Optimizer for model training
+        kernel_size (int): Kernel size for convolutional layers
+        quantization_units (int): Number of quantization units
+        key_dimension (int): Dimension for attention keys
+        intermediary_layer_activation (str): Activation for intermediate layers
+        number_heads (int): Number of attention heads
+        input_dimension (tuple): Input shape for audio data
+        number_classes (int): Number of output classes
+        dropout_rate (float): Dropout rate for regularization
+        last_layer_activation (str): Activation for final layer
+        model_name (str): Name identifier for the model
+        contrastive_temperature (float): Temperature for contrastive loss
+        num_negatives (int): Number of negative samples
+        diversity_weight (float): Weight for diversity loss term
     """
-
     def __init__(self, arguments):
+        """
+        Initialize Wav2Vec2 model with configuration parameters.
+
+        Args:
+            arguments: Configuration object containing all model parameters:
+                - wav_to_vec_list_filters_encoder: List of filters for conv encoder
+                - wav_to_vec_loss_function: Loss function for supervised training
+                - wav_to_vec_optimizer_function: Optimizer for training
+                - wav_to_vec_kernel_size: Kernel size for conv layers
+                - wav_to_vec_quantization_bits: Quantization units
+                - wav_to_vec_key_dimension: Attention key dimension
+                - wav_to_vec_intermediary_layer_activation: Intermediate activation
+                - wav_to_vec_number_heads: Number of attention heads
+                - wav_to_vec_input_dimension: Input shape
+                - number_classes: Number of output classes
+                - wav_to_vec_dropout_rate: Dropout rate
+                - wav_to_vec_last_layer_activation: Final layer activation
+        """
         Wav2Vec2Process.__init__(self, arguments)
 
         self.neural_network_model = None
@@ -120,7 +148,19 @@ class AudioWav2Vec2(MaskCreator, Wav2Vec2Process):
         sns.set_palette("husl")
 
     def build_model(self) -> None:
-        """Build Wav2Vec2 architecture."""
+        """
+        Build the complete Wav2Vec2 architecture.
+
+        The architecture consists of:
+        1. Convolutional feature encoder
+        2. Time masking for self-supervised learning
+        3. Transformer contextual network
+        4. Vector quantization with Gumbel softmax
+        5. Multi-head self-attention
+
+        Returns:
+            None: The model is stored in self.neural_network_model
+        """
 
         inputs = Input(shape=self.input_dimension, name='audio_input')
         neural_network_flow = Reshape((128, 80, 1), name='reshape_input')(inputs)
@@ -187,7 +227,44 @@ class AudioWav2Vec2(MaskCreator, Wav2Vec2Process):
                           epochs: int, batch_size: int,
                           validation_data: tuple = None,
                           freeze_encoder: bool = False) -> tensorflow.keras.callbacks.History:
-        """Two-phase training with all corrections."""
+        """
+        Two-phase training procedure for Wav2Vec2.
+
+        Phase 1: Self-supervised pretraining with contrastive loss
+        Phase 2: Supervised fine-tuning for classification
+
+        Args:
+            train_data (tf.Tensor): Training audio data
+            train_labels (tf.Tensor): Training labels
+            epochs (int): Number of training epochs per phase
+            batch_size (int): Batch size for training
+            validation_data (tuple, optional): Validation data (x_val, y_val)
+            freeze_encoder (bool): Whether to freeze encoder during fine-tuning
+
+        Returns:
+            tf.keras.callbacks.History: Training history from fine-tuning phase
+
+        Example:
+            ```python
+            # Initialize model
+            wav2vec2 = AudioWav2Vec2(config)
+            wav2vec2.build_model()
+
+            # Train with two-phase approach
+            history = wav2vec2.compile_and_train(
+                train_data=X_train,
+                train_labels=y_train,
+                epochs=50,
+                batch_size=32,
+                validation_data=(X_val, y_val),
+                freeze_encoder=False
+            )
+
+            # Evaluate model
+            test_loss, test_accuracy = wav2vec2.neural_network_model.evaluate(X_test, y_test)
+            print(f"Test accuracy: {test_accuracy:.4f}")
+            ```
+        """
 
         logging.info("=" * 80)
         logging.info("WAV2VEC2 TRAINING (CORRECTED)")
