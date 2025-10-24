@@ -5,12 +5,12 @@ __author__ = 'Kayuã Oleques Paim'
 __email__ = 'kayuaolequesp@gmail.com.br'
 __version__ = '{1}.{0}.{0}'
 __initial_data__ = '2025/04/1'
-__last_update__ = '2025/10/23'
-__credits__ = ['unknown']
+__last_update__ = '2025/04/1'
+__credits__ = ['Kayuã Oleques Paim']
 
 # MIT License
 #
-# Copyright (c) 2025 unknown
+# Copyright (c) 2025 Kayuã Oleques Paim
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@ __credits__ = ['unknown']
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from Engine.GradientMap.EfficientNetGradientMaps import EfficientNetGradientMaps
+
 
 try:
     import sys
@@ -61,6 +61,7 @@ try:
     from tensorflow.keras.layers import Multiply
 
     from Engine.Models.Process.EfficientNet_Process import ProcessEfficientNet
+    from Engine.GradientMap.EfficientNetGradientMaps import EfficientNetGradientMaps
 
 except ImportError as error:
     print(error)
