@@ -8,7 +8,6 @@ __initial_data__ = '2025/04/1'
 __last_update__ = '2025/04/1'
 __credits__ = ['unknown']
 
-from Engine.GradientMap.ResidualGradientMaps import ResidualGradientMaps
 
 # MIT License
 #
@@ -48,6 +47,7 @@ try:
     from tensorflow.keras.layers import Conv2D, Concatenate, MaxPooling2D
 
     from Engine.Models.Process.Residual_Process import ResidualProcess
+    from Engine.GradientMap.ResidualGradientMaps import ResidualGradientMaps
 
 except ImportError as error:
     print(error)
