@@ -1,4 +1,4 @@
-[![ml-intro](Layout/Layout.png)]()
+[//]: # ([![ml-intro]&#40;Layout/Layout.png&#41;]&#40;&#41;)
 <div align="center">
 
   <img src="https://img.shields.io/badge/status-active-success.svg" />
