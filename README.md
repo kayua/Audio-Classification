@@ -76,35 +76,6 @@ The library includes the following architectures, each optimized for acoustic cl
 | **ResidualModel** | CNN | Residual Neural Network | Skip connections for deep training |
 | **Wav2Vec2** | Transformer | Self-supervised audio encoder | Contrastive learning on raw waveforms |
 
-### Model Architectures Visualization
-
-<table>
-  <tbody>
-    <tr>
-      <th width="33%">Audio Spectrogram Transformer</th>
-      <th width="33%">LSTM Network</th>
-      <th width="33%">Conformer</th>
-    </tr>
-    <tr>
-      <td><img src="Layout/ast_model.png" alt="AST Architecture"></td>
-      <td><img src="Layout/lstm_model.png" alt="LSTM Architecture"></td>
-      <td><img src="Layout/conformer_model.png" alt="Conformer Architecture"></td>
-    </tr>
-  </tbody>
-</table>
-
-<table>
-  <tbody>
-    <tr>
-      <th width="50%">Residual Network</th>
-      <th width="50%">Multi-Layer Perceptron</th>
-    </tr>
-    <tr>
-      <td><img src="Layout/residual_model.png" alt="ResNet Architecture"></td>
-      <td><img src="Layout/feedforward_model.png" alt="MLP Architecture"></td>
-    </tr>
-  </tbody>
-</table>
 
 ---
 
