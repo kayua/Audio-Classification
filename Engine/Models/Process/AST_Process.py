@@ -6,11 +6,11 @@ __email__ = 'kayuaolequesp@gmail.com.br'
 __version__ = '{1}.{0}.{0}'
 __initial_data__ = '2025/04/1'
 __last_update__ = '2025/04/1'
-__credits__ = ['unknown']
+__credits__ = ['Kayuã Oleques Paim']
 
 # MIT License
 #
-# Copyright (c) 2025 unknown
+# Copyright (c) 2025 Kayuã Oleques Paim
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
