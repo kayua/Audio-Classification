@@ -263,6 +263,6 @@ if __name__ == "__main__":
     main = Main()
     main.__start__()
 
-    available_models = [AudioWav2Vec2]
+    available_models = [MobileNetV2]
 
     main.__exec__(available_models, "Results")
