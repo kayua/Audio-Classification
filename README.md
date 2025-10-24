@@ -86,7 +86,7 @@ The library includes the following architectures, each optimized for acoustic cl
 
 ```bash
 # Clone the repository
-git clone https://github.com/kayua/Mosquitoes-Classification-Models.git
+git clone https://github.com/kayua/Audio-Classification-Library
 cd Mosquitoes-Classification-Models
 
 # Install dependencies
@@ -129,23 +129,72 @@ docker run --gpus all -it mosquito-classification
 ### Basic Usage
 
 ```python
-from mosquito_models import AudioSpectrogramTransformer
-import tensorflow as tf
+## 🚀 Basic Usage
 
-# Initialize model
-model = AudioSpectrogramTransformer(
-    num_classes=10,
-    projection_dim=256,
-    num_heads=8,
-    num_blocks=6
-)
+### Quick Start
+```python
+from Engine.Models.AST import AudioSpectrogramTransformer
+from Engine.Models.Conformer import Conformer
+from Engine.Models.Wav2Vec2 import AudioWav2Vec2
+from Engine.Models.LSTM import AudioLSTM
+from Engine.Models.MLP import DenseModel
+from Engine.Models.ResidualModel import ResidualModel
 
-# Load and preprocess audio
-audio_data = load_audio('path/to/audio.wav')
-spectrogram = generate_spectrogram(audio_data)
+# Initialize the main training pipeline
+main = Main()
+main.__start__()
 
-# Make prediction
-prediction = model.predict(spectrogram)
+# Define the models you want to train
+available_models = [
+    AudioSpectrogramTransformer,
+    Conformer,
+    AudioWav2Vec2,
+    AudioLSTM,
+    DenseModel,
+    ResidualModel
+]
+
+# Execute training and evaluation
+main.__exec__(available_models, "Results")
+```
+
+### Training a Single Model
+```python
+# Initialize
+main = Main()
+main.__start__()
+
+# Train only Wav2Vec2
+available_models = [AudioWav2Vec2]
+
+# Run training pipeline
+main.__exec__(available_models, "Results")
+```
+
+### Output
+
+After training, the following artifacts will be generated in the `Results/` directory:
+
+- **Metrics**: Comparative performance metrics across models
+- **Confusion Matrices**: Visual representation of classification results
+- **Loss Curves**: Training and validation loss over epochs
+- **ROC Curves**: Receiver Operating Characteristic curves
+- **Results.pdf**: Comprehensive report with all visualizations
+
+### Prerequisites
+```bash
+# Install dependencies
+pip3 install --upgrade pip
+pip3 install -r requirements.txt
+```
+
+### Configuration
+
+The training pipeline uses command-line arguments for configuration. Customize your training by passing arguments when initializing:
+```python
+# Example with custom arguments
+python main.py --epochs 100 --batch_size 32 --learning_rate 0.001
+```
 ```
 
 ### Training from Command Line
