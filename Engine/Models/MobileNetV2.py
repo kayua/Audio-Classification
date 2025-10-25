@@ -275,81 +275,320 @@ class MobileNetV2Model(MobileNetV2Process, MobileNetV2GradientMaps):
         )
 
         if generate_gradcam and validation_data is not None:
-            self.build_gradcam_model()
-
-            import os
-            os.makedirs(gradcam_output_dir, exist_ok=True)
-
             val_data, val_labels = validation_data
-            num_samples = min(num_gradcam_samples, len(val_data))
 
-            for idx in range(num_samples):
-                input_sample = val_data[idx:idx + 1]
-                true_label = int(val_labels[idx])
-
-                save_path = os.path.join(gradcam_output_dir,
-                                        f'xai_sample_{idx}_true_{true_label}.png')
-
-                self.explain_prediction(input_sample=input_sample,
-                                       save_path=save_path,
-                                       show_plot=False,
-                                       xai_method=xai_method)
-
-            print(f'\n✓ Generated {num_samples} XAI visualizations in {gradcam_output_dir}')
+            stats = self.generate_validation_visualizations(
+                validation_data=val_data,
+                validation_labels=val_labels,
+                num_samples=8,
+                output_dir='Maps_MobileNetV2',
+                xai_method=xai_method
+            )
 
         return training_history
 
-    def explain_prediction(self, input_sample, save_path=None, show_plot=True,
-                          class_names=None, xai_method='gradcam++'):
+    @staticmethod
+    def smooth_heatmap(heatmap: numpy.ndarray, sigma: float = 2.0) -> numpy.ndarray:
+        """Apply Gaussian smoothing to heatmap for better visualization."""
+        return gaussian_filter(heatmap, sigma=sigma)
+
+    @staticmethod
+    def interpolate_heatmap(heatmap: numpy.ndarray, target_shape: tuple,
+                            smooth: bool = True) -> numpy.ndarray:
         """
-        Generate comprehensive XAI explanation for a prediction with both Grad-CAM and Grad-CAM++.
+        Interpolate heatmap to target shape with optional smoothing.
 
         Args:
-            input_sample: Input sample to explain
-            save_path: Path to save the visualization
-            show_plot: Whether to display the plot
-            class_names: List of class names for interpretation
-            xai_method: XAI method to use ('gradcam', 'gradcam++', or 'scorecam')
+            heatmap: Input heatmap (2D array)
+            target_shape: Target dimensions (height, width)
+            smooth: Apply Gaussian smoothing after interpolation
 
         Returns:
-            Dictionary containing explanation data
+            Interpolated heatmap
         """
+        if not isinstance(heatmap, numpy.ndarray):
+            heatmap = numpy.array(heatmap)
+
+        # For 2D heatmap
+        if len(heatmap.shape) == 2:
+            zoom_factors = (target_shape[0] / heatmap.shape[0],
+                            target_shape[1] / heatmap.shape[1])
+            interpolated = zoom(heatmap, zoom_factors, order=3)
+        else:
+            raise ValueError(f"Heatmap shape inesperado: {heatmap.shape}")
+
+        # Fine adjustment
+        if interpolated.shape != target_shape:
+            zoom_factors_adjust = (target_shape[0] / interpolated.shape[0],
+                                   target_shape[1] / interpolated.shape[1])
+            interpolated = zoom(interpolated, zoom_factors_adjust, order=3)
+
+        # Smoothing
+        if smooth:
+            interpolated = gaussian_filter(interpolated, sigma=1.5)
+
+        return interpolated
+
+    def plot_gradcam_modern(self, input_sample: numpy.ndarray, heatmap: numpy.ndarray,
+                            class_idx: int, predicted_class: int, true_label: int = None,
+                            confidence: float = None, xai_method: str = 'scorecam',
+                            save_path: str = None, show_plot: bool = True) -> None:
+        """
+        Modern, visually appealing GradCAM visualization with enhanced aesthetics.
+
+        Args:
+            input_sample: Input image
+            heatmap: Activation heatmap
+            class_idx: Class index used for computation
+            predicted_class: Predicted class
+            true_label: True label (optional)
+            confidence: Prediction confidence
+            xai_method: XAI method name
+            save_path: Path to save figure
+            show_plot: Whether to display the plot
+        """
+        # Handle input dimensions
+        if len(input_sample.shape) == 4:
+            input_sample = input_sample[0]
+        if len(input_sample.shape) == 3 and input_sample.shape[-1] == 1:
+            input_sample = numpy.squeeze(input_sample, axis=-1)
+
+        # Enhanced interpolation with smoothing
+        interpolated_heatmap = self.interpolate_heatmap(heatmap, input_sample.shape[:2], smooth=True)
+
+        # Create figure with modern style
+        fig = plt.figure(figsize=(20, 6), facecolor='white')
+        gs = fig.add_gridspec(1, 4, wspace=0.3)
+
+        # Color schemes
+        cmap_input = 'viridis'
+        cmap_heatmap = 'jet'
+
+        # 1. Original Input
+        ax1 = fig.add_subplot(gs[0, 0])
+        im1 = ax1.imshow(input_sample, cmap=cmap_input, aspect='auto', interpolation='bilinear')
+        ax1.set_title('Spectrogram', fontsize=13, fontweight='bold', pad=15)
+        ax1.set_xlabel('Temporal Frames', fontsize=10)
+        ax1.set_ylabel('Frequency Bins', fontsize=10)
+        ax1.grid(False)
+        cbar1 = plt.colorbar(im1, ax=ax1, fraction=0.046, pad=0.04)
+        cbar1.ax.tick_params(labelsize=9)
+
+        # 2. Heatmap
+        ax2 = fig.add_subplot(gs[0, 1])
+        im2 = ax2.imshow(interpolated_heatmap, cmap=cmap_heatmap,
+                         aspect='auto', interpolation='bilinear', vmin=0, vmax=1)
+        ax2.set_title(f'Activation Map ({xai_method.upper()})',
+                      fontsize=13, fontweight='bold', pad=15)
+        ax2.set_xlabel('Temporal Frames', fontsize=10)
+        ax2.set_ylabel('Frequency Bins', fontsize=10)
+        ax2.grid(False)
+        cbar2 = plt.colorbar(im2, ax=ax2, fraction=0.046, pad=0.04)
+        cbar2.ax.tick_params(labelsize=9)
+
+        # 3. Overlay
+        ax3 = fig.add_subplot(gs[0, 2])
+        input_normalized = (input_sample - input_sample.min()) / (input_sample.max() - input_sample.min() + 1e-10)
+        ax3.imshow(input_normalized, cmap='gray', aspect='auto', interpolation='bilinear')
+        im3 = ax3.imshow(interpolated_heatmap, cmap=cmap_heatmap,
+                         alpha=0.6, aspect='auto', interpolation='bilinear', vmin=0, vmax=1)
+
+        ax3.set_title('Overlap', fontsize=13, fontweight='bold', pad=15)
+        ax3.set_xlabel('Temporal Frames', fontsize=10)
+        ax3.set_ylabel('Frequency Bins', fontsize=10)
+        ax3.grid(False)
+        cbar3 = plt.colorbar(im3, ax=ax3, fraction=0.046, pad=0.04)
+        cbar3.ax.tick_params(labelsize=9)
+
+        # 4. Temporal Importance Profile
+        ax4 = fig.add_subplot(gs[0, 3])
+        temporal_importance = numpy.mean(interpolated_heatmap, axis=0)
+        time_steps = numpy.arange(len(temporal_importance))
+
+        temporal_smooth = gaussian_filter(temporal_importance, sigma=2)
+
+        ax4.fill_between(time_steps, temporal_smooth, alpha=0.3, color='#FF6B6B')
+        ax4.plot(time_steps, temporal_smooth, linewidth=2.5, color='#FF6B6B', label='Perfil Suavizado')
+        ax4.plot(time_steps, temporal_importance, linewidth=1, alpha=0.5,
+                 color='#4ECDC4', linestyle='--', label='Perfil Original')
+
+        ax4.set_xlabel('Temporal Frame', fontsize=10)
+        ax4.set_ylabel('Average Importance', fontsize=10)
+        ax4.set_title('Temporal Importance Profile', fontsize=13, fontweight='bold', pad=15)
+        ax4.grid(True, alpha=0.3, linestyle='--')
+        ax4.legend(loc='upper right', fontsize=9)
+        ax4.set_xlim([0, len(temporal_importance)])
+        ax4.set_ylim([0, 1])
+
+        # Super title
+        pred_status = '✅' if predicted_class == true_label else '❌'
+        conf_str = f' | Confidence: {confidence:.1%}' if confidence is not None else ''
+
+        if true_label is not None:
+            suptitle = f'{pred_status} Predicted: Class {predicted_class} | True: Class {true_label}{conf_str}'
+        else:
+            suptitle = f'Predicted: Class {predicted_class}{conf_str}'
+
+        fig.suptitle(suptitle, fontsize=15, fontweight='bold', y=0.98)
+
+        plt.tight_layout(rect=[0, 0, 1, 0.96])
+
+        if save_path:
+            plt.savefig(save_path, dpi=300, bbox_inches='tight', facecolor='white')
+
+        if show_plot:
+            plt.show()
+        else:
+            plt.close()
+
+    def generate_validation_visualizations(self, validation_data: numpy.ndarray,
+                                           validation_labels: numpy.ndarray,
+                                           num_samples: int = 10,
+                                           output_dir: str = './gradcam_outputs',
+                                           target_layer_name: str = None,
+                                           xai_method: str = 'gradcam++') -> dict:
+        """
+        Generate enhanced XAI visualizations for validation samples.
+
+        Args:
+            validation_data: Validation input data
+            validation_labels: Validation labels
+            num_samples: Number of samples to visualize
+            output_dir: Output directory for saving visualizations
+            target_layer_name: Target layer for XAI (if None, uses default)
+            xai_method: XAI method ('gradcam', 'gradcam++', or 'scorecam')
+
+        Returns:
+            Dictionary with statistics about generated visualizations
+        """
+        import os
+
+        os.makedirs(output_dir, exist_ok=True)
+
+        predictions = self.neural_network_model.predict(validation_data, verbose=0)
+        predicted_classes = numpy.argmax(predictions, axis=1)
+        confidences = numpy.max(predictions, axis=1)
+
+        if len(validation_labels.shape) > 1:
+            true_labels = numpy.argmax(validation_labels, axis=1)
+        else:
+            true_labels = validation_labels
+
+        correct_indices = numpy.where(predicted_classes == true_labels)[0]
+        incorrect_indices = numpy.where(predicted_classes != true_labels)[0]
+
+        num_correct = min(num_samples // 2, len(correct_indices))
+        num_incorrect = min(num_samples - num_correct, len(incorrect_indices))
+
+        selected_correct = numpy.random.choice(correct_indices, num_correct, replace=False) if len(
+            correct_indices) > 0 else []
+        selected_incorrect = numpy.random.choice(incorrect_indices, num_incorrect, replace=False) if len(
+            incorrect_indices) > 0 else []
+
+        selected_indices = numpy.concatenate([selected_correct, selected_incorrect])
+
+        stats = {
+            'total_samples': len(selected_indices),
+            'correct_predictions': 0,
+            'incorrect_predictions': 0
+        }
+
+        for i, idx in enumerate(selected_indices):
+
+            try:
+                sample = validation_data[idx]
+
+                true_label = true_labels[idx]
+                predicted = predicted_classes[idx]
+                confidence = confidences[idx]
+
+                if xai_method.lower() == 'gradcam++':
+                    heatmap = self.compute_gradcam_plusplus(sample, class_idx=predicted,
+                                                            target_layer_name=target_layer_name)
+                elif xai_method.lower() == 'scorecam':
+                    heatmap = self.compute_scorecam(sample, class_idx=predicted,
+                                                    target_layer_name=target_layer_name)
+                else:
+                    heatmap = self.compute_gradcam(sample, class_idx=predicted,
+                                                   target_layer_name=target_layer_name)
+
+                is_correct = predicted == true_label
+
+                if is_correct:
+                    stats['correct_predictions'] += 1
+                    prefix = 'correto'
+
+                else:
+                    stats['incorrect_predictions'] += 1
+                    prefix = 'incorreto'
+
+                save_path = os.path.join(output_dir,
+                                         f'{prefix}_amostra_{i:03d}_real_{true_label}_pred_{predicted}_conf_{confidence:.2f}.png')
+
+                self.plot_gradcam_modern(sample,
+                                         heatmap,
+                                         predicted,
+                                         predicted,
+                                         true_label,
+                                         confidence=confidence,
+                                         xai_method=xai_method,
+                                         save_path=save_path, show_plot=False)
+
+
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                continue
+
+        return stats
+
+    def explain_prediction_comprehensive(self, input_sample: numpy.ndarray,
+                                         class_names: list = None,
+                                         save_path: str = None,
+                                         show_plot: bool = True) -> dict:
+        """
+        Generate comprehensive explanation with multiple XAI methods comparison.
+
+        Args:
+            input_sample: Input image to explain
+            class_names: List of class names (optional)
+            save_path: Path to save comprehensive analysis figure
+            show_plot: Whether to display the plot
+
+        Returns:
+            Dictionary with explanation data and heatmaps
+        """
+        # Prepare sample
+        if len(input_sample.shape) == 4:
+            input_sample_plot = input_sample[0]
+        else:
+            input_sample_plot = input_sample.copy()
+
+        if len(input_sample_plot.shape) == 3 and input_sample_plot.shape[-1] == 1:
+            input_sample_plot = numpy.squeeze(input_sample_plot, axis=-1)
+
         # Get predictions
-        predictions = self.neural_network_model.predict(input_sample, verbose=0)
+        if len(input_sample.shape) == 2:
+            input_sample_batch = numpy.expand_dims(input_sample, axis=(0, -1))
+        elif len(input_sample.shape) == 3 and input_sample.shape[0] != 1:
+            input_sample_batch = numpy.expand_dims(input_sample, axis=0)
+        else:
+            input_sample_batch = input_sample
+
+        predictions = self.neural_network_model.predict(input_sample_batch, verbose=0)
         predicted_class = numpy.argmax(predictions[0])
         confidence = predictions[0][predicted_class]
 
-        # Generate heatmaps
-        if xai_method == 'gradcam':
-            heatmap_gradcam = self.compute_gradcam(input_sample, class_idx=predicted_class)
-            heatmap_gradcampp = self.compute_gradcam(input_sample, class_idx=predicted_class)
-        elif xai_method == 'scorecam':
-            heatmap_gradcam = self.compute_scorecam(input_sample, class_idx=predicted_class)
-            heatmap_gradcampp = self.compute_scorecam(input_sample, class_idx=predicted_class)
-        else:  # default to gradcam++
-            heatmap_gradcam = self.compute_gradcam(input_sample, class_idx=predicted_class)
-            heatmap_gradcampp = self.compute_gradcam_plusplus(input_sample, class_idx=predicted_class)
+        # Compute heatmaps
+        heatmap_gradcam = self.compute_gradcam(input_sample, class_idx=predicted_class)
+        heatmap_gradcampp = self.compute_gradcam_plusplus(input_sample, class_idx=predicted_class)
 
-        # Prepare input for visualization
-        if len(input_sample.shape) == 4:
-            input_sample_plot = input_sample[0, :, :, 0]
-        elif len(input_sample.shape) == 3:
-            input_sample_plot = input_sample[:, :, 0]
-        else:
-            input_sample_plot = input_sample
+        # Interpolate
+        heatmap_gc_interp = self.interpolate_heatmap(heatmap_gradcam, input_sample_plot.shape[:2], smooth=True)
+        heatmap_pp_interp = self.interpolate_heatmap(heatmap_gradcampp, input_sample_plot.shape[:2], smooth=True)
 
-        # Interpolate heatmaps to input size
-        target_shape = input_sample_plot.shape
-        zoom_factors_gc = (target_shape[0] / heatmap_gradcam.shape[0],
-                          target_shape[1] / heatmap_gradcam.shape[1])
-        zoom_factors_pp = (target_shape[0] / heatmap_gradcampp.shape[0],
-                          target_shape[1] / heatmap_gradcampp.shape[1])
-
-        heatmap_gc_interp = zoom(heatmap_gradcam, zoom_factors_gc, order=1)
-        heatmap_pp_interp = zoom(heatmap_gradcampp, zoom_factors_pp, order=1)
-
-        # Create visualization
-        fig = plt.figure(figsize=(18, 14))
+        # Create figure
+        fig = plt.figure(figsize=(20, 14), facecolor='white')
         gs = fig.add_gridspec(3, 3, hspace=0.35, wspace=0.3)
 
         cmap_input = 'viridis'
