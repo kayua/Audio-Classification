@@ -137,7 +137,7 @@ from Engine.Models.AST import AudioSpectrogramTransformer
 from Engine.Models.Conformer import Conformer
 from Engine.Models.Wav2Vec2 import AudioWav2Vec2
 from Engine.Models.LSTM import AudioLSTM
-from Engine.Models.MLP import DenseModel
+from Engine.Models.MLP import MLPModel
 from Engine.Models.ResidualModel import ResidualModel
 
 # Initialize the main training pipeline
@@ -150,7 +150,7 @@ available_models = [
     Conformer,
     AudioWav2Vec2,
     AudioLSTM,
-    DenseModel,
+    MLPModel,
     ResidualModel
 ]
 

@@ -58,7 +58,7 @@ except ImportError as error:
 
 
 
-class DenseModel(MLPProcess):
+class MLPModel(MLPProcess):
     """
     @DenseModel
 
@@ -92,7 +92,7 @@ class DenseModel(MLPProcess):
 
     Example:
         >>> # Instantiate the model
-        ...     model = DenseModel(
+        ...     model = MLPModel(
         ...     number_classes=10,  # Number of output classes
         ...     last_layer_activation='softmax',  # Activation function for output layer
         ...     loss_function='categorical_crossentropy',  # Loss function for classification task

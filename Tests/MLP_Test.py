@@ -37,7 +37,7 @@ try:
     import unittest
     import tensorflow
 
-    from Engine.Models.MLP import DenseModel
+    from Engine.Models.MLP import MLPModel
 
 except ImportError as error:
     print(error)
@@ -56,7 +56,7 @@ class TestDenseModel(unittest.TestCase):
         Initializes the DenseModel instance with necessary parameters
         before each test case.
         """
-        self.model = DenseModel(
+        self.model = MLPModel(
             number_classes=10,  # Number of output classes
             last_layer_activation='softmax',  # Activation function for output layer
             loss_function='categorical_crossentropy',  # Loss function
@@ -118,7 +118,7 @@ class TestDenseModel(unittest.TestCase):
         Test that an invalid loss function raises an error during initialization.
         """
         with self.assertRaises(ValueError, msg="An invalid loss function should raise a ValueError."):
-            model = DenseModel(
+            model = MLPModel(
                 number_classes=10,
                 last_layer_activation='softmax',
                 loss_function='invalid_loss',  # Invalid loss function
@@ -133,7 +133,7 @@ class TestDenseModel(unittest.TestCase):
         Test that an invalid optimizer function raises an error during initialization.
         """
         with self.assertRaises(ValueError, msg="An invalid optimizer function should raise a ValueError."):
-            model = DenseModel(
+            model = MLPModel(
                 number_classes=10,
                 last_layer_activation='softmax',
                 loss_function='categorical_crossentropy',

@@ -500,8 +500,8 @@ class ConfusionMatrixPlotter:
         ax.set_title(title, fontsize=self._confusion_matrix_title_font_size)
 
         # Rotate the axis labels to avoid overlap
-        plt.xticks(rotation=self._confusion_matrix_rotation)
-        plt.yticks(rotation=self._confusion_matrix_rotation)
+        plt.xticks(rotation=self._confusion_matrix_rotation, fontsize=16)
+        plt.yticks(rotation=self._confusion_matrix_rotation, fontsize=16)
 
         # Adjust layout to ensure everything fits
         plt.tight_layout()

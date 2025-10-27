@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+# !/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 __author__ = 'Kayuã Oleques Paim'
@@ -78,6 +78,8 @@ try:
     import os
 
     import sys
+    import json
+    import pickle
 
     import logging
     import tensorflow
@@ -86,7 +88,7 @@ try:
     from Tools.RunScript import RunScript
 
     from Engine.Models.LSTM import AudioLSTM
-    from Engine.Models.MLP import DenseModel
+    from Engine.Models.MLP import MLPModel
 
     from Tools.PlotterTools import PlotterTools
     from Engine.Models.Conformer import Conformer
@@ -104,7 +106,6 @@ except ImportError as error:
     print("  pip3 install --upgrade pip")
     print("  pip3 install -r requirements.txt")
     sys.exit(-1)
-
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 tensorflow.get_logger().setLevel('ERROR')
@@ -132,6 +133,9 @@ class Main(RunScript, PlotterTools):
         self.mean_matrices = []
         self.list_roc_curve = []
 
+        # Dicionário para armazenar resultados estruturados por modelo
+        self.results_by_model = {}
+
         self.__start__()
         PlotterTools.__init__(self, self.input_arguments)
 
@@ -149,13 +153,13 @@ class Main(RunScript, PlotterTools):
 
         try:
             # Instantiate the model
-            instance = model_class(arguments = self.input_arguments)
+            instance = model_class(arguments=self.input_arguments)
             logging.info(f"Instantiated model class '{model_class.__name__}'.")
             # Train the model and collect results
             instance.build_model()
             model_metrics, model_history, model_matrices, model_roc_list = instance.train()
-            logging.info( f"Training completed for model '{model_class.__name__}'."
-                          f" Collected metrics, history, matrices, and ROC data.")
+            logging.info(f"Training completed for model '{model_class.__name__}'."
+                         f" Collected metrics, history, matrices, and ROC data.")
 
         except Exception as e:
             logging.error(f"Error during training of model '{model_class.__name__}': {e}")
@@ -166,9 +170,45 @@ class Main(RunScript, PlotterTools):
             gc.collect()
             logging.info(f"Garbage collection complete after training model '{model_class.__name__}'.")
 
-
         return model_metrics, model_history, model_matrices, model_roc_list
 
+    def save_results_dict(self, output_directory, format='json'):
+        """
+        Salva o dicionário de resultados em arquivo.
+
+        Args:
+            output_directory (str): Diretório onde o arquivo será salvo.
+            format (str): Formato do arquivo ('json' ou 'pickle'). Default: 'json'
+        """
+        os.makedirs(output_directory, exist_ok=True)
+
+        if format == 'json':
+            file_path = os.path.join(output_directory, 'results_by_model.json')
+
+            serializable_results = {}
+            for model_name, data in self.results_by_model.items():
+                serializable_results[model_name] = {
+                    'metrics': data['metrics'],
+                    'history': {k: [float(v) if hasattr(v, '__float__') else v for v in vals]
+                    if isinstance(vals, list) else vals
+                                for k, vals in data['history'].items()} if isinstance(data['history'], dict) else str(
+                        data['history']),
+                    'matrices': str(data['matrices']),
+                    'roc_list': str(data['roc_list'])
+                }
+
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump(serializable_results, f, indent=4, ensure_ascii=False)
+            logging.info(f"Resultados salvos em JSON: {file_path}")
+
+        elif format == 'pickle':
+            file_path = os.path.join(output_directory, 'results_by_model.pkl')
+            with open(file_path, 'wb') as f:
+                pickle.dump(self.results_by_model, f)
+            logging.info(f"Resultados salvos em Pickle: {file_path}")
+
+        else:
+            logging.error(f"Formato não suportado: {format}. Use 'json' ou 'pickle'.")
 
     def __exec__(self, models, output_directory):
         """
@@ -183,37 +223,56 @@ class Main(RunScript, PlotterTools):
         for index, model_class in enumerate(models):
             logging.debug(f"Training model {index + 1}/{len(models)}: {model_class.__name__}")
 
+            model_name = model_class.__name__
+
             try:
                 metrics, history, matrices, roc_list = self.train_and_collect_metrics(model_class=model_class)
 
+                # Armazena nas listas (compatibilidade com código existente)
                 self.mean_metrics.append(metrics)
                 self.mean_history.append(history)
                 self.mean_matrices.append(matrices)
 
-                logging.info(f"Model {model_class.__name__} training completed. Metrics collected.")
+                # Armazena no dicionário estruturado por modelo
+                self.results_by_model[model_name] = {
+                    'metrics': metrics,
+                    'history': history,
+                    'matrices': matrices,
+                    'roc_list': roc_list
+                }
 
-                self.plot_roc_curve(roc_list, "Results/")
-                logging.info(f"ROC curve plotted for {model_class.__name__}.")
+                logging.info(f"Model {model_name} training completed. Metrics collected and saved in dictionary.")
+
+                self.plot_roc_curve(roc_list, output_directory)
+                logging.info(f"ROC curve plotted for {model_name}.")
 
             except Exception as e:
-                logging.error(f"Error during training of model {model_class.__name__}: {str(e)}")
+                logging.error(f"Error during training of model {model_name}: {str(e)}")
                 raise
 
         try:
-            logging.info("Plotting comparative metrics.")
-            self.plot_comparative_metrics(dictionary_metrics_list=self.mean_metrics,
-                                          file_name=output_directory)
 
             logging.info("Plotting confusion matrices.")
-            self.plot_confusion_matrices(confusion_matrix_list=self.mean_matrices,
-                                         file_name_path=output_directory)
+            self.plot_confusion_matrices(confusion_matrix_list=self.mean_matrices, file_name_path=output_directory)
 
             logging.info("Plotting and saving loss.")
             self.plot_loss(loss_curve_history_dict_list=self.mean_history, loss_curve_path_output=output_directory)
 
+            logging.info("Plotting comparative metrics.")
+            self.plot_comparative_metrics(dictionary_metrics_list=self.mean_metrics, file_name=output_directory)
+
         except Exception as e:
             logging.error(f"Error during plotting or saving results: {str(e)}")
             raise
+
+        # Salva o dicionário de resultados
+        try:
+            logging.info("Saving results dictionary...")
+            self.save_results_dict(output_directory, format='json')
+            self.save_results_dict(output_directory, format='pickle')
+            logging.info("Results dictionary saved successfully.")
+        except Exception as e:
+            logging.error(f"Error saving results dictionary: {str(e)}")
 
         try:
             logging.info("Running final script to generate PDF.")
@@ -264,6 +323,6 @@ if __name__ == "__main__":
     main = Main()
     main.__start__()
 
-    available_models = [MobileNetV2Model]
+    available_models = [MLPModel, AudioLSTM]
 
-    main.__exec__(available_models, "Results")
+    main.__exec__(available_models, "Results/")
