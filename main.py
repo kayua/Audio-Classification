@@ -323,6 +323,6 @@ if __name__ == "__main__":
     main = Main()
     main.__start__()
 
-    available_models = [MLPModel, AudioLSTM]
+    available_models = [MobileNetModel]
 
     main.__exec__(available_models, "Results/")

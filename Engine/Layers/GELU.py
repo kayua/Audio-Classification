@@ -35,8 +35,6 @@ try:
     import sys
     import tensorflow
 
-    from keras.src import ops
-
     from tensorflow.keras.layers import Layer
 
 except ImportError as error:
@@ -105,7 +103,7 @@ class GELU(Layer):
         """
         Applies the GELU activation function to the input tensor.
 
-        The GELU activation uses the tanh approximation for efficiency.
+        The GELU activation uses the exact mathematical formulation with the error function.
 
         Parameters
         ----------
@@ -125,7 +123,8 @@ class GELU(Layer):
         ...     print(output.shape)
         >>>     (2, 5)
         """
-        return ops.gelu(neural_network_flow)
+        # GELU(x) = 0.5 * x * (1 + erf(x / sqrt(2)))
+        return 0.5 * neural_network_flow * (1.0 + tensorflow.math.erf(neural_network_flow / tensorflow.math.sqrt(2.0)))
 
     def compute_output_shape(self, input_shape):
         # GELU does not alter the shape, so the output shape is the same as the input shape
