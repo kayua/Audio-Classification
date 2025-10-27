@@ -184,9 +184,11 @@ class AudioWav2Vec2(MaskCreator, Wav2Vec2Process):
 
         # Sequence lengths
         sequence_length = self.input_dimension[0]
-        lengths = Lambda(lambda x: tensorflow.fill([tensorflow.shape(x)[0]],
-                                                   tensorflow.constant(sequence_length, dtype=tensorflow.int32)),
-                         dtype=tensorflow.int32, name='sequence_lengths')(dense_layer)
+        import tensorflow.keras.backend as K
+        lengths = Lambda(lambda x: tensorflow.ones([tensorflow.shape(x)[0]], dtype=tensorflow.int32) * sequence_length,
+                         output_shape=(None,),
+                         dtype=tensorflow.int32,
+                         name='sequence_lengths')(dense_layer)
 
         # Time masking with storage
         masking_layer = TimeMaskingWithStorage(mask_time_prob=0.065, number_mask_time_steps=10, name='time_masking')
