@@ -774,3 +774,306 @@ class MobileNetV3Model(MobileNetV3Process, MobileNetV3GradientMaps):
             explanation['predicted_class_name'] = class_names[predicted_class]
 
         return explanation
+
+    @property
+    def get_neural_network_model(self):
+        """Get the compiled neural network model."""
+        return self.neural_network_model
+
+    @property
+    def get_gradcam_model(self):
+        """Get the GradCAM model."""
+        return self.gradcam_model
+
+    @property
+    def get_variant(self):
+        """Get the MobileNetV3 variant (large or small)."""
+        return self.variant
+
+    @property
+    def get_loss_function(self):
+        """Get the loss function."""
+        return self.loss_function
+
+    @property
+    def get_alpha(self):
+        """Get the width multiplier alpha."""
+        return self.alpha
+
+    @property
+    def get_expansion_factor(self):
+        """Get the expansion factor."""
+        return self.expansion_factor
+
+    @property
+    def get_filters_per_block(self):
+        """Get the number of filters per block."""
+        return self.filters_per_block
+
+    @property
+    def get_bneck_blocks_large(self):
+        """Get the bottleneck block configuration for large variant."""
+        return self.bneck_blocks_large
+
+    @property
+    def get_bneck_blocks_small(self):
+        """Get the bottleneck block configuration for small variant."""
+        return self.bneck_blocks_small
+
+    @property
+    def get_input_shape(self):
+        """Get the input shape."""
+        return self.input_shape
+
+    @property
+    def get_optimizer_function(self):
+        """Get the optimizer function."""
+        return self.optimizer_function
+
+    @property
+    def get_dropout_rate(self):
+        """Get the dropout rate."""
+        return self.dropout_rate
+
+    @property
+    def get_size_convolutional_filters(self):
+        """Get the size of convolutional filters."""
+        return self.size_convolutional_filters
+
+    @property
+    def get_number_classes(self):
+        """Get the number of output classes."""
+        return self.number_classes
+
+    @property
+    def get_last_layer_activation(self):
+        """Get the activation function for the last layer."""
+        return self.last_layer_activation
+
+    @property
+    def get_convolutional_padding(self):
+        """Get the convolutional padding type."""
+        return self.convolutional_padding
+
+    @property
+    def get_intermediary_activation(self):
+        """Get the intermediary activation function."""
+        return self.intermediary_activation
+
+    @property
+    def get_model_name(self):
+        """Get the model name."""
+        return self.model_name
+
+    # ============================================================================
+    # SETTERS
+    # ============================================================================
+
+    @get_neural_network_model.setter
+    def set_neural_network_model(self, model):
+        """
+        Set the neural network model.
+
+        Args:
+            model: Keras Model instance
+        """
+        if model is not None and not isinstance(model, Model):
+            raise TypeError("Model must be a Keras Model instance")
+        self.neural_network_model = model
+
+    @get_gradcam_model.setter
+    def set_gradcam_model(self, model):
+        """
+        Set the GradCAM model.
+
+        Args:
+            model: Keras Model instance for GradCAM
+        """
+        if model is not None and not isinstance(model, Model):
+            raise TypeError("GradCAM model must be a Keras Model instance")
+        self.gradcam_model = model
+
+    @get_variant.setter
+    def set_variant(self, variant):
+        """
+        Set the MobileNetV3 variant.
+
+        Args:
+            variant: 'large' or 'small'
+        """
+        if variant not in ['large', 'small']:
+            raise ValueError("Variant must be 'large' or 'small'")
+        self.variant = variant
+        self.model_name = f"MobileNetV3_{self.variant.capitalize()}"
+
+    @get_loss_function.setter
+    def set_loss_function(self, loss):
+        """
+        Set the loss function.
+
+        Args:
+            loss: Loss function (string or callable)
+        """
+        self.loss_function = loss
+
+    @get_alpha.setter
+    def set_alpha(self, alpha):
+        """
+        Set the width multiplier alpha.
+
+        Args:
+            alpha: Float value for width multiplier (typically 0.5, 0.75, 1.0, 1.25)
+        """
+        if not isinstance(alpha, (int, float)) or alpha <= 0:
+            raise ValueError("Alpha must be a positive number")
+        self.alpha = float(alpha)
+
+    @get_expansion_factor.setter
+    def set_expansion_factor(self, factor):
+        """
+        Set the expansion factor.
+
+        Args:
+            factor: Expansion factor for bottleneck blocks
+        """
+        if not isinstance(factor, (int, float)) or factor <= 0:
+            raise ValueError("Expansion factor must be a positive number")
+        self.expansion_factor = factor
+
+    @get_filters_per_block.setter
+    def set_filters_per_block(self, filters):
+        """
+        Set the number of filters per block.
+
+        Args:
+            filters: Number of filters
+        """
+        if not isinstance(filters, int) or filters <= 0:
+            raise ValueError("Filters per block must be a positive integer")
+        self.filters_per_block = filters
+
+    @get_bneck_blocks_large.setter
+    def set_bneck_blocks_large(self, blocks):
+        """
+        Set the bottleneck blocks configuration for large variant.
+
+        Args:
+            blocks: List of bottleneck block configurations
+        """
+        if not isinstance(blocks, list):
+            raise TypeError("Bottleneck blocks must be a list")
+        self.bneck_blocks_large = blocks
+
+    @get_bneck_blocks_small.setter
+    def set_bneck_blocks_small(self, blocks):
+        """
+        Set the bottleneck blocks configuration for small variant.
+
+        Args:
+            blocks: List of bottleneck block configurations
+        """
+        if not isinstance(blocks, list):
+            raise TypeError("Bottleneck blocks must be a list")
+        self.bneck_blocks_small = blocks
+
+    @get_input_shape.setter
+    def set_input_shape(self, shape):
+        """
+        Set the input shape.
+
+        Args:
+            shape: Tuple representing input dimensions (height, width, channels)
+        """
+        if not isinstance(shape, tuple) or len(shape) != 3:
+            raise ValueError("Input shape must be a tuple of 3 dimensions (H, W, C)")
+        self.input_shape = shape
+
+    @get_optimizer_function.setter
+    def set_optimizer_function(self, optimizer):
+        """
+        Set the optimizer function.
+
+        Args:
+            optimizer: Optimizer instance or string
+        """
+        self.optimizer_function = optimizer
+
+    @get_dropout_rate.setter
+    def set_dropout_rate(self, rate):
+        """
+        Set the dropout rate.
+
+        Args:
+            rate: Dropout rate between 0 and 1
+        """
+        if not isinstance(rate, (int, float)) or not (0 <= rate < 1):
+            raise ValueError("Dropout rate must be between 0 and 1")
+        self.dropout_rate = float(rate)
+
+    @get_size_convolutional_filters.setter
+    def set_size_convolutional_filters(self, size):
+        """
+        Set the size of convolutional filters.
+
+        Args:
+            size: Filter size (e.g., 3 for 3x3 filters)
+        """
+        if not isinstance(size, int) or size <= 0:
+            raise ValueError("Filter size must be a positive integer")
+        self.size_convolutional_filters = size
+
+    @get_number_classes.setter
+    def set_number_classes(self, num_classes):
+        """
+        Set the number of output classes.
+
+        Args:
+            num_classes: Number of classes for classification
+        """
+        if not isinstance(num_classes, int) or num_classes <= 0:
+            raise ValueError("Number of classes must be a positive integer")
+        self.number_classes = num_classes
+
+    @get_last_layer_activation.setter
+    def set_last_layer_activation(self, activation):
+        """
+        Set the activation function for the last layer.
+
+        Args:
+            activation: Activation function (string or callable)
+        """
+        self.last_layer_activation = activation
+
+    @get_convolutional_padding.setter
+    def set_convolutional_padding(self, padding):
+        """
+        Set the convolutional padding type.
+
+        Args:
+            padding: Padding type ('same' or 'valid')
+        """
+        if padding not in ['same', 'valid']:
+            raise ValueError("Padding must be 'same' or 'valid'")
+        self.convolutional_padding = padding
+
+    @get_intermediary_activation.setter
+    def set_intermediary_activation(self, activation):
+        """
+        Set the intermediary activation function.
+
+        Args:
+            activation: Activation function (string or callable)
+        """
+        self.intermediary_activation = activation
+
+    @get_model_name.setter
+    def set_model_name(self, name):
+        """
+        Set the model name.
+
+        Args:
+            name: Model name string
+        """
+        if not isinstance(name, str) or not name:
+            raise ValueError("Model name must be a non-empty string")
+        self.model_name = name
