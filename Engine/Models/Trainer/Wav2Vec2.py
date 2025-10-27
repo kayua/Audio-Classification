@@ -66,21 +66,14 @@ class Wav2Vec2DynamicTrainingModel(tensorflow.keras.Model):
         x = data
 
         with tensorflow.GradientTape() as tape:
-            # Forward pass
-            contextualized, quantized_tuple = self(x, training=True)
-            quantized, perplexity = quantized_tuple
+            # Forward pass - returns a dictionary
+            outputs = self(x, training=True)
 
-            # Get mask indices
-            mask_layer = None
-            for layer in self.encoder_model.layers:
-                if isinstance(layer, TimeMaskingWithStorage):
-                    mask_layer = layer
-                    break
-
-            if mask_layer is not None and hasattr(mask_layer, '_last_mask_indices'):
-                mask_indices = mask_layer._last_mask_indices
-            else:
-                mask_indices = tensorflow.ones(tensorflow.shape(contextualized)[:2], dtype=tensorflow.bool)
+            # Extract values from dictionary
+            contextualized = outputs['contextualized']
+            quantized = outputs['quantized']
+            perplexity = outputs['perplexity']
+            mask_indices = outputs['mask_indices']
 
             # Prepare inputs for loss function
             y_true = (quantized, mask_indices, perplexity)

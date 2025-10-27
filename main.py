@@ -8,6 +8,23 @@ __initial_data__ = '2025/04/1'
 __last_update__ = '2025/04/1'
 __credits__ = ['unknown']
 
+import os
+import tempfile
+
+# Mudar o diretório temporário para um local com mais espaço
+# Substitua pelo caminho que tenha espaço disponível
+# temp_dir = "/mnt/SSD480/kayua"
+# os.makedirs(temp_dir, exist_ok=True)
+#
+# # Configurar variáveis de ambiente
+# os.environ['TMPDIR'] = temp_dir
+# os.environ['TMP'] = temp_dir
+# os.environ['TEMP'] = temp_dir
+# tempfile.tempdir = temp_dir
+#
+# # Também configurar o diretório de cache do XLA
+# os.environ['XLA_FLAGS'] = f'--xla_gpu_dump_autotune_results_to={temp_dir}/xla_autotune'
+
 from Engine.Models import MLP
 from Engine.Models.ConvNetX import ConvNeXtModel
 from Engine.Models.EfficientNet import EfficientNet
@@ -324,6 +341,6 @@ if __name__ == "__main__":
     main = Main()
     main.__start__()
 
-    available_models = [MobileNetV3Model]
+    available_models = [AudioWav2Vec2]
 
     main.__exec__(available_models, "Results/")

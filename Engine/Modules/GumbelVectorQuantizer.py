@@ -5,12 +5,12 @@ __author__ = 'Kayuã Oleques Paim'
 __email__ = 'kayuaolequesp@gmail.com.br'
 __version__ = '{1}.{0}.{1}'
 __initial_data__ = '2025/04/1'
-__last_update__ = '2025/10/15'
-__credits__ = ['unknown']
+__last_update__ = '2025/10/27'
+__credits__ = ['Kayuã Oleques Paim']
 
 # MIT License
 #
-# Copyright (c) 2025 unknown
+# Copyright (c) 2025 Kayuã Oleques Paim
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,18 +32,19 @@ __credits__ = ['unknown']
 
 """
 ===================================================================================
-GumbelVectorQuantizer - CORRIGIDO PARA WAV2VEC 2.0
+GumbelVectorQuantizer - CORRECTED FOR WAV2VEC 2.0
 ===================================================================================
 
-Correções implementadas:
-✅ Perplexity retorna escalar (não mais tensor (G, V))
-✅ Cálculo correto de perplexity para diversity loss
-✅ Gumbel noise aplicado corretamente
-✅ Straight-through estimator implementado
-✅ Suporte para argumento 'name' no __init__
-✅ Melhor estimativa da diversidade do codebook
+Key Corrections:
+✅ Proper hidden_size parameter to match model dimensions
+✅ Perplexity returns scalar (not tensor (G, V))
+✅ Correct perplexity calculation for diversity loss
+✅ Gumbel noise applied correctly
+✅ Straight-through estimator implemented
+✅ Support for 'name' argument in __init__
+✅ Better codebook diversity estimation
 
-Referências:
+References:
 - "Neural Discrete Representation Learning" by van den Oord et al.
   https://arxiv.org/abs/1711.00937
 - "wav2vec 2.0: A Framework for Self-Supervised Learning of Speech 
@@ -76,32 +77,16 @@ class GumbelVectorQuantizer(Layer):
     - Scalar perplexity output for diversity loss
     - Multiple codebook groups for better representation
 
-    Architecture:
-    -------------
-    Input: (batch_size, sequence_length, hidden_dim)
-    ↓
-    Linear projection → (batch, seq, num_groups * num_vectors)
-    ↓
-    Reshape → (batch * seq, num_groups, num_vectors)
-    ↓
-    Gumbel-Softmax sampling
-    ↓
-    Hard quantization (straight-through)
-    ↓
-    Codebook lookup → (batch, seq, num_groups * code_vector_size)
-    ↓
-    Output: (quantized_vectors, perplexity_scalar)
-
     Parameters:
     -----------
     name : str, optional
         Name of the layer (for Keras)
+    hidden_size : int, default=768
+        Hidden dimension size (must match model's hidden_size)
     number_groups : int, default=4
         Number of codebook groups (G)
-    number_vectors : int, default=16
+    number_vectors : int, default=320
         Number of vectors per group (V)
-    code_vector_size : int, default=4
-        Size of each code vector (total_dim / num_groups)
     temperature : float, default=0.2
         Temperature for Gumbel-Softmax (lower = harder)
 
@@ -114,51 +99,53 @@ class GumbelVectorQuantizer(Layer):
     Output Shape:
     -------------
     Tuple of (code_vectors, perplexity)
-    - code_vectors: (batch_size, seq_length, num_groups * code_vector_size)
+    - code_vectors: (batch_size, seq_length, hidden_size)
     - perplexity: scalar tensor (measure of codebook diversity)
-
-    Example:
-    --------
-    >>> quantizer = GumbelVectorQuantizer(name='my_quantizer')
-    >>> hidden = tf.random.normal((32, 100, 256))  # batch=32, seq=100, dim=256
-    >>> lengths = tf.fill([32], 100)
-    >>> quantized, perplexity = quantizer([hidden, lengths])
-    >>> print(quantized.shape)  # (32, 100, 16)
-    >>> print(perplexity.shape)  # scalar
-
-    Notes:
-    ------
-    - Perplexity is computed WITHOUT Gumbel noise for stability
-    - Higher perplexity indicates more diverse codebook usage (good!)
-    - Target perplexity ~100 is typical for Wav2Vec 2.0
     """
 
-    def __init__(self, name=None, **kwargs):
+    def __init__(self, name=None, hidden_size=768, number_groups=4,
+                 number_vectors=320, temperature=0.2, **kwargs):
         """
         Initialize the GumbelVectorQuantizer.
 
         Args:
             name (str, optional): Layer name for Keras
+            hidden_size (int): Hidden dimension size (e.g., 768 for Wav2Vec2)
+            number_groups (int): G: number of codebook groups
+            number_vectors (int): V: vectors per group
+            temperature (float): τ: Gumbel-Softmax temperature
             **kwargs: Additional keyword arguments passed to parent Layer
         """
         super().__init__(name=name, **kwargs)
 
-        # Codebook configuration
-        self.number_groups = 4  # G: number of codebook groups
-        self.number_vectors = 4  # V: vectors per group
-        self.code_vector_size = 4 // 4  # D: size of each code vector
-        self.temperature = 0.2  # τ: Gumbel-Softmax temperature
+        # Store configuration
+        self.hidden_size = hidden_size
+        self.number_groups = number_groups
+        self.number_vectors = number_vectors
+        self.temperature = temperature
 
-        # Linear projection layer
+        # Calculate code vector size
+        self.code_vector_size = hidden_size // number_groups
+
+        # Validation
+        if hidden_size % number_groups != 0:
+            raise ValueError(
+                f"hidden_size ({hidden_size}) must be divisible by "
+                f"number_groups ({number_groups}). "
+                f"Got code_vector_size = {hidden_size / number_groups}"
+            )
+
+        # Linear projection layer (created in build or here)
         self.linear = Dense(
             self.number_groups * self.number_vectors,
             name='quantizer_projection'
         )
 
         # Learnable codebook
-        # Shape: (1, G, V, D)
+        # Shape: (1, G, V, D) where D = hidden_size // G
         self.code_book = self.add_weight(
-            shape=(1, self.number_groups, self.number_vectors, self.code_vector_size),
+            shape=(1, self.number_groups, self.number_vectors,
+                   self.code_vector_size),
             initializer="random_normal",
             trainable=True,
             name='codebook'
@@ -173,12 +160,6 @@ class GumbelVectorQuantizer(Layer):
         - Higher perplexity = more diverse code usage (desirable)
         - Lower perplexity = code collapse (undesirable)
 
-        Formula:
-        --------
-        Perplexity = exp(Entropy / N)
-        where Entropy = -Σ p(c) * log(p(c))
-              N = number of codebook entries (G * V)
-
         Args:
             probs (tf.Tensor): Probability distribution over codebook vectors
                               Shape: (batch_size, seq_length, num_groups, num_vectors)
@@ -187,25 +168,13 @@ class GumbelVectorQuantizer(Layer):
 
         Returns:
             tf.Tensor: Scalar perplexity value
-
-        Implementation Notes:
-        ---------------------
-        1. Create mask for valid positions (ignoring padding)
-        2. Compute average probability of each codebook entry
-        3. Calculate entropy: H = -Σ p * log(p)
-        4. Normalize by number of entries: H_norm = H / (G * V)
-        5. Perplexity = exp(H_norm)
         """
         # Create mask for valid sequence positions
-        # Shape: (batch_size, seq_length)
         mask = tensorflow.sequence_mask(
             lengths,
             maxlen=tensorflow.shape(probs)[1],
             dtype=probs.dtype
         )
-
-        # Reshape mask to match probs shape
-        # Shape: (batch_size, seq_length, 1, 1)
         mask = tensorflow.reshape(mask, (-1, tensorflow.shape(mask)[1], 1, 1))
 
         # Mask out invalid positions
@@ -213,19 +182,16 @@ class GumbelVectorQuantizer(Layer):
         num_values = tensorflow.reduce_sum(mask)
 
         # Compute average probability for each codebook entry
-        # Sum over batch and sequence dimensions, then normalize
-        # Shape: (num_groups, num_vectors)
         avg_probs = tensorflow.reduce_sum(masked_probs, axis=[0, 1]) / num_values
 
         # Compute entropy: H = -Σ p * log(p)
-        # Add epsilon to avoid log(0)
         epsilon = 1e-10
         log_probs = tensorflow.math.log(avg_probs + epsilon)
         entropy = -tensorflow.reduce_sum(avg_probs * log_probs)
 
         # Normalize entropy by number of codebook entries
         num_codes = tensorflow.cast(
-            probs.shape[2] * probs.shape[3],  # num_groups * num_vectors
+            probs.shape[2] * probs.shape[3],
             tensorflow.float32
         )
         normalized_entropy = entropy / num_codes
@@ -239,14 +205,6 @@ class GumbelVectorQuantizer(Layer):
         """
         Forward pass of Gumbel-Softmax vector quantization.
 
-        Process:
-        --------
-        1. Project hidden states to logits space
-        2. Sample from Gumbel-Softmax distribution
-        3. Apply straight-through estimator (hard in forward, soft in backward)
-        4. Look up codebook vectors
-        5. Compute perplexity for diversity monitoring
-
         Args:
             hidden_state: Tuple of (hidden_states, lengths)
                 - hidden_states (tf.Tensor): Input representations
@@ -258,22 +216,8 @@ class GumbelVectorQuantizer(Layer):
         Returns:
             Tuple of (code_vectors, perplexity)
             - code_vectors (tf.Tensor): Quantized representations
-              Shape: (batch_size, seq_length, num_groups * code_vector_size)
+              Shape: (batch_size, seq_length, hidden_size)
             - perplexity (tf.Tensor): Scalar codebook diversity metric
-
-        Mathematical Details:
-        ---------------------
-        Gumbel-Softmax:
-            g_i = -log(-log(u_i)) where u_i ~ Uniform(0,1)
-            p_i = softmax((logits_i + g_i) / τ)
-
-        Straight-through estimator:
-            forward: use argmax (hard)
-            backward: use softmax (soft)
-            implementation: stop_gradient(hard - soft) + soft
-
-        Codebook lookup:
-            quantized = Σ p_i * codebook_i
         """
         # Unpack inputs
         hidden_states, lengths = hidden_state
@@ -281,23 +225,25 @@ class GumbelVectorQuantizer(Layer):
         length = tensorflow.shape(hidden_states)[1]
 
         # Step 1: Project to codebook space
-        # (B, L, D) → (B, L, G*V) → (B*L, G, V)
+        # (B, L, hidden_size) → (B, L, G*V) → (B*L, G, V)
         hidden_states_projected = self.linear(hidden_states)
-        hidden_states = tensorflow.reshape(
+        hidden_states_reshaped = tensorflow.reshape(
             hidden_states_projected,
             (batch_size * length, self.number_groups, self.number_vectors)
         )
 
         # Step 2: Gumbel-Softmax sampling
         # Generate Gumbel noise: g = -log(-log(u))
-        uniform_noise = tensorflow.random.uniform(tensorflow.shape(hidden_states))
+        uniform_noise = tensorflow.random.uniform(
+            tensorflow.shape(hidden_states_reshaped)
+        )
         gumbel_noise = -tensorflow.math.log(
             -tensorflow.math.log(uniform_noise + 1e-10) + 1e-10
         )
 
         # Apply Gumbel-Softmax: softmax((logits + g) / τ)
         code_vector_probs = tensorflow.nn.softmax(
-            (hidden_states + gumbel_noise) / self.temperature,
+            (hidden_states_reshaped + gumbel_noise) / self.temperature,
             axis=-1
         )
 
@@ -317,17 +263,18 @@ class GumbelVectorQuantizer(Layer):
         # Step 4: Codebook lookup
         # Reshape for matrix multiplication with codebook
         # (B*L, G, V) → (B*L, G, V, 1)
-        code_vector_probs = tensorflow.reshape(
+        code_vector_probs_expanded = tensorflow.reshape(
             code_vector_probs,
-            (batch_size * length, self.number_groups, self.number_vectors, 1)
+            (batch_size * length, self.number_groups,
+             self.number_vectors, 1)
         )
 
         # Weighted sum of codebook vectors
         # (B*L, G, V, 1) * (1, G, V, D) → (B*L, G, V, D)
-        code_vectors = code_vector_probs * self.code_book
+        code_vectors = code_vector_probs_expanded * self.code_book
 
         # Sum over vectors dimension: (B*L, G, V, D) → (B*L, G, D)
-        code_vectors = tensorflow.reduce_sum(code_vectors, axis=-2)
+        code_vectors = tensorflow.reduce_sum(code_vectors, axis=2)
 
         # Reshape back to sequence: (B*L, G, D) → (B, L, G*D)
         code_vectors = tensorflow.reshape(
@@ -349,9 +296,32 @@ class GumbelVectorQuantizer(Layer):
         )
 
         # Compute perplexity as scalar
-        perplexity = self._compute_perplexity(code_vector_soft_distance, lengths)
+        perplexity = self._compute_perplexity(
+            code_vector_soft_distance,
+            lengths
+        )
 
         return code_vectors, perplexity
+
+    def compute_output_shape(self, input_shape):
+        """
+        Computes the output shape of the layer.
+
+        Args:
+            input_shape: Shape tuple (list of tuples) for inputs
+
+        Returns:
+            Tuple of output shapes
+        """
+        hidden_states_shape, lengths_shape = input_shape
+        batch_size = hidden_states_shape[0]
+        seq_length = hidden_states_shape[1]
+
+        # Output: (code_vectors, perplexity)
+        code_vectors_shape = (batch_size, seq_length, self.hidden_size)
+        perplexity_shape = ()  # scalar
+
+        return (code_vectors_shape, perplexity_shape)
 
     def get_config(self):
         """
@@ -362,10 +332,11 @@ class GumbelVectorQuantizer(Layer):
         """
         config = super().get_config()
         config.update({
+            'hidden_size': self.hidden_size,
             'number_groups': self.number_groups,
             'number_vectors': self.number_vectors,
-            'code_vector_size': self.code_vector_size,
             'temperature': self.temperature,
+            'code_vector_size': self.code_vector_size,
         })
         return config
 
