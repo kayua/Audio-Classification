@@ -10,6 +10,7 @@ __credits__ = ['unknown']
 
 from Engine.Arguments.ArgumentsConvNext import add_convnext_arguments
 from Engine.Arguments.ArgumentsMobileNetV2 import add_mobilenetv2_arguments
+from Engine.Arguments.ArgumentsMobileNetV3 import add_mobilenetv3_arguments
 
 # MIT License
 #
@@ -149,6 +150,7 @@ class Arguments:
 
         # Append additional arguments related to specific architectures
         self.input_arguments = add_ast_arguments(self.input_arguments)
+        self.input_arguments = add_mobilenetv3_arguments(self.input_arguments)
         self.input_arguments = add_conformer_arguments(self.input_arguments)
         self.input_arguments = add_lstm_arguments(self.input_arguments)
         self.input_arguments = add_mlp_arguments(self.input_arguments)

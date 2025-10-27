@@ -20,14 +20,14 @@ try:
     from tensorflow.keras.layers import GlobalAveragePooling2D
     from tensorflow.keras.layers import Activation
 
-    from Engine.Models.Process.MobileNetV2_Process import MobileNetV2Process
+    from Engine.Models.Process.MobileNetV3_Process import MobileNetV3Process
 
 except ImportError as error:
     print(error)
     sys.exit(-1)
 
 
-class MobileNetV2GradientMaps:
+class MobileNetV3GradientMaps:
 
     def __init__(self):
 
@@ -38,19 +38,19 @@ class MobileNetV2GradientMaps:
         Build an auxiliary model for GradCAM/GradCAM++ computation.
 
         Args:
-            target_layer_name: Name of target layer. If None, uses last inverted residual block's expansion layer
+            target_layer_name: Name of target layer. If None, uses last bottleneck block's expansion layer
         """
         if self.neural_network_model is None:
             raise ValueError("Model must be built before creating GradCAM model")
 
-        # Find last inverted residual block's expansion layer if no target specified
+        # Find last bottleneck block's expansion layer if no target specified
         if target_layer_name is None:
-            # Get last block's expansion conv (typical for MobileNetV2)
-            # Format: 'expansion_conv_block_{block_idx}_layer_{layer_idx}'
+            # Get last block's expansion conv (typical for MobileNetV3)
+            # Format: 'bneck_expansion_conv_block_{block_idx}'
             # We'll default to the last expansion layer
             target_layer_name = None
             for layer in reversed(self.neural_network_model.layers):
-                if 'expansion_conv' in layer.name or 'inverted_residual' in layer.name:
+                if 'bneck_expansion_conv' in layer.name or 'bottleneck' in layer.name:
                     target_layer_name = layer.name
                     break
 

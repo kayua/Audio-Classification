@@ -34,16 +34,16 @@ DEFAULT_INTERMEDIARY_ACTIVATION = 'hard_swish'
 DEFAULT_LAST_LAYER_ACTIVATION = 'softmax'
 DEFAULT_NUMBER_FILTERS_SPECTROGRAM = 512
 DEFAULT_SIZE_CONVOLUTIONAL_FILTERS = (3, 3)
-DEFAULT_FILTERS_PER_BLOCK = [16, 24, 40, 80, 112, 160]
+DEFAULT_FILTERS_PER_BLOCK = [8, 16, 32, 64, 96, 128]
 DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
-DEFAULT_MOBILENETV3_VARIANT = 'large'  # 'large' or 'small'
+DEFAULT_MOBILENETV3_VARIANT = 'small'  # 'large' or 'small'
 
 # MobileNetV3-Large configuration
 # (kernel, exp_size, out_channels, SE, NL, stride)
 # SE: use Squeeze-and-Excitation, NL: activation (RE=ReLU, HS=hard-swish)
 DEFAULT_BNECK_BLOCKS_LARGE = [
     # kernel, exp, out, SE, NL, stride
-    (3, 16, 16, False, 'RE', 1),
+    (3, 8, 16, False, 'RE', 1),
     (3, 64, 24, False, 'RE', 2),
     (3, 72, 24, False, 'RE', 1),
     (5, 72, 40, True, 'RE', 2),
@@ -63,17 +63,17 @@ DEFAULT_BNECK_BLOCKS_LARGE = [
 # MobileNetV3-Small configuration
 DEFAULT_BNECK_BLOCKS_SMALL = [
     # kernel, exp, out, SE, NL, stride
-    (3, 16, 16, True, 'RE', 2),
-    (3, 72, 24, False, 'RE', 2),
-    (3, 88, 24, False, 'RE', 1),
-    (5, 96, 40, True, 'HS', 2),
-    (5, 240, 40, True, 'HS', 1),
-    (5, 240, 40, True, 'HS', 1),
-    (5, 120, 48, True, 'HS', 1),
-    (5, 144, 48, True, 'HS', 1),
-    (5, 288, 96, True, 'HS', 2),
-    (5, 576, 96, True, 'HS', 1),
-    (5, 576, 96, True, 'HS', 1),
+    (3, 8, 16, True, 'RE', 2),
+    (3, 16, 24, False, 'RE', 2),
+    (3, 24, 24, False, 'RE', 1),
+    (5, 32, 40, True, 'HS', 2),
+    (5, 64, 40, True, 'HS', 1),
+    (5, 128, 40, True, 'HS', 1),
+    (5, 256, 48, True, 'HS', 1),
+    (5, 256, 48, True, 'HS', 1),
+    (5, 256, 96, True, 'HS', 2),
+    (5, 512, 96, True, 'HS', 1),
+    (5, 512, 96, True, 'HS', 1),
 ]
 
 
