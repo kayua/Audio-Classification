@@ -40,32 +40,11 @@ class EfficientNetGradientMaps:
     def __init__(self):
         pass
 
-    def build_gradcam_model(self, target_layer_name: str = None) -> None:
-
-        if self.neural_network_model is None:
-            raise ValueError("Model must be built before creating GradCAM model")
-
-        if target_layer_name is None:
-
-            for layer in reversed(self.neural_network_model.layers):
-                if 'conv' in layer.name.lower() or 'block' in layer.name.lower():
-                    if len(layer.output_shape) == 4:
-                        target_layer_name = layer.name
-                        break
-
-            if target_layer_name is None:
-
-                target_layer_name = 'top_conv'
-
-        target_layer = self.neural_network_model.get_layer(target_layer_name)
-
-        self.gradcam_model = Model(inputs=self.neural_network_model.inputs,
-                                   outputs=[target_layer.output, self.neural_network_model.output])
-
     def compute_gradcam_plusplus(self, input_sample: numpy.ndarray, class_idx: int = None,
                                  target_layer_name: str = None) -> numpy.ndarray:
-
-
+        """
+        Compute Grad-CAM++ heatmap with proper shape handling.
+        """
         if self.gradcam_model is None or target_layer_name is not None:
             self.build_gradcam_model(target_layer_name)
 
@@ -97,60 +76,84 @@ class EfficientNetGradientMaps:
         # Third-order gradients
         grads_3 = tape1.gradient(grads_2, layer_output)
 
-        # ✅ CORREÇÃO: Para EfficientNet com saída 4D (batch, height, width, channels)
-        # usar axis=(1, 2) para dimensões espaciais
-        if len(layer_output.shape) == 4:
-            # Dimensões espaciais (height, width)
-            spatial_axes = (1, 2)
-        else:
-            # Fallback para outras dimensionalidades
-            spatial_axes = tuple(range(1, len(layer_output.shape) - 1))
+        # ✅ Determine spatial axes based on layer output shape
+        layer_shape = layer_output.shape
+        print(f"🔍 Layer output shape: {layer_shape}")
 
-        # Compute alpha weights (Grad-CAM++ formula) - CORRIGIDO
+        if len(layer_shape) == 4:  # (batch, height, width, channels)
+            spatial_axes = (1, 2)
+        elif len(layer_shape) == 3:  # (batch, time, features) or (batch, height, width)
+            spatial_axes = (1,)
+        else:
+            spatial_axes = tuple(range(1, len(layer_shape) - 1))
+
+        # Compute alpha weights (Grad-CAM++ formula)
         numerator = grads_2
-        denominator = 2.0 * grads_2 + tensorflow.reduce_sum(layer_output * grads_3,
-                                                            axis=spatial_axes, keepdims=True) + 1e-10
+        denominator = 2.0 * grads_2 + tensorflow.reduce_sum(
+            layer_output * grads_3, axis=spatial_axes, keepdims=True
+        ) + 1e-10
 
         alpha = numerator / denominator
 
         # ReLU on gradients
         relu_grads = tensorflow.maximum(grads, 0.0)
 
-        # Weighted combination - calcular média ponderada ao longo das dimensões espaciais
+        # Weighted combination
         weights = tensorflow.reduce_sum(alpha * relu_grads, axis=spatial_axes)
 
-        # Compute weighted activation map
-        layer_output_squeezed = layer_output[0]  # Remove batch dimension
+        # Remove batch dimension from layer output
+        layer_output_squeezed = layer_output[0]
 
-        # Para 4D: (height, width, channels) @ (channels,) -> (height, width)
-        if len(layer_output_squeezed.shape) == 3:
+        print(f"🔍 Layer output (no batch) shape: {layer_output_squeezed.shape}")
+        print(f"🔍 Weights shape: {weights.shape}")
+
+        # Compute heatmap based on dimensionality
+        if len(layer_output_squeezed.shape) == 3:  # (height, width, channels)
+            # Standard 2D convolutional case
             heatmap = tensorflow.reduce_sum(
                 layer_output_squeezed * weights[tensorflow.newaxis, tensorflow.newaxis, :],
                 axis=-1
             )
+        elif len(layer_output_squeezed.shape) == 2:  # (sequence, features) or (height, features)
+            # 1D or flattened case
+            heatmap = tensorflow.reduce_sum(
+                layer_output_squeezed * weights[tensorflow.newaxis, :],
+                axis=-1
+            )
         else:
-            heatmap = layer_output_squeezed @ weights[..., tensorflow.newaxis]
+            # Fallback for other cases
+            heatmap = tensorflow.tensordot(layer_output_squeezed, weights, axes=([-1], [0]))
             heatmap = tensorflow.squeeze(heatmap)
 
         # Apply ReLU and normalize
         heatmap = tensorflow.maximum(heatmap, 0)
 
-        # Normalização robusta
-        heatmap_max = tensorflow.math.reduce_max(heatmap)
-        if heatmap_max > 1e-10:
-            heatmap = heatmap / heatmap_max
+        # Convert to numpy and ensure 2D
+        heatmap_np = heatmap.numpy()
 
-        return heatmap.numpy()
+        # ✅ CRITICAL: Squeeze all extra dimensions
+        while len(heatmap_np.shape) > 2:
+            heatmap_np = numpy.squeeze(heatmap_np, axis=0)
+
+        print(f"🔍 Final heatmap shape: {heatmap_np.shape}")
+
+        # Normalização robusta
+        heatmap_max = numpy.max(heatmap_np)
+        if heatmap_max > 1e-10:
+            heatmap_np = heatmap_np / heatmap_max
+
+        return heatmap_np
 
     def compute_gradcam(self, input_sample: numpy.ndarray, class_idx: int = None,
                         target_layer_name: str = None) -> numpy.ndarray:
-        """Standard Grad-CAM computation for EfficientNet."""
+        """
+        Standard Grad-CAM computation with proper shape handling.
+        """
         if self.gradcam_model is None or target_layer_name is not None:
             self.build_gradcam_model(target_layer_name)
 
         if len(input_sample.shape) == 3:
             input_sample = numpy.expand_dims(input_sample, axis=0)
-
         elif len(input_sample.shape) == 4 and input_sample.shape[0] != 1:
             input_sample = input_sample[0:1]
 
@@ -167,13 +170,11 @@ class EfficientNetGradientMaps:
 
         grads = tape.gradient(class_channel, layer_output)
 
-        # Para EfficientNet com saída 4D (batch, height, width, channels)
-        if len(layer_output.shape) == 4:
+        # Determine pooling axes
+        if len(layer_output.shape) == 4:  # (batch, height, width, channels)
             pooled_grads = tensorflow.reduce_mean(grads, axis=(0, 1, 2))
-
-        elif len(layer_output.shape) == 3:  # Fallback
+        elif len(layer_output.shape) == 3:  # (batch, sequence, features)
             pooled_grads = tensorflow.reduce_mean(grads, axis=(0, 1))
-
         else:
             pooled_grads = tensorflow.reduce_mean(grads, axis=0)
 
@@ -185,18 +186,182 @@ class EfficientNetGradientMaps:
                 layer_output * pooled_grads[tensorflow.newaxis, tensorflow.newaxis, :],
                 axis=-1
             )
+        elif len(layer_output.shape) == 2:  # (sequence, features)
+            heatmap = tensorflow.reduce_sum(
+                layer_output * pooled_grads[tensorflow.newaxis, :],
+                axis=-1
+            )
         else:
-            heatmap = layer_output @ pooled_grads[..., tensorflow.newaxis]
+            heatmap = tensorflow.tensordot(layer_output, pooled_grads, axes=([-1], [0]))
             heatmap = tensorflow.squeeze(heatmap)
 
         # Normalização robusta
         heatmap = tensorflow.maximum(heatmap, 0)
-        heatmap_max = tensorflow.math.reduce_max(heatmap)
+        heatmap_np = heatmap.numpy()
 
+        # ✅ Ensure 2D output
+        while len(heatmap_np.shape) > 2:
+            heatmap_np = numpy.squeeze(heatmap_np, axis=0)
+
+        heatmap_max = numpy.max(heatmap_np)
         if heatmap_max > 1e-10:
-            heatmap = heatmap / heatmap_max
+            heatmap_np = heatmap_np / heatmap_max
 
-        return heatmap.numpy()
+        return heatmap_np
+
+    @staticmethod
+    def interpolate_heatmap(heatmap: numpy.ndarray, target_shape: tuple,
+                            smooth: bool = True) -> numpy.ndarray:
+        """
+        Interpola heatmap para o tamanho do espectrograma com tratamento robusto de shapes.
+        """
+        if not isinstance(heatmap, numpy.ndarray):
+            heatmap = numpy.array(heatmap)
+
+        print(f"🔍 Interpolating heatmap from {heatmap.shape} to {target_shape}")
+
+        # ✅ Remove extra dimensions if present
+        while len(heatmap.shape) > 2:
+            heatmap = numpy.squeeze(heatmap, axis=0)
+
+        # ✅ Handle different heatmap shapes
+        if len(heatmap.shape) == 2:
+            # Standard 2D heatmap
+            zoom_factors = (
+                target_shape[0] / heatmap.shape[0],
+                target_shape[1] / heatmap.shape[1]
+            )
+            interpolated = zoom(heatmap, zoom_factors, order=3)
+
+        elif len(heatmap.shape) == 1:
+            # 1D heatmap - expand to 2D
+            # Assume it's temporal (time axis)
+            temporal_interp = zoom(heatmap, (target_shape[1] / heatmap.shape[0],), order=3)
+
+            # Create frequency profile (stronger at lower frequencies)
+            freq_profile = numpy.linspace(1.0, 0.6, target_shape[0])
+
+            # Expand to 2D
+            interpolated = freq_profile[:, numpy.newaxis] * temporal_interp[numpy.newaxis, :]
+
+        else:
+            raise ValueError(f"Unexpected heatmap shape: {heatmap.shape}. Expected 1D or 2D.")
+
+        # Ensure exact target shape
+        if interpolated.shape != target_shape:
+            print(f"⚠️  Adjusting shape from {interpolated.shape} to {target_shape}")
+            zoom_factors_adjust = (
+                target_shape[0] / interpolated.shape[0],
+                target_shape[1] / interpolated.shape[1]
+            )
+            interpolated = zoom(interpolated, zoom_factors_adjust, order=3)
+
+        # Apply smoothing if requested
+        if smooth:
+            interpolated = gaussian_filter(interpolated, sigma=2.0)
+
+        print(f"✅ Final interpolated shape: {interpolated.shape}")
+
+        return interpolated
+
+    def build_gradcam_model(self, target_layer_name: str = None) -> None:
+        """
+        Constrói o modelo Grad-CAM para extrair ativações intermediárias.
+        Corrigido para funcionar com TensorFlow/Keras moderno.
+        """
+        if self.neural_network_model is None:
+            raise ValueError("Model must be built before creating GradCAM model")
+
+        if target_layer_name is None:
+            # Método 1: Procurar por camadas convolucionais 4D
+            from tensorflow.keras.layers import Conv2D, DepthwiseConv2D
+
+            for layer in reversed(self.neural_network_model.layers):
+                # Verificar se é uma camada convolucional
+                if isinstance(layer, (Conv2D, DepthwiseConv2D)):
+                    try:
+                        # Tentar acessar o output shape através do layer.output
+                        if hasattr(layer, 'output'):
+                            output_shape = layer.output.shape
+
+                            # Verificar se é 4D (batch, height, width, channels)
+                            if len(output_shape) == 4:
+                                target_layer_name = layer.name
+                                print(f"🎯 Target layer automatically selected: {target_layer_name}")
+                                print(f"   Output shape: {output_shape}")
+                                break
+
+                    except (AttributeError, ValueError, TypeError):
+                        continue
+
+            # Método 2: Procurar por nome de camada conhecida
+            if target_layer_name is None:
+                possible_layers = [
+                    'head_conv',  # EfficientNet from scratch
+                    'top_conv',  # Alternativa comum
+                    'block7a_project_conv',  # Último bloco
+                    'block6d_project_conv',  # Penúltimo bloco
+                    'conv_head'  # Outro padrão comum
+                ]
+
+                for possible_name in possible_layers:
+                    try:
+                        layer = self.neural_network_model.get_layer(possible_name)
+                        target_layer_name = possible_name
+                        print(f"🎯 Using known layer name: {target_layer_name}")
+                        break
+                    except ValueError:
+                        continue
+
+            # Método 3: Procurar por padrão de nome
+            if target_layer_name is None:
+                for layer in reversed(self.neural_network_model.layers):
+                    if any(pattern in layer.name.lower() for pattern in ['conv', 'project', 'expand']):
+                        try:
+                            if hasattr(layer, 'output') and len(layer.output.shape) == 4:
+                                target_layer_name = layer.name
+                                print(f"🎯 Using pattern-matched layer: {target_layer_name}")
+                                break
+                        except:
+                            continue
+
+            # Se ainda não encontrou, erro informativo
+            if target_layer_name is None:
+                layer_info = []
+                for layer in self.neural_network_model.layers:
+                    try:
+                        if hasattr(layer, 'output'):
+                            layer_info.append(f"{layer.name}: {layer.output.shape}")
+                    except:
+                        layer_info.append(f"{layer.name}: <shape unavailable>")
+
+                raise ValueError(
+                    f"Could not find suitable convolutional layer for Grad-CAM.\n"
+                    f"Available layers:\n" + "\n".join(layer_info[:10]) + "\n..."
+                )
+
+        # Obter a camada alvo
+        try:
+            target_layer = self.neural_network_model.get_layer(target_layer_name)
+            print(f"✅ Successfully found target layer: {target_layer_name}")
+        except ValueError:
+            available = [l.name for l in self.neural_network_model.layers if 'conv' in l.name.lower()]
+            raise ValueError(
+                f"Layer '{target_layer_name}' not found in model.\n"
+                f"Available conv layers: {available[:5]}..."
+            )
+
+        # Criar modelo Grad-CAM
+        self.gradcam_model = Model(
+            inputs=self.neural_network_model.inputs,
+            outputs=[target_layer.output, self.neural_network_model.output]
+        )
+
+        print(f"✅ Grad-CAM model built successfully!")
+        print(f"   Input shape: {self.gradcam_model.input_shape}")
+        print(f"   Target layer output shape: {target_layer.output.shape}")
+        print(f"   Model output shape: {self.neural_network_model.output.shape}")
+
 
     def compute_scorecam(self, input_sample: numpy.ndarray, class_idx: int = None,
                          target_layer_name: str = None, batch_size: int = 32) -> numpy.ndarray:

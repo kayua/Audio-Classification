@@ -11,27 +11,22 @@ __credits__ = ['unknown']
 import os
 import tempfile
 
-# Mudar o diretório temporário para um local com mais espaço
-# Substitua pelo caminho que tenha espaço disponível
-# temp_dir = "/mnt/SSD480/kayua"
-# os.makedirs(temp_dir, exist_ok=True)
-#
-# # Configurar variáveis de ambiente
-# os.environ['TMPDIR'] = temp_dir
-# os.environ['TMP'] = temp_dir
-# os.environ['TEMP'] = temp_dir
-# tempfile.tempdir = temp_dir
-#
-# # Também configurar o diretório de cache do XLA
-# os.environ['XLA_FLAGS'] = f'--xla_gpu_dump_autotune_results_to={temp_dir}/xla_autotune'
+temp_dir = "/mnt/SSD480/kayua"
+os.makedirs(temp_dir, exist_ok=True)
 
-from Engine.Models import MLP
+os.environ['TMPDIR'] = temp_dir
+os.environ['TMP'] = temp_dir
+os.environ['TEMP'] = temp_dir
+tempfile.tempdir = temp_dir
+
+os.environ['XLA_FLAGS'] = f'--xla_gpu_dump_autotune_results_to={temp_dir}/xla_autotune'
+
+from Engine.Models.MLP import MLPModel
 from Engine.Models.ConvNetX import ConvNeXtModel
 from Engine.Models.EfficientNet import EfficientNet
 from Engine.Models.MobileNet import MobileNetModel
 from Engine.Models.MobileNetV2 import MobileNetV2Model
 from Engine.Models.MobileNetV3 import MobileNetV3Model
-from Engine.Models.Process.MLP_Process import MLPProcess
 
 # MIT License
 #
@@ -191,13 +186,7 @@ class Main(RunScript, PlotterTools):
         return model_metrics, model_history, model_matrices, model_roc_list
 
     def save_results_dict(self, output_directory, format='json'):
-        """
-        Salva o dicionário de resultados em arquivo.
 
-        Args:
-            output_directory (str): Diretório onde o arquivo será salvo.
-            format (str): Formato do arquivo ('json' ou 'pickle'). Default: 'json'
-        """
         os.makedirs(output_directory, exist_ok=True)
 
         if format == 'json':
@@ -217,16 +206,13 @@ class Main(RunScript, PlotterTools):
 
             with open(file_path, 'w', encoding='utf-8') as f:
                 json.dump(serializable_results, f, indent=4, ensure_ascii=False)
-            logging.info(f"Resultados salvos em JSON: {file_path}")
 
         elif format == 'pickle':
             file_path = os.path.join(output_directory, 'results_by_model.pkl')
             with open(file_path, 'wb') as f:
                 pickle.dump(self.results_by_model, f)
-            logging.info(f"Resultados salvos em Pickle: {file_path}")
-
         else:
-            logging.error(f"Formato não suportado: {format}. Use 'json' ou 'pickle'.")
+            pass
 
     def __exec__(self, models, output_directory):
         """
@@ -246,18 +232,14 @@ class Main(RunScript, PlotterTools):
             try:
                 metrics, history, matrices, roc_list = self.train_and_collect_metrics(model_class=model_class)
 
-                # Armazena nas listas (compatibilidade com código existente)
                 self.mean_metrics.append(metrics)
                 self.mean_history.append(history)
                 self.mean_matrices.append(matrices)
 
-                # Armazena no dicionário estruturado por modelo
-                self.results_by_model[model_name] = {
-                    'metrics': metrics,
-                    'history': history,
-                    'matrices': matrices,
-                    'roc_list': roc_list
-                }
+                self.results_by_model[model_name] = {'metrics': metrics,
+                                                     'history': history,
+                                                     'matrices': matrices,
+                                                     'roc_list': roc_list}
 
                 logging.info(f"Model {model_name} training completed. Metrics collected and saved in dictionary.")
 
@@ -283,19 +265,15 @@ class Main(RunScript, PlotterTools):
             logging.error(f"Error during plotting or saving results: {str(e)}")
             raise
 
-        # Salva o dicionário de resultados
         try:
-            logging.info("Saving results dictionary...")
             self.save_results_dict(output_directory, format='json')
             self.save_results_dict(output_directory, format='pickle')
-            logging.info("Results dictionary saved successfully.")
+
         except Exception as e:
             logging.error(f"Error saving results dictionary: {str(e)}")
 
         try:
-            logging.info("Running final script to generate PDF.")
             self.run_python_script('--output', "Results.pdf")
-            logging.info("PDF generation completed.")
 
         except Exception as e:
             logging.error(f"Error running the script for PDF generation: {str(e)}")
@@ -341,6 +319,6 @@ if __name__ == "__main__":
     main = Main()
     main.__start__()
 
-    available_models = [AudioWav2Vec2]
+    available_models = [EfficientNet]
 
     main.__exec__(available_models, "Results/")

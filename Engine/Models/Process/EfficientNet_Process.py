@@ -187,9 +187,6 @@ class ProcessEfficientNet(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
             1  # Single channel
         )
 
-        # Replicate single channel to 3 channels for EfficientNet compatibility
-        array_features = numpy.repeat(array_features, 3, axis=-1)
-
         array_labels = numpy.array(list_labels, dtype=numpy.int32)
 
         logging.info(f"Loaded {len(array_features)} spectrogram features.")
