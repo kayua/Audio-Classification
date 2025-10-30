@@ -577,6 +577,11 @@ class ROCPlotter:
                 self._save_roc_data_to_json(model_name, y_score, y_true, false_positive_r,
                                             true_positive_r, roc_auc, file_name_path)
 
+            # ============ CORREÇÃO: Configure tick sizes BEFORE creating figure ============
+            plt.rcParams['xtick.labelsize'] = 18  # Tamanho dos números do eixo X
+            plt.rcParams['ytick.labelsize'] = 18  # Tamanho dos números do eixo Y
+            # ===============================================================================
+
             # Plot the ROC curves for each class
             plt.figure(figsize=self.roc_curve_figure_size)
             for i in range(y_score.shape[1]):
