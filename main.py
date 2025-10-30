@@ -320,6 +320,9 @@ if __name__ == "__main__":
     main = Main()
     main.__start__()
 
-    available_models = [MLPModel]
+    available_models = [MLPModel,
+                        AudioLSTM,
+                        AudioBiLSTM,
+                        AudioWav2Vec2]
 
     main.__exec__(available_models, "Results/")
