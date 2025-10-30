@@ -54,6 +54,7 @@ class PlotLossCurve:
         - Save plot data to JSON for reproducibility
         - Load and plot from JSON files
         - Comprehensive data persistence
+        - **ENFORCED SEABORN STYLE** for consistent purple/lilac background appearance
 
     Args:
         @history_dict_list (list): A list of dictionaries where each dictionary contains the 'Name'
@@ -113,6 +114,7 @@ class PlotLossCurve:
         and parameters.
 
         NOTE: Font sizes are automatically increased by 50% for better readability.
+        NOTE: Seaborn darkgrid style is automatically enforced for consistent appearance.
 
         Args:
             @loss_curve_figure_size (tuple): The size of the plot figure (width, height).
@@ -211,12 +213,29 @@ class PlotLossCurve:
         The plots are saved as PDF images in the directory specified by path_output.
         Additionally, all plot data is saved to JSON for reproducibility.
 
+        **IMPORTANT**: This method enforces Seaborn darkgrid style for consistent appearance.
+
         Args:
             loss_curve_history_dict_list (list): List of dictionaries with model histories
             loss_curve_path_output (str): Output directory path
             save_json (bool): If True, saves plot data to JSON files. Default is True.
         """
         logging.info("Starting the process of plotting and saving loss graphs for the models.")
+
+        # ============================================================
+        # ENFORCE SEABORN STYLE FOR CONSISTENT PURPLE/LILAC BACKGROUND
+        # ============================================================
+        try:
+            plt.style.use('seaborn-v0_8-darkgrid')
+            logging.info("Applied seaborn-v0_8-darkgrid style")
+        except:
+            # Fallback for older matplotlib versions
+            try:
+                plt.style.use('seaborn-darkgrid')
+                logging.info("Applied seaborn-darkgrid style (fallback)")
+            except:
+                logging.warning("Could not apply seaborn style. Using default style.")
+        # ============================================================
 
         # Ensure output path exists
         Path(loss_curve_path_output).mkdir(parents=True, exist_ok=True)
@@ -292,7 +311,8 @@ class PlotLossCurve:
             "metadata": {
                 "epochs": len(history.get('loss', [])),
                 "has_validation_data": 'val_loss' in history,
-                "font_increase_applied": "50%"
+                "font_increase_applied": "50%",
+                "style_applied": "seaborn-v0_8-darkgrid"
             }
         }
 
@@ -411,6 +431,11 @@ class PlotLossCurve:
         """
         Creates the plot figure with the specified customization options (e.g., figure size and grid).
         """
+        # ============ CORREÇÃO: Configure tick sizes BEFORE creating figure ============
+        plt.rcParams['xtick.labelsize'] = 18  # Tamanho dos números do eixo X
+        plt.rcParams['ytick.labelsize'] = 18  # Tamanho dos números do eixo Y
+        # ===============================================================================
+
         plt.figure(figsize=self._loss_curve_history_figure_size)
 
         # Add grid if enabled
