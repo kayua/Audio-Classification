@@ -84,7 +84,7 @@ class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
         # NEW: Option to use full audio or windowing
         # use_full_audio=True: Process entire audio file (no windowing)
         # use_full_audio=False: Use windowing (original behavior)
-        self.use_full_audio = getattr(arguments, 'wav_to_vec_use_full_audio', True)
+        self.use_full_audio = False
 
         # CRITICAL: Input dimension calculation
         # FIXED: 2.5 seconds audio duration
@@ -125,7 +125,7 @@ class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
         logging.info(f"Epochs: {self.number_epochs}")
         logging.info(f"Sample rate: {self.sample_rate} Hz")
         logging.info(f"Use full audio: {self.use_full_audio}")
-        logging.info(f"Audio duration: {self.max_audio_length / self.sample_rate:.2f} seconds")
+        #logging.info(f"Audio duration: {self.max_audio_length / self.sample_rate:.2f} seconds")
         logging.info(f"Input dimension: {self.input_dimension} (FIXED)")
         logging.info(f"Number of classes: {self.number_classes}")
         logging.info("=" * 80)

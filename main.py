@@ -11,15 +11,15 @@ __credits__ = ['unknown']
 import os
 import tempfile
 
-temp_dir = "/mnt/SSD480/kayua"
-os.makedirs(temp_dir, exist_ok=True)
-
-os.environ['TMPDIR'] = temp_dir
-os.environ['TMP'] = temp_dir
-os.environ['TEMP'] = temp_dir
-tempfile.tempdir = temp_dir
-
-os.environ['XLA_FLAGS'] = f'--xla_gpu_dump_autotune_results_to={temp_dir}/xla_autotune'
+# temp_dir = "/mnt/SSD480/kayua"
+# os.makedirs(temp_dir, exist_ok=True)
+#
+# os.environ['TMPDIR'] = temp_dir
+# os.environ['TMP'] = temp_dir
+# os.environ['TEMP'] = temp_dir
+# tempfile.tempdir = temp_dir
+#
+# os.environ['XLA_FLAGS'] = f'--xla_gpu_dump_autotune_results_to={temp_dir}/xla_autotune'
 
 from Engine.Models.MLP import MLPModel
 from Engine.Models.ConvNetX import ConvNeXtModel
@@ -319,6 +319,6 @@ if __name__ == "__main__":
     main = Main()
     main.__start__()
 
-    available_models = [EfficientNet]
+    available_models = [AudioWav2Vec2]
 
     main.__exec__(available_models, "Results/")
