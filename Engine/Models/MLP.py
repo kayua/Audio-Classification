@@ -47,7 +47,6 @@ try:
     from tensorflow.keras.layers import Dropout
     from tensorflow.keras.layers import Flatten
 
-    from tensorflow.keras.layers import Bidirectional
 
     from Engine.Models.Process.MLP_Process import MLPProcess
     from tensorflow.keras.layers import GlobalAveragePooling1D

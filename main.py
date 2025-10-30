@@ -11,6 +11,7 @@ __credits__ = ['unknown']
 import os
 import tempfile
 
+from Engine.Models.AudioBiLSTM import AudioBiLSTM
 # temp_dir = "/mnt/SSD480/kayua"
 # os.makedirs(temp_dir, exist_ok=True)
 #
@@ -321,13 +322,6 @@ if __name__ == "__main__":
 
     available_models = [MLPModel,
                         AudioLSTM,
-                        Conformer,
-                        AudioSpectrogramTransformer,
-                        ResidualModel,
-                        EfficientNet,
-                        ConvNeXtModel,
-                        MobileNetModel,
-                        MobileNetV2Model,
-                        MobileNetV3Model]
+                        AudioBiLSTM]
 
     main.__exec__(available_models, "Results/")

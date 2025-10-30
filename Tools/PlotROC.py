@@ -61,6 +61,7 @@ class ROCPlotter:
         - Save plot data to JSON for reproducibility
         - Load and plot from JSON files
         - Comprehensive data persistence including ROC curves and AUC values
+        - **ENFORCED SEABORN STYLE** for consistent purple/lilac background appearance
 
     Parameters:
     ----------
@@ -120,6 +121,7 @@ class ROCPlotter:
         Initialize the ROCPlotter with customizable plotting options.
 
         NOTE: Font sizes are automatically increased by 50% for better readability.
+        NOTE: Seaborn darkgrid style is automatically enforced for consistent appearance.
 
         Parameters
         ----------
@@ -328,6 +330,7 @@ class ROCPlotter:
             },
             "metadata": {
                 "font_increase_applied": "50%",
+                "style_applied": "seaborn-v0_8-darkgrid",
                 "average_auc": float(numpy.mean([roc_auc[i] for i in range(y_score.shape[1])])),
                 "min_auc": float(min([roc_auc[i] for i in range(y_score.shape[1])])),
                 "max_auc": float(max([roc_auc[i] for i in range(y_score.shape[1])]))
@@ -523,6 +526,8 @@ class ROCPlotter:
         This method generates and saves the ROC plots. Additionally, all plot data is saved
         to JSON for reproducibility.
 
+        **IMPORTANT**: This method enforces Seaborn darkgrid style for consistent appearance.
+
         Parameters
         ----------
         probabilities_predicted : dict
@@ -536,6 +541,21 @@ class ROCPlotter:
             If True, saves plot data to JSON files. Default is True.
         """
         logging.info("Starting to plot ROC curve.")
+
+        # ============================================================
+        # ENFORCE SEABORN STYLE FOR CONSISTENT PURPLE/LILAC BACKGROUND
+        # ============================================================
+        try:
+            plt.style.use('seaborn-v0_8-darkgrid')
+            logging.info("Applied seaborn-v0_8-darkgrid style")
+        except:
+            # Fallback for older matplotlib versions
+            try:
+                plt.style.use('seaborn-darkgrid')
+                logging.info("Applied seaborn-darkgrid style (fallback)")
+            except:
+                logging.warning("Could not apply seaborn style. Using default style.")
+        # ============================================================
 
         # Ensure output path exists
         Path(file_name_path).mkdir(parents=True, exist_ok=True)

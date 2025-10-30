@@ -191,9 +191,9 @@ class PlotLossCurve:
         self._loss_curve_history_figure_size = loss_curve_figure_size
         self._loss_curve_history_training_loss_color = loss_curve_training_loss_color
         self._loss_curve_history_validation_loss_color = loss_curve_validation_loss_color
-        self._loss_curve_history_title_font_size = int(loss_curve_title_font_size * 1.5)
-        self._loss_curve_history_axis_font_size = int(loss_curve_axis_font_size * 1.5)
-        self._loss_curve_history_legend_font_size = int(loss_curve_legend_font_size * 1.5)
+        self._loss_curve_history_title_font_size = int(loss_curve_title_font_size * 1.65)
+        self._loss_curve_history_axis_font_size = int(loss_curve_axis_font_size * 1.65)
+        self._loss_curve_history_legend_font_size = int(loss_curve_legend_font_size * 1.65)
         self._loss_curve_history_x_label = loss_curve_x_label
         self._loss_curve_history_y_label = loss_curve_y_label
         self._loss_curve_history_title = loss_curve_title
