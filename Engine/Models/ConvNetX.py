@@ -287,16 +287,16 @@ class ConvNeXtModel(ConvNetXProcess, ConvNeXtGradientMaps):
             validation_data=validation_data
         )
 
-        if generate_gradcam and validation_data is not None:
-            val_data, val_labels = validation_data
-
-            stats = self.generate_validation_visualizations(
-                validation_data=val_data,
-                validation_labels=val_labels,
-                num_samples=8,
-                output_dir='Maps_ConvNeXt',
-                xai_method=xai_method
-            )
+        # if generate_gradcam and validation_data is not None:
+        #     val_data, val_labels = validation_data
+        #
+        #     stats = self.generate_validation_visualizations(
+        #         validation_data=val_data,
+        #         validation_labels=val_labels,
+        #         num_samples=8,
+        #         output_dir='Maps_ConvNeXt',
+        #         xai_method=xai_method
+        #     )
 
         return training_history
 

@@ -793,13 +793,13 @@ class AudioSpectrogramTransformer(ProcessAST):
                                                          batch_size=batch_size,
                                                          validation_data=validation_data)
 
-        if visualize_attention and validation_data is not None:
-            val_data, val_labels = validation_data
-
-            self.visualize_attention_flow(val_data,
-                                          labels=val_labels,
-                                          num_samples=128,
-                                          output_dir='Maps_AST')
+        # if visualize_attention and validation_data is not None:
+        #     val_data, val_labels = validation_data
+        #
+        #     self.visualize_attention_flow(val_data,
+        #                                   labels=val_labels,
+        #                                   num_samples=128,
+        #                                   output_dir='Maps_AST')
 
         return training_history
 

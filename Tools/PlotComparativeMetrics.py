@@ -31,7 +31,6 @@ __credits__ = ['unknown']
 # SOFTWARE.
 
 
-
 try:
     import sys
     import numpy
@@ -42,7 +41,6 @@ try:
 except ImportError as error:
     print(error)
     sys.exit(-1)
-
 
 
 class ComparativeMetricsPlotter:
@@ -124,7 +122,6 @@ class ComparativeMetricsPlotter:
         if not isinstance(comparative_metrics_show_plot, bool):
             raise ValueError("Show plot must be a boolean value.")
 
-
         self._comparative_metrics_figure_width = comparative_metrics_figure_width
         self._comparative_metrics_figure_height = comparative_metrics_figure_height
         self._comparative_metrics_bar_width = comparative_metrics_bar_width
@@ -132,11 +129,13 @@ class ComparativeMetricsPlotter:
         self._comparative_metrics_show_plot = comparative_metrics_show_plot
 
         self._comparative_metrics_list_metrics = ['Acc.', 'Prec.', 'Rec.', 'F1.']
+        # Paleta de cores baseada na imagem fornecida
+        # Gradientes do claro ao escuro para cada métrica
         self._comparative_metrics_list_color_bases = {
-            'Acc.': 'Blues',
-            'Prec.': 'Greens',
-            'Rec.': 'Reds',
-            'F1.': 'Purples'
+            'Acc.': ['#87CEEB', '#5DADE2', '#2E86C1', '#1A5276'],  # Blues: claro → escuro
+            'Prec.': ['#A3D977', '#52BE80', '#27AE60', '#186A3B'],  # Greens: claro → escuro
+            'Rec.': ['#F8B88B', '#EC7063', '#CB4335', '#943126'],  # Oranges/Reds: claro → escuro
+            'F1.': ['#BB8FCE', '#9B59B6', '#7D3C98', '#5B2C6F']  # Purples: claro → escuro
         }
 
     def _comparative_metrics_extract_metric_data(self, dictionary_metrics_list):
@@ -171,8 +170,39 @@ class ComparativeMetricsPlotter:
         figure, axis
             The created matplotlib figure and axis.
         """
+        # Configurar estilo profissional para publicação científica
+        # Baseado em padrões de Nature, Science, Springer e Elsevier
+        plt.rcParams['font.family'] = 'sans-serif'
+        plt.rcParams['font.sans-serif'] = ['Arial', 'Helvetica', 'DejaVu Sans']
+        plt.rcParams['font.size'] = 11
+        plt.rcParams['axes.linewidth'] = 0.8
+        plt.rcParams['axes.labelsize'] = 12
+        plt.rcParams['axes.titlesize'] = 13
+        plt.rcParams['xtick.labelsize'] = 11
+        plt.rcParams['ytick.labelsize'] = 11
+        plt.rcParams['xtick.major.width'] = 0.8
+        plt.rcParams['ytick.major.width'] = 0.8
+        plt.rcParams['xtick.major.size'] = 4
+        plt.rcParams['ytick.major.size'] = 4
+        plt.rcParams['xtick.direction'] = 'out'
+        plt.rcParams['ytick.direction'] = 'out'
+        plt.rcParams['legend.framealpha'] = 1
+        plt.rcParams['legend.edgecolor'] = '0.3'
+        plt.rcParams['legend.fancybox'] = False
+        plt.rcParams['legend.fontsize'] = 10
+        plt.rcParams['pdf.fonttype'] = 42  # TrueType fonts
+        plt.rcParams['ps.fonttype'] = 42
+
         figure_plot, axis_plot = plt.subplots(figsize=(self._comparative_metrics_figure_width,
                                                        self._comparative_metrics_figure_height))
+
+        # Grid horizontal muito sutil e suave
+        axis_plot.yaxis.grid(True, linestyle='-', alpha=0.12, color='0.75', linewidth=0.5, zorder=0)
+        axis_plot.set_axisbelow(True)
+
+        # Configurar fundo branco suave
+        axis_plot.set_facecolor('#FAFAFA')
+        figure_plot.patch.set_facecolor('white')
 
         return figure_plot, axis_plot
 
@@ -193,8 +223,8 @@ class ComparativeMetricsPlotter:
             Data for the current model, including metric values and standard deviation.
         metric_name : str
             Name of the metric ('Acc.', 'Prec.', etc.).
-        metric_color_base : str
-            The color map base for the current metric.
+        metric_color_base : list
+            Lista de cores para a métrica atual.
         number_models : int
             Total number of models being compared.
         """
@@ -202,8 +232,9 @@ class ComparativeMetricsPlotter:
 
             metric_values = model[metric_name]['value']
             metric_stander_deviation = model[metric_name]['std']
-            metric_color_bar = plt.get_cmap(metric_color_base)(metric_dictionary_id / (number_models - 1))
-            metric_label = f"{metric_name} {model['model_name']}"
+            # Usar cores da lista
+            metric_color_bar = metric_color_base[metric_dictionary_id % len(metric_color_base)]
+            metric_label = f"{model['model_name']} ({metric_name})"
 
             bar_definitions = axis_plot.bar(
                 positions[metric_id] + metric_dictionary_id * self._comparative_metrics_bar_width,
@@ -211,19 +242,26 @@ class ComparativeMetricsPlotter:
                 yerr=metric_stander_deviation,
                 color=metric_color_bar,
                 width=self._comparative_metrics_bar_width,
-                edgecolor='grey',
-                capsize=self._comparative_metrics_caption_size,
-                label=metric_label
+                edgecolor='0.4',
+                linewidth=0.7,
+                capsize=5,
+                error_kw={'elinewidth': 0.9, 'capthick': 0.9, 'ecolor': '0.4'},
+                label=metric_label,
+                alpha=0.95,
+                zorder=3
             )
 
+            # Anotações mais discretas e suaves
             for shape_bar in bar_definitions:
                 bar_height = shape_bar.get_height()
-                axis_plot.annotate(f'{bar_height:.2f}',
+                axis_plot.annotate(f'{bar_height:.3f}',
                                    xy=(shape_bar.get_x() + shape_bar.get_width() / 2, bar_height),
-                                   xytext=(0, 10),
+                                   xytext=(0, 5),
                                    textcoords="offset points",
                                    ha='center',
-                                   va='bottom')
+                                   va='bottom',
+                                   fontsize=9,
+                                   color='0.4')
 
     def _comparative_metrics_set_plot_labels(self, axis_plot, positions, number_models):
         """
@@ -238,12 +276,42 @@ class ComparativeMetricsPlotter:
         number_models : int
             Total number of models being compared.
         """
-        axis_plot.set_xlabel('Metric', fontweight='bold')
+        # Labels com fonte adequada para publicação - cores suaves
+        axis_plot.set_xlabel('Performance Metric', fontsize=13, color='0.3')
         axis_plot.set_xticks([r + self._comparative_metrics_bar_width * (number_models - 1) / 2 for r in positions])
-        axis_plot.set_xticklabels(self._comparative_metrics_list_metrics)
-        axis_plot.set_ylabel('Score', fontweight='bold')
-        axis_plot.set_title('Comparative Metrics', fontweight='bold')
-        axis_plot.legend(loc='lower center', bbox_to_anchor=(0.5, -0.25), ncol=number_models)
+        axis_plot.set_xticklabels(self._comparative_metrics_list_metrics, fontsize=12)
+        axis_plot.set_ylabel('Score', fontsize=13, color='0.3')
+
+        # Título mais discreto ou pode ser removido (muitos journals preferem sem título)
+        # axis_plot.set_title('Model Performance Comparison', fontsize=14, pad=15, color='0.3')
+
+        # Legenda profissional com bordas suaves
+        legend = axis_plot.legend(
+            loc='upper center',
+            bbox_to_anchor=(0.5, -0.12),
+            ncol=min(number_models, 4),  # Máximo 4 colunas para melhor legibilidade
+            frameon=True,
+            fancybox=False,
+            shadow=False,
+            edgecolor='0.5',
+            fontsize=10,
+            framealpha=1,
+            columnspacing=1.5,
+            handlelength=2,
+            handleheight=1.5
+        )
+        legend.get_frame().set_linewidth(0.6)
+
+        # Melhorar aparência dos eixos (estilo minimalista científico) - cores suaves
+        axis_plot.spines['top'].set_visible(False)
+        axis_plot.spines['right'].set_visible(False)
+        axis_plot.spines['left'].set_linewidth(0.7)
+        axis_plot.spines['bottom'].set_linewidth(0.7)
+        axis_plot.spines['left'].set_color('0.5')
+        axis_plot.spines['bottom'].set_color('0.5')
+
+        # Ajustar cor dos ticks - mais suaves
+        axis_plot.tick_params(axis='both', colors='0.4', which='major')
 
     def _comparative_metrics_save_or_show_plot(self, file_name):
         """
@@ -259,7 +327,14 @@ class ComparativeMetricsPlotter:
             plt.show()
         else:
             plt.tight_layout()
-            plt.savefig(output_path)
+            # Salvar em alta qualidade para publicação
+            plt.savefig(output_path, dpi=600, bbox_inches='tight', format='pdf',
+                        facecolor='white', edgecolor='none', transparent=False,
+                        metadata={'Creator': 'Matplotlib', 'Author': __author__})
+            # Salvar também em PNG de alta resolução
+            output_path_png = f'{file_name}metrics.png'
+            plt.savefig(output_path_png, dpi=600, bbox_inches='tight', format='png',
+                        facecolor='white', edgecolor='none', transparent=False)
         logging.debug(f"Comparative metrics plot saved to {output_path}")
         plt.close()
 

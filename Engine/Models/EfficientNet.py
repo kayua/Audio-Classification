@@ -528,19 +528,19 @@ class EfficientNet(ProcessEfficientNet, EfficientNetGradientMaps):
             validation_data=validation_data
         )
 
-        if validation_data is not None:
-            print(f"Acurácia Final (Validação): {training_history.history['val_accuracy'][-1]:.4f}")
+        # if validation_data is not None:
+        #     print(f"Acurácia Final (Validação): {training_history.history['val_accuracy'][-1]:.4f}")
 
-        if generate_gradcam and validation_data is not None:
-            val_data, val_labels = validation_data
-
-            stats = self.generate_validation_visualizations(
-                validation_data=val_data,
-                validation_labels=val_labels,
-                num_samples=128,
-                output_dir='Maps_EfficientNet_Custom',
-                xai_method=xai_method
-            )
+        # if generate_gradcam and validation_data is not None:
+        #     val_data, val_labels = validation_data
+        #
+        #     stats = self.generate_validation_visualizations(
+        #         validation_data=val_data,
+        #         validation_labels=val_labels,
+        #         num_samples=128,
+        #         output_dir='Maps_EfficientNet_Custom',
+        #         xai_method=xai_method
+        #     )
 
         return training_history
 
