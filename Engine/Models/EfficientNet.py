@@ -8,6 +8,8 @@ __initial_data__ = '2025/04/1'
 __last_update__ = '2025/04/1'
 __credits__ = ['Kayuã Oleques Paim']
 
+from Engine.Models.Visualization.VisualizationEfficientNet import VisualizationEfficientNet
+
 # MIT License
 #
 # Copyright (c) 2025 Kayuã Oleques Paim
@@ -353,7 +355,7 @@ def round_repeats(repeats, depth_coefficient):
 # CLASSE PRINCIPAL DO EFFICIENTNET FROM SCRATCH
 # ============================================================================
 
-class EfficientNet(ProcessEfficientNet, EfficientNetGradientMaps):
+class EfficientNet(ProcessEfficientNet, EfficientNetGradientMaps, VisualizationEfficientNet):
     """
     EfficientNet FROM SCRATCH - Implementação Totalmente Personalizável
 
