@@ -323,11 +323,14 @@ class MobileNetV3Model(MobileNetV3Process, MobileNetV3GradientMaps):
         self.neural_network_model = Model(inputs=inputs, outputs=outputs, name=self.model_name)
         self.neural_network_model.summary()
 
-    def compile_and_train(self, train_data: tensorflow.Tensor, train_labels: tensorflow.Tensor,
-                          epochs: int, batch_size: int, validation_data: tuple = None,
-                          generate_gradcam: bool = True, num_gradcam_samples: int = 30,
-                          gradcam_output_dir: str = './mapas_de_ativacao',
-                          xai_method: str = 'scorecam') -> tensorflow.keras.callbacks.History:
+    def compile_and_train(self, train_data, train_labels, epochs: int,
+                          batch_size: int, validation_data=None,
+                          visualize_attention: bool = True,
+                          use_early_stopping: bool = True,
+                          early_stopping_monitor: str = 'val_loss',
+                          early_stopping_patience: int = 10,
+                          early_stopping_restore_best: bool = True,
+                          early_stopping_min_delta: float = 0.0001) -> tensorflow.keras.callbacks.History:
         """
         Compile and train the model with enhanced XAI visualization.
 
@@ -349,11 +352,25 @@ class MobileNetV3Model(MobileNetV3Process, MobileNetV3GradientMaps):
                                           loss=self.loss_function,
                                           metrics=['accuracy'])
 
+        callbacks = []
+        if use_early_stopping:
+            early_stopping = EarlyStopping(
+                monitor=early_stopping_monitor,
+                patience=early_stopping_patience,
+                restore_best_weights=early_stopping_restore_best,
+                min_delta=early_stopping_min_delta,
+                verbose=1,
+                mode='auto'
+            )
+            callbacks.append(early_stopping)
+
+
         training_history = self.neural_network_model.fit(
             train_data, train_labels,
             epochs=epochs,
             batch_size=batch_size,
-            validation_data=validation_data
+            validation_data=validation_data,
+            callbacks=callbacks if callbacks else None
         )
 
         # if generate_gradcam and validation_data is not None:

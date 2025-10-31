@@ -390,13 +390,14 @@ class AudioWav2Vec2(Wav2Vec2Process):
         logging.info("✓ Wav2Vec2 CORRECTED architecture built")
         logging.info("=" * 80)
 
-    def compile_and_train(self,
-                          train_data,
-                          train_labels,
-                          epochs,
-                          batch_size,
-                          validation_data=None,
-                          freeze_encoder=False):
+    def compile_and_train(self, train_data, train_labels, epochs: int,
+                          batch_size: int, validation_data=None,
+                          visualize_attention: bool = True,
+                          use_early_stopping: bool = True,
+                          early_stopping_monitor: str = 'val_loss',
+                          early_stopping_patience: int = 10,
+                          early_stopping_restore_best: bool = True,
+                          early_stopping_min_delta: float = 0.0001):
         """
         Two-phase training: pre-training + fine-tuning.
 
@@ -506,6 +507,19 @@ class AudioWav2Vec2(Wav2Vec2Process):
 
         logging.info(f"⚙ Starting fine-tuning for {epochs} epochs...")
 
+        callbacks = []
+
+        if use_early_stopping:
+            early_stopping = EarlyStopping(
+                monitor=early_stopping_monitor,
+                patience=early_stopping_patience,
+                restore_best_weights=early_stopping_restore_best,
+                min_delta=early_stopping_min_delta,
+                verbose=1,
+                mode='auto'
+            )
+            callbacks.append(early_stopping)
+
         # Fine-tuning
         finetune_history = finetune_model.fit(
             train_data,
@@ -513,7 +527,8 @@ class AudioWav2Vec2(Wav2Vec2Process):
             epochs=epochs,
             batch_size=batch_size,
             validation_data=validation_data,
-            verbose=1
+            verbose=1,
+            callbacks=callbacks if callbacks else None
         )
 
         # Update model reference

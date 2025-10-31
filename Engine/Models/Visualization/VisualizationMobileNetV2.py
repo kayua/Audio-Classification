@@ -33,7 +33,7 @@ __credits__ = ['Kayuã Oleques Paim']
 
 try:
     import sys
-    import numpy as np
+    import numpy
     import matplotlib.pyplot as plt
     import matplotlib.cm as cm
     from matplotlib.patches import Rectangle
@@ -42,169 +42,41 @@ try:
 
     import tensorflow
     from tensorflow.keras import Model
+    from tensorflow.keras.layers import Add
     from tensorflow.keras.layers import Dense
     from tensorflow.keras.layers import Input
     from tensorflow.keras.layers import Dropout
     from tensorflow.keras.layers import Flatten
     from tensorflow.keras.layers import Conv2D
-    from tensorflow.keras.layers import Concatenate
-    from tensorflow.keras.layers import MaxPooling2D
+    from tensorflow.keras.layers import DepthwiseConv2D
     from tensorflow.keras.callbacks import EarlyStopping
-    from Engine.Models.Process.Residual_Process import ResidualProcess
-    from Engine.GradientMap.ResidualGradientMaps import ResidualGradientMaps
+    from tensorflow.keras.layers import BatchNormalization
+    from tensorflow.keras.layers import GlobalAveragePooling2D
+    from tensorflow.keras.layers import Activation
+
+    from Engine.Models.Process.MobileNet_Process import MobileNetProcess
+    from Engine.GradientMap.MobileNetGradientMaps import MobileNetGradientMaps
 
 except ImportError as error:
     print(error)
     sys.exit(-1)
 
 
-class ResidualModel(ResidualProcess, ResidualGradientMaps):
+class VisualizationMobileNetV2:
+
 
     def __init__(self, arguments):
+        pass
 
-        ResidualProcess.__init__(self, arguments)
-        self.neural_network_model = None
-        self.gradcam_model = None
-        self.loss_function = arguments.residual_loss_function
-        self.size_pooling = arguments.residual_size_pooling
-        self.filters_per_block = arguments.residual_filters_per_block
-        self.input_shape = arguments.residual_input_dimension
-        self.optimizer_function = arguments.residual_optimizer_function
-        self.dropout_rate = arguments.residual_dropout_rate
-        self.size_convolutional_filters = arguments.residual_size_convolutional_filters
-        self.number_classes = arguments.number_classes
-        self.last_layer_activation = arguments.residual_last_layer_activation
-        self.convolutional_padding = arguments.residual_convolutional_padding
-        self.intermediary_activation = arguments.residual_intermediary_activation
-        self.model_name = "ResidualModel"
-
-        # Set modern style for all plots
-        plt.style.use('seaborn-v0_8-darkgrid')
-        sns.set_palette("husl")
-
-    def build_model(self):
-
-        inputs = Input(shape=self.input_shape, name='input_layer')
-        neural_network_flow = inputs
-
-        # Add residual blocks with proper naming
-        for block_idx, number_filters in enumerate(self.filters_per_block):
-            residual_flow = neural_network_flow
-
-            # First conv layer in block
-            neural_network_flow = Conv2D(number_filters,
-                                         self.size_convolutional_filters,
-                                         activation=self.intermediary_activation,
-                                         padding=self.convolutional_padding,
-                                         name=f'conv_block_{block_idx}_layer_1')(neural_network_flow)
-
-            # Second conv layer in block
-            neural_network_flow = Conv2D(number_filters,
-                                         self.size_convolutional_filters,
-                                         activation=self.intermediary_activation,
-                                         padding=self.convolutional_padding,
-                                         name=f'conv_block_{block_idx}_layer_2')(neural_network_flow)
-
-            # Residual connection
-            neural_network_flow = Concatenate(name=f'residual_concat_{block_idx}')(
-                [neural_network_flow, residual_flow]
-            )
-
-            # Pooling and dropout
-            neural_network_flow = MaxPooling2D(
-                self.size_pooling,
-                name=f'max_pooling_{block_idx}'
-            )(neural_network_flow)
-            neural_network_flow = Dropout(
-                self.dropout_rate,
-                name=f'dropout_{block_idx}'
-            )(neural_network_flow)
-
-        # Flatten and output
-        neural_network_flow = Flatten(name='flatten')(neural_network_flow)
-        neural_network_flow = Dense(
-            self.number_classes,
-            activation=self.last_layer_activation,
-            name='output_layer'
-        )(neural_network_flow)
-
-        self.neural_network_model = Model(inputs=inputs, outputs=neural_network_flow, name=self.model_name)
-        self.neural_network_model.summary()
-
-    def compile_and_train(self, train_data, train_labels, epochs: int,
-                          batch_size: int, validation_data=None,
-                          visualize_attention: bool = True,
-                          use_early_stopping: bool = True,
-                          early_stopping_monitor: str = 'val_loss',
-                          early_stopping_patience: int = 10,
-                          early_stopping_restore_best: bool = True,
-                          early_stopping_min_delta: float = 0.0001) -> tensorflow.keras.callbacks.History:
-        """
-        Compile and train the model with enhanced XAI visualization.
-
-        Args:
-            train_data: Training input data
-            train_labels: Training labels
-            epochs: Number of training epochs
-            batch_size: Batch size for training
-            validation_data: Optional validation data tuple (X_val, y_val)
-            generate_gradcam: Whether to generate activation maps after training
-            num_gradcam_samples: Number of samples to visualize
-            gradcam_output_dir: Output directory for visualizations
-            xai_method: XAI method to use ('gradcam', 'gradcam++', or 'scorecam')
-
-        Returns:
-            Training history object
-        """
-        self.neural_network_model.compile(
-            optimizer=self.optimizer_function,
-            loss=self.loss_function,
-            metrics=['accuracy']
-        )
-
-        callbacks = []
-
-        if use_early_stopping:
-            early_stopping = EarlyStopping(
-                monitor=early_stopping_monitor,
-                patience=early_stopping_patience,
-                restore_best_weights=early_stopping_restore_best,
-                min_delta=early_stopping_min_delta,
-                verbose=1,
-                mode='auto'
-            )
-            callbacks.append(early_stopping)
-
-        training_history = self.neural_network_model.fit(
-            train_data, train_labels,
-            epochs=epochs,
-            batch_size=batch_size,
-            validation_data=validation_data,
-            callbacks=callbacks if callbacks else None
-        )
-
-        # if generate_gradcam and validation_data is not None:
-        #
-        #     val_data, val_labels = validation_data
-        #
-        #     stats = self.generate_validation_visualizations(
-        #         validation_data=val_data,
-        #         validation_labels=val_labels,
-        #         num_samples=128,
-        #         output_dir='Maps_Residual',
-        #         xai_method=xai_method
-        #     )
-
-        return training_history
 
     @staticmethod
-    def smooth_heatmap(heatmap: np.ndarray, sigma: float = 2.0) -> np.ndarray:
+    def smooth_heatmap(heatmap: numpy.ndarray, sigma: float = 2.0) -> numpy.ndarray:
         """Apply Gaussian smoothing to heatmap for better visualization."""
         return gaussian_filter(heatmap, sigma=sigma)
 
     @staticmethod
-    def interpolate_heatmap(heatmap: np.ndarray, target_shape: tuple,
-                            smooth: bool = True) -> np.ndarray:
+    def interpolate_heatmap(heatmap: numpy.ndarray, target_shape: tuple,
+                            smooth: bool = True) -> numpy.ndarray:
         """
         Interpolate heatmap to target shape with optional smoothing.
 
@@ -216,8 +88,8 @@ class ResidualModel(ResidualProcess, ResidualGradientMaps):
         Returns:
             Interpolated heatmap
         """
-        if not isinstance(heatmap, np.ndarray):
-            heatmap = np.array(heatmap)
+        if not isinstance(heatmap, numpy.ndarray):
+            heatmap = numpy.array(heatmap)
 
         # For 2D heatmap
         if len(heatmap.shape) == 2:
@@ -239,9 +111,9 @@ class ResidualModel(ResidualProcess, ResidualGradientMaps):
 
         return interpolated
 
-    def plot_gradcam_modern(self, input_sample: np.ndarray, heatmap: np.ndarray,
+    def plot_gradcam_modern(self, input_sample: numpy.ndarray, heatmap: numpy.ndarray,
                             class_idx: int, predicted_class: int, true_label: int = None,
-                            confidence: float = None, xai_method: str = 'gradcam++',
+                            confidence: float = None, xai_method: str = 'scorecam',
                             save_path: str = None, show_plot: bool = True) -> None:
         """
         Modern, visually appealing GradCAM visualization with enhanced aesthetics.
@@ -261,7 +133,7 @@ class ResidualModel(ResidualProcess, ResidualGradientMaps):
         if len(input_sample.shape) == 4:
             input_sample = input_sample[0]
         if len(input_sample.shape) == 3 and input_sample.shape[-1] == 1:
-            input_sample = np.squeeze(input_sample, axis=-1)
+            input_sample = numpy.squeeze(input_sample, axis=-1)
 
         # Enhanced interpolation with smoothing
         interpolated_heatmap = self.interpolate_heatmap(heatmap, input_sample.shape[:2], smooth=True)
@@ -312,8 +184,8 @@ class ResidualModel(ResidualProcess, ResidualGradientMaps):
 
         # 4. Temporal Importance Profile
         ax4 = fig.add_subplot(gs[0, 3])
-        temporal_importance = np.mean(interpolated_heatmap, axis=0)
-        time_steps = np.arange(len(temporal_importance))
+        temporal_importance = numpy.mean(interpolated_heatmap, axis=0)
+        time_steps = numpy.arange(len(temporal_importance))
 
         temporal_smooth = gaussian_filter(temporal_importance, sigma=2)
 
@@ -351,8 +223,8 @@ class ResidualModel(ResidualProcess, ResidualGradientMaps):
         else:
             plt.close()
 
-    def generate_validation_visualizations(self, validation_data: np.ndarray,
-                                           validation_labels: np.ndarray,
+    def generate_validation_visualizations(self, validation_data: numpy.ndarray,
+                                           validation_labels: numpy.ndarray,
                                            num_samples: int = 10,
                                            output_dir: str = './gradcam_outputs',
                                            target_layer_name: str = None,
@@ -373,32 +245,29 @@ class ResidualModel(ResidualProcess, ResidualGradientMaps):
         """
         import os
 
-        if target_layer_name is None:
-            last_block_idx = len(self.filters_per_block) - 1
-
         os.makedirs(output_dir, exist_ok=True)
 
         predictions = self.neural_network_model.predict(validation_data, verbose=0)
-        predicted_classes = np.argmax(predictions, axis=1)
-        confidences = np.max(predictions, axis=1)
+        predicted_classes = numpy.argmax(predictions, axis=1)
+        confidences = numpy.max(predictions, axis=1)
 
         if len(validation_labels.shape) > 1:
-            true_labels = np.argmax(validation_labels, axis=1)
+            true_labels = numpy.argmax(validation_labels, axis=1)
         else:
             true_labels = validation_labels
 
-        correct_indices = np.where(predicted_classes == true_labels)[0]
-        incorrect_indices = np.where(predicted_classes != true_labels)[0]
+        correct_indices = numpy.where(predicted_classes == true_labels)[0]
+        incorrect_indices = numpy.where(predicted_classes != true_labels)[0]
 
         num_correct = min(num_samples // 2, len(correct_indices))
         num_incorrect = min(num_samples - num_correct, len(incorrect_indices))
 
-        selected_correct = np.random.choice(correct_indices, num_correct, replace=False) if len(
+        selected_correct = numpy.random.choice(correct_indices, num_correct, replace=False) if len(
             correct_indices) > 0 else []
-        selected_incorrect = np.random.choice(incorrect_indices, num_incorrect, replace=False) if len(
+        selected_incorrect = numpy.random.choice(incorrect_indices, num_incorrect, replace=False) if len(
             incorrect_indices) > 0 else []
 
-        selected_indices = np.concatenate([selected_correct, selected_incorrect])
+        selected_indices = numpy.concatenate([selected_correct, selected_incorrect])
 
         stats = {
             'total_samples': len(selected_indices),
@@ -455,7 +324,7 @@ class ResidualModel(ResidualProcess, ResidualGradientMaps):
 
         return stats
 
-    def explain_prediction_comprehensive(self, input_sample: np.ndarray,
+    def explain_prediction_comprehensive(self, input_sample: numpy.ndarray,
                                          class_names: list = None,
                                          save_path: str = None,
                                          show_plot: bool = True) -> dict:
@@ -478,18 +347,18 @@ class ResidualModel(ResidualProcess, ResidualGradientMaps):
             input_sample_plot = input_sample.copy()
 
         if len(input_sample_plot.shape) == 3 and input_sample_plot.shape[-1] == 1:
-            input_sample_plot = np.squeeze(input_sample_plot, axis=-1)
+            input_sample_plot = numpy.squeeze(input_sample_plot, axis=-1)
 
         # Get predictions
         if len(input_sample.shape) == 2:
-            input_sample_batch = np.expand_dims(input_sample, axis=(0, -1))
+            input_sample_batch = numpy.expand_dims(input_sample, axis=(0, -1))
         elif len(input_sample.shape) == 3 and input_sample.shape[0] != 1:
-            input_sample_batch = np.expand_dims(input_sample, axis=0)
+            input_sample_batch = numpy.expand_dims(input_sample, axis=0)
         else:
             input_sample_batch = input_sample
 
         predictions = self.neural_network_model.predict(input_sample_batch, verbose=0)
-        predicted_class = np.argmax(predictions[0])
+        predicted_class = numpy.argmax(predictions[0])
         confidence = predictions[0][predicted_class]
 
         # Compute heatmaps
@@ -558,13 +427,13 @@ class ResidualModel(ResidualProcess, ResidualGradientMaps):
 
         # Temporal comparison
         ax8 = fig.add_subplot(gs[2, 2])
-        temporal_gc = np.mean(heatmap_gc_interp, axis=0)
-        temporal_gcpp = np.mean(heatmap_pp_interp, axis=0)
+        temporal_gc = numpy.mean(heatmap_gc_interp, axis=0)
+        temporal_gcpp = numpy.mean(heatmap_pp_interp, axis=0)
 
         temporal_gc_smooth = gaussian_filter(temporal_gc, sigma=2)
         temporal_gcpp_smooth = gaussian_filter(temporal_gcpp, sigma=2)
 
-        time_steps = np.arange(len(temporal_gc))
+        time_steps = numpy.arange(len(temporal_gc))
         ax8.plot(time_steps, temporal_gc_smooth, linewidth=2, label='Grad-CAM', color='#3498db')
         ax8.plot(time_steps, temporal_gcpp_smooth, linewidth=2, label='Grad-CAM++', color='#e74c3c')
         ax8.fill_between(time_steps, temporal_gc_smooth, alpha=0.2, color='#3498db')
@@ -577,7 +446,7 @@ class ResidualModel(ResidualProcess, ResidualGradientMaps):
         ax8.grid(True, alpha=0.3)
         ax8.set_ylim([0, 1])
 
-        fig.suptitle('Residual Model XAI',
+        fig.suptitle('MobileNetV2 Model XAI',
                      fontsize=16, fontweight='bold', y=0.98)
 
         plt.tight_layout(rect=[0, 0, 1, 0.96])
@@ -606,108 +475,3 @@ class ResidualModel(ResidualProcess, ResidualGradientMaps):
             explanation['predicted_class_name'] = class_names[predicted_class]
 
         return explanation
-
-    # Properties
-    @property
-    def neural_network_model(self):
-        return self._neural_network_model
-
-    @neural_network_model.setter
-    def neural_network_model(self, value):
-        self._neural_network_model = value
-
-    @property
-    def loss_function(self):
-        return self._loss_function
-
-    @loss_function.setter
-    def loss_function(self, value):
-        self._loss_function = value
-
-    @property
-    def size_pooling(self):
-        return self._size_pooling
-
-    @size_pooling.setter
-    def size_pooling(self, value):
-        self._size_pooling = value
-
-    @property
-    def filters_per_block(self):
-        return self._filters_per_block
-
-    @filters_per_block.setter
-    def filters_per_block(self, value):
-        self._filters_per_block = value
-
-    @property
-    def input_shape(self):
-        return self._input_shape
-
-    @input_shape.setter
-    def input_shape(self, value):
-        self._input_shape = value
-
-    @property
-    def optimizer_function(self):
-        return self._optimizer_function
-
-    @optimizer_function.setter
-    def optimizer_function(self, value):
-        self._optimizer_function = value
-
-    @property
-    def dropout_rate(self):
-        return self._dropout_rate
-
-    @dropout_rate.setter
-    def dropout_rate(self, value):
-        self._dropout_rate = value
-
-    @property
-    def size_convolutional_filters(self):
-        return self._size_convolutional_filters
-
-    @size_convolutional_filters.setter
-    def size_convolutional_filters(self, value):
-        self._size_convolutional_filters = value
-
-    @property
-    def number_classes(self):
-        return self._number_classes
-
-    @number_classes.setter
-    def number_classes(self, value):
-        self._number_classes = value
-
-    @property
-    def last_layer_activation(self):
-        return self._last_layer_activation
-
-    @last_layer_activation.setter
-    def last_layer_activation(self, value):
-        self._last_layer_activation = value
-
-    @property
-    def convolutional_padding(self):
-        return self._convolutional_padding
-
-    @convolutional_padding.setter
-    def convolutional_padding(self, value):
-        self._convolutional_padding = value
-
-    @property
-    def intermediary_activation(self):
-        return self._intermediary_activation
-
-    @intermediary_activation.setter
-    def intermediary_activation(self, value):
-        self._intermediary_activation = value
-
-    @property
-    def model_name(self):
-        return self._model_name
-
-    @model_name.setter
-    def model_name(self, value):
-        self._model_name = value

@@ -213,7 +213,8 @@ class MobileNetModel(MobileNetProcess, MobileNetGradientMaps):
             train_data, train_labels,
             epochs=epochs,
             batch_size=batch_size,
-            validation_data=validation_data
+            validation_data=validation_data,
+            callbacks=callbacks if callbacks else None
         )
 
         # if generate_gradcam and validation_data is not None:
