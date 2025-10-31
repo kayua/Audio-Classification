@@ -8,6 +8,8 @@ __initial_data__ = '2025/04/1'
 __last_update__ = '2025/04/1'
 __credits__ = ['Kayuã Oleques Paim']
 
+from Engine.Models.Visualization.VisualizationAST import VisualizationAST
+
 # MIT License
 #
 # Copyright (c) 2025 Kayuã Oleques Paim
