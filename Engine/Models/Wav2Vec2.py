@@ -210,13 +210,12 @@ class AudioWav2Vec2(Wav2Vec2Process):
                 self.encoder_config['kernel_sizes'],
                 self.encoder_config['strides']
         )):
-            x = Conv1D(
-                filters=filters,
-                kernel_size=kernel_size,
-                strides=stride,
-                padding='same',
-                name=f'feature_encoder_conv_{i}'
-            )(x)
+            x = Conv1D(filters=filters,
+                       kernel_size=kernel_size,
+                       strides=stride,
+                       padding='same',
+                       name=f'feature_encoder_conv_{i}')(x)
+
             x = GELU(name=f'feature_encoder_gelu_{i}')(x)
             x = LayerNormalization(name=f'feature_encoder_ln_{i}')(x)
 
@@ -242,42 +241,23 @@ class AudioWav2Vec2(Wav2Vec2Process):
             name=f'transformer_{block_idx}_attention'
         )(x, x)
 
-        attention_output = Dropout(
-            self.dropout_rate,
-            name=f'transformer_{block_idx}_attn_dropout'
-        )(attention_output)
+        attention_output = Dropout(self.dropout_rate, name=f'transformer_{block_idx}_attn_dropout')(attention_output)
 
         # Residual connection + LayerNorm
         x = Add(name=f'transformer_{block_idx}_add_1')([x, attention_output])
-        x = LayerNormalization(
-            name=f'transformer_{block_idx}_ln_1'
-        )(x)
+        x = LayerNormalization(name=f'transformer_{block_idx}_ln_1')(x)
 
         # Feed-forward network
-        ffn = Dense(
-            self.intermediate_size,
-            name=f'transformer_{block_idx}_ffn_1'
-        )(x)
+        ffn = Dense(self.intermediate_size, name=f'transformer_{block_idx}_ffn_1')(x)
         ffn = GELU(name=f'transformer_{block_idx}_ffn_gelu')(ffn)
-        ffn = Dropout(
-            self.dropout_rate,
-            name=f'transformer_{block_idx}_ffn_dropout_1'
-        )(ffn)
+        ffn = Dropout(self.dropout_rate, name=f'transformer_{block_idx}_ffn_dropout_1')(ffn)
 
-        ffn = Dense(
-            self.hidden_size,
-            name=f'transformer_{block_idx}_ffn_2'
-        )(ffn)
-        ffn = Dropout(
-            self.dropout_rate,
-            name=f'transformer_{block_idx}_ffn_dropout_2'
-        )(ffn)
+        ffn = Dense(self.hidden_size, name=f'transformer_{block_idx}_ffn_2')(ffn)
+        ffn = Dropout(self.dropout_rate, name=f'transformer_{block_idx}_ffn_dropout_2')(ffn)
 
         # Residual connection + LayerNorm
         x = Add(name=f'transformer_{block_idx}_add_2')([x, ffn])
-        x = LayerNormalization(
-            name=f'transformer_{block_idx}_ln_2'
-        )(x)
+        x = LayerNormalization(name=f'transformer_{block_idx}_ln_2')(x)
 
         return x
 
@@ -316,20 +296,15 @@ class AudioWav2Vec2(Wav2Vec2Process):
         encoded_features = self.build_feature_encoder(inputs)
 
         # Project to hidden size
-        x = Dense(
-            self.hidden_size,
-            name='feature_projection'
-        )(encoded_features)
+        x = Dense(self.hidden_size, name='feature_projection')(encoded_features)
         x = LayerNormalization(name='feature_projection_ln')(x)
 
         logging.info(f"✓ Feature projection: {self.hidden_size}D")
 
         # Positional embeddings using custom layer
-        x = PositionalEncoding(
-            hidden_size=self.hidden_size,
-            max_length=5000,  # Should be enough for most audio sequences
-            name='positional_encoding'
-        )(x)
+        x = PositionalEncoding(hidden_size=self.hidden_size,
+                               max_length=5000,  # Should be enough for most audio sequences
+                               name='positional_encoding')(x)
 
         logging.info(f"✓ Positional encoding added")
 
@@ -447,12 +422,7 @@ class AudioWav2Vec2(Wav2Vec2Process):
         logging.info(f"⚙ Starting pre-training for {epochs} epochs...")
 
         # Pre-training (only on unlabeled waveforms)
-        pretrain_history = pretrain_model.fit(
-            train_data,
-            epochs=epochs,
-            batch_size=batch_size,
-            verbose=1
-        )
+        pretrain_model.fit(train_data, epochs=epochs, batch_size=batch_size, verbose=1)
 
         logging.info("✓ Pre-training completed!")
 
@@ -492,11 +462,9 @@ class AudioWav2Vec2(Wav2Vec2Process):
             logging.info("✓ Full model trainable (end-to-end fine-tuning)")
 
         # Compile fine-tuning model
-        finetune_model.compile(
-            optimizer=self.optimizer_function,
-            loss=self.loss_function,
-            metrics=['accuracy']
-        )
+        finetune_model.compile(optimizer=self.optimizer_function,
+                               loss=self.loss_function,
+                               metrics=['accuracy'])
 
         logging.info(f"⚙ Starting fine-tuning for {epochs} epochs...")
 
