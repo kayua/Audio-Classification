@@ -29,15 +29,22 @@ try:
     import sys
     import logging
     import numpy as np
-    import tensorflow as tf
+    import tensorflow
     from tensorflow.keras import Model
-    from tensorflow.keras.layers import (
-        Add, Dense, Input, Conv1D, Lambda, Dropout, Layer,
-        LayerNormalization, MultiHeadAttention, GlobalAveragePooling1D
-    )
+    from tensorflow.keras.layers import Add
+    from tensorflow.keras.layers import Dense
+    from tensorflow.keras.layers import Input
+    from tensorflow.keras.layers import Conv1D
+    from tensorflow.keras.layers import Lambda
+    from tensorflow.keras.layers import Dropout
+    from tensorflow.keras.layers import Layer
+    from tensorflow.keras.layers import LayerNormalization
+    from tensorflow.keras.layers import MultiHeadAttention
+    from tensorflow.keras.layers import GlobalAveragePooling1D
 
     # Assuming these custom layers exist in your codebase
     from Engine.Layers.GELU import GELU
+    from tensorflow.keras.callbacks import EarlyStopping
     from Engine.Layers.MaskTimeLayer import TimeMaskingWithStorage
     from Engine.Loss.ContrastiveLoss import Wav2Vec2ContrastiveLoss
     from Engine.Modules.GumbelVectorQuantizer import GumbelVectorQuantizer
@@ -78,10 +85,10 @@ class PositionalEncoding(Layer):
         pe_array[:, 1::2] = np.cos(position * div_term)
 
         # Create non-trainable variable
-        self.pe = tf.Variable(
+        self.pe = tensorflow.Variable(
             initial_value=pe_array,
             trainable=False,
-            dtype=tf.float32,
+            dtype=tensorflow.float32,
             name='positional_encoding_matrix'
         )
 
@@ -97,9 +104,9 @@ class PositionalEncoding(Layer):
         Returns:
             Tensor with positional encoding added
         """
-        seq_len = tf.shape(x)[1]
+        seq_len = tensorflow.shape(x)[1]
         # Slice the pre-computed positional encoding to match sequence length
-        return x + self.pe[tf.newaxis, :seq_len, :]
+        return x + self.pe[tensorflow.newaxis, :seq_len, :]
 
     def get_config(self):
         config = super(PositionalEncoding, self).get_config()
@@ -328,9 +335,9 @@ class AudioWav2Vec2(Wav2Vec2Process):
 
         # Time masking for self-supervised learning
         lengths = Lambda(
-            lambda x: tf.ones([tf.shape(x)[0]], dtype=tf.int32) * tf.shape(x)[1],
+            lambda x: tensorflow.ones([tensorflow.shape(x)[0]], dtype=tensorflow.int32) * tensorflow.shape(x)[1],
             output_shape=(None,),
-            dtype=tf.int32,
+            dtype=tensorflow.int32,
             name='sequence_lengths'
         )(x)
 

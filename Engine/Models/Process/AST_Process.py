@@ -341,10 +341,13 @@ class ProcessAST(ClassBalancer, SpectrogramPatcher, WindowGenerator, BaseProcess
             self.build_model(number_patches)
             self.neural_network_model.summary()
 
-            history_model = self.compile_and_train(features_train, labels_train,
+            history_model = self.compile_and_train(train_data = features_train,
+                                                   train_labels = labels_train,
                                                    epochs=self.number_epochs,
                                                    batch_size=self.batch_size,
                                                    validation_data=(features_validation, labels_validation))
+
+
 
             model_predictions = self.neural_network_model.predict(features_test)
             predicted_labels = numpy.argmax(model_predictions, axis=1)

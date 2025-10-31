@@ -12,15 +12,15 @@ import os
 import tempfile
 
 from Engine.Models.AudioBiLSTM import AudioBiLSTM
-# temp_dir = "/mnt/SSD480/kayua"
-# os.makedirs(temp_dir, exist_ok=True)
-#
-# os.environ['TMPDIR'] = temp_dir
-# os.environ['TMP'] = temp_dir
-# os.environ['TEMP'] = temp_dir
-# tempfile.tempdir = temp_dir
-#
-# os.environ['XLA_FLAGS'] = f'--xla_gpu_dump_autotune_results_to={temp_dir}/xla_autotune'
+temp_dir = "/mnt/SSD480/kayua"
+os.makedirs(temp_dir, exist_ok=True)
+
+os.environ['TMPDIR'] = temp_dir
+os.environ['TMP'] = temp_dir
+os.environ['TEMP'] = temp_dir
+tempfile.tempdir = temp_dir
+
+os.environ['XLA_FLAGS'] = f'--xla_gpu_dump_autotune_results_to={temp_dir}/xla_autotune'
 
 from Engine.Models.MLP import MLPModel
 from Engine.Models.ConvNetX import ConvNeXtModel
@@ -322,7 +322,15 @@ if __name__ == "__main__":
 
     available_models = [MLPModel,
                         AudioLSTM,
+                        AudioWav2Vec2,
+                        Conformer,
+                        AudioSpectrogramTransformer,
+                        ResidualModel,
                         AudioBiLSTM,
-                        AudioWav2Vec2]
+                        EfficientNet,
+                        ConvNeXtModel,
+                        MobileNetModel,
+                        MobileNetV2Model,
+                        MobileNetV3Model]
 
     main.__exec__(available_models, "Results/")

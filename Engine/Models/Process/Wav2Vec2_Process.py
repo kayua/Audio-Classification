@@ -285,14 +285,11 @@ class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
             # The compile_and_train method in AudioWav2Vec2 handles:
             # 1. Pre-training with contrastive loss
             # 2. Fine-tuning with supervised loss
-            history_model = self.compile_and_train(
-                train_data=features_train,
-                train_labels=labels_train,
-                epochs=self.number_epochs,
-                batch_size=self.batch_size,
-                validation_data=(features_validation, labels_validation),
-                freeze_encoder=self.freeze_encoder
-            )
+            history_model = self.compile_and_train(train_data=features_train,
+                                                   train_labels=labels_train,
+                                                   epochs=self.number_epochs,
+                                                   batch_size=self.batch_size,
+                                                   validation_data=(features_validation, labels_validation))
 
             # Evaluate on test set
             logging.info(f"\nEvaluating fold {fold_idx} on test set...")

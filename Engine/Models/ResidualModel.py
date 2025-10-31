@@ -42,9 +42,14 @@ try:
 
     import tensorflow
     from tensorflow.keras import Model
-    from tensorflow.keras.layers import Dense, Input, Dropout, Flatten
-    from tensorflow.keras.layers import Conv2D, Concatenate, MaxPooling2D
-
+    from tensorflow.keras.layers import Dense
+    from tensorflow.keras.layers import Input
+    from tensorflow.keras.layers import Dropout
+    from tensorflow.keras.layers import Flatten
+    from tensorflow.keras.layers import Conv2D
+    from tensorflow.keras.layers import Concatenate
+    from tensorflow.keras.layers import MaxPooling2D
+    from tensorflow.keras.callbacks import EarlyStopping
     from Engine.Models.Process.Residual_Process import ResidualProcess
     from Engine.GradientMap.ResidualGradientMaps import ResidualGradientMaps
 

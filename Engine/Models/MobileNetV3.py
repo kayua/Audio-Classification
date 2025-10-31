@@ -52,6 +52,7 @@ try:
     from tensorflow.keras.layers import ReLU
     from tensorflow.keras.layers import Multiply
     from tensorflow.keras.layers import DepthwiseConv2D
+    from tensorflow.keras.callbacks import EarlyStopping
     from tensorflow.keras.layers import BatchNormalization
     from tensorflow.keras.layers import GlobalAveragePooling2D
     from tensorflow.keras.layers import Activation

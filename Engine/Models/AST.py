@@ -48,11 +48,14 @@ try:
     from tensorflow.keras.layers import Flatten
 
     from tensorflow.keras.layers import TimeDistributed
+    from tensorflow.keras.callbacks import EarlyStopping
     from tensorflow.keras.layers import LayerNormalization
     from tensorflow.keras.layers import MultiHeadAttention
 
+
     from Engine.Layers.PositionalEmbeddingsLayer import PositionalEmbeddingsLayer
     from Engine.Layers.DistillationCLSTokenLayer import DistillationCLSTokenLayer
+
     from Engine.Models.Process.AST_Process import ProcessAST
 
 except ImportError as error:
@@ -756,7 +759,12 @@ class AudioSpectrogramTransformer(ProcessAST):
 
     def compile_and_train(self, train_data, train_labels, epochs: int,
                           batch_size: int, validation_data=None,
-                          visualize_attention: bool = True):
+                          visualize_attention: bool = True,
+                          use_early_stopping: bool = True,
+                          early_stopping_monitor: str = 'val_loss',
+                          early_stopping_patience: int = 10,
+                          early_stopping_restore_best: bool = True,
+                          early_stopping_min_delta: float = 0.0001):
         """
         Compile and train the Audio Spectrogram Transformer model.
 
@@ -767,32 +775,87 @@ class AudioSpectrogramTransformer(ProcessAST):
             batch_size (int): Training batch size
             validation_data (tuple, optional): (val_data, val_labels) for validation
             visualize_attention (bool): Whether to generate attention visualizations after training
+            use_early_stopping (bool): Whether to use early stopping callback
+            early_stopping_monitor (str): Metric to monitor for early stopping
+                                         Options: 'val_loss', 'val_accuracy', 'loss', 'accuracy'
+            early_stopping_patience (int): Number of epochs with no improvement after which
+                                           training will be stopped
+            early_stopping_restore_best (bool): Whether to restore model weights from the best epoch
+            early_stopping_min_delta (float): Minimum change in monitored metric to qualify as improvement
 
         Returns:
             tensorflow.keras.callbacks.History: Training history object
 
         Example:
             ```python
+            # Com early stopping ativo (padrão)
             history = model.compile_and_train(
                 train_data=X_train,
                 train_labels=y_train,
                 epochs=100,
                 batch_size=32,
                 validation_data=(X_val, y_val),
-                visualize_attention=True
+                visualize_attention=True,
+                use_early_stopping=True,
+                early_stopping_patience=15,
+                early_stopping_monitor='val_loss'
+            )
+
+            # Sem early stopping
+            history = model.compile_and_train(
+                train_data=X_train,
+                train_labels=y_train,
+                epochs=100,
+                batch_size=32,
+                validation_data=(X_val, y_val),
+                use_early_stopping=False
+            )
+
+            # Monitorando acurácia de validação
+            history = model.compile_and_train(
+                train_data=X_train,
+                train_labels=y_train,
+                epochs=100,
+                batch_size=32,
+                validation_data=(X_val, y_val),
+                early_stopping_monitor='val_accuracy',
+                early_stopping_patience=20
             )
             ```
         """
-        self.neural_network_model.compile(optimizer=self.optimizer_function,
-                                          loss=self.loss_function,
-                                          metrics=['accuracy'])
+        # Compilar o modelo
+        self.neural_network_model.compile(
+            optimizer=self.optimizer_function,
+            loss=self.loss_function,
+            metrics=['accuracy']
+        )
 
-        training_history = self.neural_network_model.fit(train_data,
-                                                         train_labels,
-                                                         epochs=epochs,
-                                                         batch_size=batch_size,
-                                                         validation_data=validation_data)
+        # Configurar callbacks
+        callbacks = []
 
+        if use_early_stopping:
+            # Criar callback de early stopping
+            early_stopping = EarlyStopping(
+                monitor=early_stopping_monitor,
+                patience=early_stopping_patience,
+                restore_best_weights=early_stopping_restore_best,
+                min_delta=early_stopping_min_delta,
+                verbose=1,
+                mode='auto'  # Detecta automaticamente se deve maximizar ou minimizar
+            )
+            callbacks.append(early_stopping)
+
+        # Treinar o modelo
+        training_history = self.neural_network_model.fit(
+            train_data,
+            train_labels,
+            epochs=epochs,
+            batch_size=batch_size,
+            validation_data=validation_data,
+            callbacks=callbacks if callbacks else None
+        )
+
+        # Opcional: Visualização de atenção após treinamento
         # if visualize_attention and validation_data is not None:
         #     val_data, val_labels = validation_data
         #
@@ -802,7 +865,6 @@ class AudioSpectrogramTransformer(ProcessAST):
         #                                   output_dir='Maps_AST')
 
         return training_history
-
     # Properties
     @property
     def head_size(self):

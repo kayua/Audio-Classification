@@ -136,7 +136,8 @@ class MobileNetV2Process(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
             self.build_model()
             self.neural_network_model.summary()
 
-            history_model = self.compile_and_train(features_train, labels_train,
+            history_model = self.compile_and_train(train_data=features_train,
+                                                   train_labels=labels_train,
                                                    epochs=self.number_epochs,
                                                    batch_size=self.batch_size,
                                                    validation_data=(features_validation, labels_validation))

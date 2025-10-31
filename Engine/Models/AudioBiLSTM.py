@@ -44,8 +44,9 @@ try:
 
     from tensorflow.keras.layers import Dropout
 
-    from tensorflow.keras.layers import Bidirectional
 
+    from tensorflow.keras.layers import Bidirectional
+    from tensorflow.keras.callbacks import EarlyStopping
     from Engine.Models.Process.BiLSTM_Process import ProcessBiLSTM
     from tensorflow.keras.layers import GlobalAveragePooling1D
 
@@ -191,11 +192,14 @@ class AudioBiLSTM(ProcessBiLSTM):
         self.neural_network_model = Model(inputs=inputs, outputs=neural_network_flow)
         self.neural_network_model.summary()
 
-    def compile_and_train(self,
-                          train_data: tensorflow.Tensor,
-                          train_labels: tensorflow.Tensor,
-                          epochs: int, batch_size: int,
-                          validation_data: tuple = None) -> tensorflow.keras.callbacks.History:
+    def compile_and_train(self, train_data, train_labels, epochs: int,
+                          batch_size: int, validation_data=None,
+                          visualize_attention: bool = True,
+                          use_early_stopping: bool = True,
+                          early_stopping_monitor: str = 'val_loss',
+                          early_stopping_patience: int = 10,
+                          early_stopping_restore_best: bool = True,
+                          early_stopping_min_delta: float = 0.0001) -> tensorflow.keras.callbacks.History:
         """
         Compiles and trains the neural network model using the specified training data and configuration.
 
@@ -210,6 +214,20 @@ class AudioBiLSTM(ProcessBiLSTM):
             tensorflow.keras.callbacks.History: The history object containing training metrics and performance.
         """
 
+        callbacks = []
+
+        if use_early_stopping:
+            # Criar callback de early stopping
+            early_stopping = EarlyStopping(
+                monitor=early_stopping_monitor,
+                patience=early_stopping_patience,
+                restore_best_weights=early_stopping_restore_best,
+                min_delta=early_stopping_min_delta,
+                verbose=1,
+                mode='auto'  # Detecta automaticamente se deve maximizar ou minimizar
+            )
+            callbacks.append(early_stopping)
+
         # Compile the model with the specified loss function and optimizer
         self.neural_network_model.compile(optimizer=self.optimizer_function, loss=self.loss_function,
                                           metrics=['accuracy'])
@@ -217,7 +235,8 @@ class AudioBiLSTM(ProcessBiLSTM):
         # Train the model
         training_history = self.neural_network_model.fit(train_data, train_labels, epochs=epochs,
                                                          batch_size=batch_size,
-                                                         validation_data=validation_data
+                                                         validation_data=validation_data,
+                                                         callbacks=callbacks if callbacks else None
                                                          )
         return training_history
 
