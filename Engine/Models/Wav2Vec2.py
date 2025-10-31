@@ -469,28 +469,21 @@ class AudioWav2Vec2(Wav2Vec2Process):
         # Add classification head
         pooled = GlobalAveragePooling1D(name='global_avg_pool')(contextualized_output)
 
-        hidden = Dense(
-            self.hidden_size,
-            name='classification_hidden'
-        )(pooled)
+        hidden = Dense(self.hidden_size, name='classification_hidden')(pooled)
         hidden = GELU(name='classification_gelu')(hidden)
         hidden = Dropout(self.dropout_rate, name='classification_dropout')(hidden)
 
-        outputs = Dense(
-            self.number_classes,
-            activation=self.last_layer_activation,
-            name='classification_output'
-        )(hidden)
+        outputs = Dense(self.number_classes,
+                        activation=self.last_layer_activation,
+                        name='classification_output')(hidden)
 
         # Create fine-tuning model
-        finetune_model = Model(
-            inputs=self.neural_network_model.inputs,
-            outputs=outputs,
-            name=f"{self.model_name}_FineTuned"
-        )
+        finetune_model = Model(inputs=self.neural_network_model.inputs,
+                               outputs=outputs,
+                               name=f"{self.model_name}_FineTuned")
 
         # Freeze encoder if requested
-        if freeze_encoder:
+        if False:
             for layer in finetune_model.layers:
                 if 'feature_encoder' in layer.name or 'transformer' in layer.name:
                     layer.trainable = False
