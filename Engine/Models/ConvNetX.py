@@ -8,8 +8,6 @@ __initial_data__ = '2025/04/1'
 __last_update__ = '2025/04/1'
 __credits__ = ['Kayuã Oleques Paim']
 
-from Engine.Models.Visualization.VisualizationConvNext import VisualizationConvNexT
-
 # MIT License
 #
 # Copyright (c) 2025 Kayuã Oleques Paim
@@ -59,37 +57,14 @@ try:
     from tensorflow.keras.layers import Activation
     from tensorflow.keras.layers import Layer
     from tensorflow.keras import initializers
-
-    from Engine.GradientMap.ConvNextGradientMaps import ConvNeXtGradientMaps
     from Engine.Models.Process.ConvNetX_Process import ConvNetXProcess
+    from Engine.GradientMap.ConvNextGradientMaps import ConvNeXtGradientMaps
+    from Engine.Models.Visualization.VisualizationConvNext import VisualizationConvNexT
 
 except ImportError as error:
     print(error)
     sys.exit(-1)
 
-
-class LayerScale(Layer):
-    """Layer scale module for ConvNeXt."""
-
-    def __init__(self, init_value=1e-6, **kwargs):
-        super().__init__(**kwargs)
-        self.init_value = init_value
-
-    def build(self, input_shape):
-        self.gamma = self.add_weight(
-            name='gamma',
-            shape=(input_shape[-1],),
-            initializer=initializers.Constant(self.init_value),
-            trainable=True
-        )
-
-    def call(self, inputs):
-        return inputs * self.gamma
-
-    def get_config(self):
-        config = super().get_config()
-        config.update({'init_value': self.init_value})
-        return config
 
 
 class ConvNeXtModel(ConvNetXProcess, ConvNeXtGradientMaps, VisualizationConvNexT):
