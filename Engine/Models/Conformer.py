@@ -8,6 +8,8 @@ __initial_data__ = '2025/04/1'
 __last_update__ = '2025/04/1'
 __credits__ = ['Kayuã Oleques Paim']
 
+from Engine.Models.Visualization.VisualizationConformer import VisualizationConformer
+
 # MIT License
 #
 # Copyright (c) 2025 Kayuã Oleques Paim
@@ -64,7 +66,7 @@ except ImportError as error:
     sys.exit(-1)
 
 
-class Conformer(ProcessConformer, ConformerGradientMaps):
+class Conformer(ProcessConformer, ConformerGradientMaps, VisualizationConformer):
     """
     Conformer Model Implementation with Integrated XAI Capabilities.
 
