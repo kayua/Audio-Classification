@@ -67,3 +67,25 @@ except ImportError as error:
     print(error)
     sys.exit(-1)
 
+class LayerScale(Layer):
+    """Layer scale module for ConvNeXt."""
+
+    def __init__(self, init_value=1e-6, **kwargs):
+        super().__init__(**kwargs)
+        self.init_value = init_value
+
+    def build(self, input_shape):
+        self.gamma = self.add_weight(
+            name='gamma',
+            shape=(input_shape[-1],),
+            initializer=initializers.Constant(self.init_value),
+            trainable=True
+        )
+
+    def call(self, inputs):
+        return inputs * self.gamma
+
+    def get_config(self):
+        config = super().get_config()
+        config.update({'init_value': self.init_value})
+        return config
