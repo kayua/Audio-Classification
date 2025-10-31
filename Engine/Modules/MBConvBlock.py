@@ -38,7 +38,6 @@ from Engine.Modules.SEBlock import SEBlock
 try:
     import sys
     import numpy
-    import numpy as np
     import matplotlib.pyplot as plt
     import matplotlib.cm as cm
     from matplotlib.patches import Rectangle
@@ -72,25 +71,6 @@ except ImportError as error:
     sys.exit(-1)
 
 class MBConvBlock(Layer):
-    """
-    Mobile Inverted Bottleneck Convolution Block (MBConv)
-
-    Componente fundamental do EfficientNet. Consiste em:
-    1. Expansion: Conv 1x1 para aumentar canais
-    2. Depthwise Conv: Convolução espacial eficiente
-    3. SE Block: Atenção aos canais
-    4. Projection: Conv 1x1 para reduzir canais
-    5. Skip connection (se aplicável)
-
-    Args:
-        filters_in: Canais de entrada
-        filters_out: Canais de saída
-        kernel_size: Tamanho do kernel depthwise
-        strides: Stride da convolução depthwise
-        expand_ratio: Fator de expansão (padrão: 6)
-        se_ratio: Razão do SE block (padrão: 0.25)
-        drop_rate: Taxa de dropout estocástico (padrão: 0)
-    """
 
     def __init__(self, filters_in, filters_out, kernel_size, strides,
                  expand_ratio=6, se_ratio=0.25, drop_rate=0.0, **kwargs):
@@ -113,52 +93,42 @@ class MBConvBlock(Layer):
     def build(self, input_shape):
         # 1. Expansion phase (se expand_ratio > 1)
         if self.expand_ratio != 1:
-            self.expand_conv = Conv2D(
-                self.filters_expanded,
-                kernel_size=1,
-                padding='same',
-                use_bias=False,
-                name=f'{self.name}_expand_conv'
-            )
+            self.expand_conv = Conv2D(self.filters_expanded,
+                                      kernel_size=1,
+                                      padding='same',
+                                      use_bias=False,
+                                      name=f'{self.name}_expand_conv')
+
             self.expand_bn = BatchNormalization(name=f'{self.name}_expand_bn')
             self.expand_activation = Swish(name=f'{self.name}_expand_swish')
 
         # 2. Depthwise Convolution
-        self.depthwise_conv = DepthwiseConv2D(
-            kernel_size=self.kernel_size,
-            strides=self.strides,
-            padding='same',
-            use_bias=False,
-            name=f'{self.name}_dwconv'
-        )
+        self.depthwise_conv = DepthwiseConv2D(kernel_size=self.kernel_size,
+                                              strides=self.strides,
+                                              padding='same',
+                                              use_bias=False,
+                                              name=f'{self.name}_dwconv')
+
         self.depthwise_bn = BatchNormalization(name=f'{self.name}_dwconv_bn')
         self.depthwise_activation = Swish(name=f'{self.name}_dwconv_swish')
 
         # 3. Squeeze-and-Excitation
         if self.se_ratio > 0:
-            self.se_block = SEBlock(
-                self.filters_expanded if self.expand_ratio != 1 else self.filters_in,
-                se_ratio=self.se_ratio,
-                name=f'{self.name}_se'
-            )
+            self.se_block = SEBlock(self.filters_expanded if self.expand_ratio != 1 else self.filters_in,
+                                    se_ratio=self.se_ratio, name=f'{self.name}_se')
 
         # 4. Projection phase
-        self.project_conv = Conv2D(
-            self.filters_out,
-            kernel_size=1,
-            padding='same',
-            use_bias=False,
-            name=f'{self.name}_project_conv'
-        )
+        self.project_conv = Conv2D(self.filters_out,
+                                   kernel_size=1,
+                                   padding='same',
+                                   use_bias=False,
+                                   name=f'{self.name}_project_conv')
+
         self.project_bn = BatchNormalization(name=f'{self.name}_project_bn')
 
         # 5. Stochastic Depth (opcional)
         if self.drop_rate > 0 and self.use_residual:
-            self.dropout = Dropout(
-                self.drop_rate,
-                noise_shape=(None, 1, 1, 1),
-                name=f'{self.name}_drop'
-            )
+            self.dropout = Dropout(self.drop_rate, noise_shape=(None, 1, 1, 1), name=f'{self.name}_drop')
 
     def call(self, inputs, training=None):
         x = inputs
