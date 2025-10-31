@@ -8,6 +8,8 @@ __initial_data__ = '2025/04/1'
 __last_update__ = '2025/04/1'
 __credits__ = ['Kayuã Oleques Paim']
 
+from Engine.Layers.Swish import Swish
+from Engine.Modules.MBConvBlock import MBConvBlock
 
 # MIT License
 #
