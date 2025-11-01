@@ -322,6 +322,6 @@ if __name__ == "__main__":
     main = Main()
     main.__start__()
 
-    available_models = [MobileNetV4Model]
+    available_models = [MobileNetV2Model]
 
     main.__exec__(available_models, "Results/")
