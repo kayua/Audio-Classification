@@ -116,19 +116,6 @@ class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
 
         WindowGenerator.__init__(self, self.window_size, self.overlap)
 
-        # Log the configuration
-        logging.info("=" * 80)
-        logging.info("WAV2VEC2 PROCESS INITIALIZED (2.5s AUDIO)")
-        logging.info("=" * 80)
-        logging.info(f"Batch size: {self.batch_size}")
-        logging.info(f"K-folds: {self.number_splits}")
-        logging.info(f"Epochs: {self.number_epochs}")
-        logging.info(f"Sample rate: {self.sample_rate} Hz")
-        logging.info(f"Use full audio: {self.use_full_audio}")
-        #logging.info(f"Audio duration: {self.max_audio_length / self.sample_rate:.2f} seconds")
-        logging.info(f"Input dimension: {self.input_dimension} (FIXED)")
-        logging.info(f"Number of classes: {self.number_classes}")
-        logging.info("=" * 80)
 
     def load_data(self, sub_directories: str = None, file_extension: str = None) -> tuple:
         """
@@ -202,17 +189,12 @@ class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
         array_features = numpy.expand_dims(array_features, axis=-1)
         array_labels = numpy.array(list_labels, dtype=numpy.int32)
 
-        logging.info("Data loading completed successfully.")
-        logging.info(f"Total samples loaded: {len(array_labels)}")
-        logging.info(f"Feature shape: {array_features.shape}")
 
         if self.use_full_audio:
             logging.info(f"  ↳ FULL AUDIO mode: Each sample is {self.max_audio_length / self.sample_rate:.2f}s")
             logging.info(f"  ↳ All audio files padded/truncated to {self.max_audio_length} samples")
         else:
             logging.info(f"  ↳ WINDOWING mode: Each sample is a {self.window_size}-sample window")
-
-        logging.info(f"  ↳ This is RAW WAVEFORM, not spectrogram!")
 
         return array_features, array_labels
 
@@ -227,9 +209,6 @@ class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
             tuple: (metrics_dict, probabilities_list, real_labels_list,
                    confusion_matrix_list, history)
         """
-        logging.info(f"\n{'=' * 80}")
-        logging.info(f"STARTING K-FOLD CROSS-VALIDATION (k={self.number_splits})")
-        logging.info(f"{'=' * 80}\n")
 
         # Load data (RAW WAVEFORMS!)
         # Data will be loaded with FIXED length (20000 samples @ 8kHz)
@@ -260,9 +239,6 @@ class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
                 instance_k_fold.split(features_train_validation, labels_train_validation),
                 start=1
         ):
-            logging.info(f"\n{'=' * 80}")
-            logging.info(f"FOLD {fold_idx}/{self.number_splits}")
-            logging.info(f"{'=' * 80}")
 
             # Split fold
             features_train = features_train_validation[train_indexes]
@@ -273,9 +249,6 @@ class Wav2Vec2Process(ClassBalancer, WindowGenerator, BaseProcess, Metrics):
             # Balance training set
             features_train, labels_train = self.balance_class(features_train, labels_train)
 
-            logging.info(f"Training samples: {len(features_train)}")
-            logging.info(f"Validation samples: {len(features_validation)}")
-            logging.info(f"Test samples: {len(features_test)}")
 
             # Build model (input_dimension is FIXED at 20000 samples)
             self.build_model()

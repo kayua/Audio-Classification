@@ -9,18 +9,20 @@ __last_update__ = '2025/04/1'
 __credits__ = ['unknown']
 
 import os
-import tempfile
 
 from Engine.Models.AudioBiLSTM import AudioBiLSTM
-temp_dir = "/mnt/SSD480/kayua"
-os.makedirs(temp_dir, exist_ok=True)
-
-os.environ['TMPDIR'] = temp_dir
-os.environ['TMP'] = temp_dir
-os.environ['TEMP'] = temp_dir
-tempfile.tempdir = temp_dir
-
-os.environ['XLA_FLAGS'] = f'--xla_gpu_dump_autotune_results_to={temp_dir}/xla_autotune'
+# import tempfile
+#
+# from Engine.Models.AudioBiLSTM import AudioBiLSTM
+# temp_dir = "/mnt/SSD480/kayua"
+# os.makedirs(temp_dir, exist_ok=True)
+#
+# os.environ['TMPDIR'] = temp_dir
+# os.environ['TMP'] = temp_dir
+# os.environ['TEMP'] = temp_dir
+# tempfile.tempdir = temp_dir
+#
+# os.environ['XLA_FLAGS'] = f'--xla_gpu_dump_autotune_results_to={temp_dir}/xla_autotune'
 
 from Engine.Models.MLP import MLPModel
 from Engine.Models.ConvNetX import ConvNeXtModel
@@ -320,17 +322,6 @@ if __name__ == "__main__":
     main = Main()
     main.__start__()
 
-    available_models = [MLPModel,
-                        AudioLSTM,
-                        AudioWav2Vec2,
-                        Conformer,
-                        AudioSpectrogramTransformer,
-                        ResidualModel,
-                        AudioBiLSTM,
-                        EfficientNet,
-                        ConvNeXtModel,
-                        MobileNetModel,
-                        MobileNetV2Model,
-                        MobileNetV3Model]
+    available_models = [MobileNetV4Model]
 
     main.__exec__(available_models, "Results/")

@@ -72,8 +72,7 @@ DEFAULT_BNECK_BLOCKS_SMALL = [
     (5, 256, 48, True, 'HS', 1),
     (5, 256, 48, True, 'HS', 1),
     (5, 256, 96, True, 'HS', 2),
-    (5, 512, 96, True, 'HS', 1),
-    (5, 512, 96, True, 'HS', 1),
+    (5, 256, 96, True, 'HS', 1),
 ]
 
 

@@ -127,13 +127,13 @@ EFFICIENTNET_CONFIGS = {
 # Configuração base dos blocos (B0)
 BASE_BLOCKS_CONFIG = [
     # (expand_ratio, channels, num_blocks, kernel_size, stride)
-    (1, 16, 1, 3, 1),  # Stage 1
-    (6, 24, 2, 3, 2),  # Stage 2
-    (6, 40, 2, 5, 2),  # Stage 3
-    (6, 80, 3, 3, 2),  # Stage 4
-    (6, 112, 3, 5, 1),  # Stage 5
-    (6, 192, 4, 5, 2),  # Stage 6
-    (6, 320, 1, 3, 1),  # Stage 7
+    (1, 8, 1, 3, 1),  # Stage 1
+    (6, 12, 2, 3, 2),  # Stage 2
+    (6, 16, 2, 5, 2),  # Stage 3
+    (6, 24, 3, 3, 2),  # Stage 4
+    (6, 32, 3, 5, 1),  # Stage 5
+    (6, 64, 4, 5, 2),  # Stage 6
+    (6, 128, 1, 3, 1),  # Stage 7
 ]
 
 
@@ -204,10 +204,6 @@ class EfficientNet(ProcessEfficientNet, EfficientNetGradientMaps, VisualizationE
         """
         Constrói o modelo EfficientNet from scratch.
         """
-        print(f"\n{'=' * 70}")
-        print(f"🔨 CONSTRUINDO EFFICIENTNET-{self.efficientnet_version} FROM SCRATCH")
-        print(f"{'=' * 70}")
-
         # Obter configuração de scaling
         if self.efficientnet_version not in EFFICIENTNET_CONFIGS:
             raise ValueError(f"Versão inválida: {self.efficientnet_version}. "
@@ -217,11 +213,6 @@ class EfficientNet(ProcessEfficientNet, EfficientNetGradientMaps, VisualizationE
         width_coef = self.custom_width or config['width_coefficient']
         depth_coef = self.custom_depth or config['depth_coefficient']
 
-        print(f"📊 Width Coefficient: {width_coef}")
-        print(f"📊 Depth Coefficient: {depth_coef}")
-        print(f"📊 SE Ratio: {self.se_ratio}")
-        print(f"📊 Stochastic Depth: {self.stochastic_depth_rate}")
-        print(f"{'=' * 70}\n")
 
         inputs = Input(shape=self.input_dimension, name='input_layer')
 

@@ -149,14 +149,14 @@ class AudioWav2Vec2(Wav2Vec2Process):
 
         # Feature encoder configuration (following Wav2Vec2 paper)
         self.encoder_config = {
-            'filters': [16, 16, 16, 16, 16, 16, 16],  # 7 layers
-            'kernel_sizes': [10, 3, 3, 3, 3, 2, 2],
-            'strides': [5, 2, 2, 2, 2, 2, 2]
+            'filters': [8, 16, 32, 64],  # 7 layers
+            'kernel_sizes': [10, 3, 3, 3],
+            'strides': [5, 2, 2, 2]
         }
 
         # Transformer configuration
         self.num_transformer_blocks = getattr(arguments, 'num_transformer_blocks', 1)
-        self.hidden_size = getattr(arguments, 'hidden_size', 768)
+        self.hidden_size = getattr(arguments, 'hidden_size', 128)
         self.num_attention_heads = getattr(arguments, 'num_attention_heads', 12)
         self.intermediate_size = getattr(arguments, 'intermediate_size', 3072)
 
@@ -276,9 +276,6 @@ class AudioWav2Vec2(Wav2Vec2Process):
         Returns:
             None: Model stored in self.neural_network_model
         """
-        logging.info("=" * 80)
-        logging.info("BUILDING CORRECTED WAV2VEC2 MODEL")
-        logging.info("=" * 80)
 
         # Ensure input_dimension is set
         if self.input_dimension is None:
@@ -306,8 +303,6 @@ class AudioWav2Vec2(Wav2Vec2Process):
                                max_length=5000,  # Should be enough for most audio sequences
                                name='positional_encoding')(x)
 
-        logging.info(f"✓ Positional encoding added")
-
         # Time masking for self-supervised learning
         lengths = Lambda(
             lambda x: tensorflow.ones([tensorflow.shape(x)[0]], dtype=tensorflow.int32) * tensorflow.shape(x)[1],
@@ -323,14 +318,10 @@ class AudioWav2Vec2(Wav2Vec2Process):
         )
         masked_features, mask_indices = masking_layer([x, lengths])
 
-        logging.info(f"✓ Time masking: prob={self.mask_time_prob}, length={self.mask_time_length}")
-
         # Multiple Transformer blocks
         transformer_output = masked_features
         for i in range(self.num_transformer_blocks):
             transformer_output = self.build_transformer_block(transformer_output, i)
-
-        logging.info(f"✓ Transformer: {self.num_transformer_blocks} blocks")
 
         # Vector quantization (on unmasked features for contrastive learning)
         quantization_layer = GumbelVectorQuantizer(
@@ -342,12 +333,8 @@ class AudioWav2Vec2(Wav2Vec2Process):
         )
 
 
-        logging.info(
-            f"✓ Vector quantization: {4} groups × {320} vectors × {self.hidden_size // 4}D = {self.hidden_size}D output")
-
         quantized_output, perplexity = quantization_layer([x, lengths])
 
-        logging.info(f"✓ Vector quantization with Gumbel-Softmax")
 
         # Create model
         self.neural_network_model = Model(
@@ -362,8 +349,6 @@ class AudioWav2Vec2(Wav2Vec2Process):
         )
 
         self.neural_network_model.summary()
-        logging.info("✓ Wav2Vec2 CORRECTED architecture built")
-        logging.info("=" * 80)
 
     def compile_and_train(self, train_data, train_labels, epochs: int,
                           batch_size: int, validation_data=None,
@@ -390,14 +375,10 @@ class AudioWav2Vec2(Wav2Vec2Process):
         Returns:
             Training history from fine-tuning phase
         """
-        logging.info("=" * 80)
         logging.info("WAV2VEC2 TWO-PHASE TRAINING (CORRECTED)")
-        logging.info("=" * 80)
 
         # ===== PHASE 1: SELF-SUPERVISED PRE-TRAINING =====
-        logging.info("\n" + "=" * 80)
         logging.info("PHASE 1: SELF-SUPERVISED PRE-TRAINING")
-        logging.info("=" * 80)
 
         # Create contrastive loss
         contrastive_loss = Wav2Vec2ContrastiveLoss(
@@ -416,20 +397,12 @@ class AudioWav2Vec2(Wav2Vec2Process):
         pretrain_model.compile(optimizer=self.optimizer_function)
 
         logging.info("✓ Loss: InfoNCE + Diversity Loss")
-        logging.info(f"   Temperature: {self.contrastive_temperature}")
-        logging.info(f"   Negative samples: {self.num_negatives}")
-        logging.info(f"   Diversity weight: {self.diversity_weight}")
-        logging.info(f"⚙ Starting pre-training for {epochs} epochs...")
 
         # Pre-training (only on unlabeled waveforms)
         pretrain_model.fit(train_data, epochs=epochs, batch_size=batch_size, verbose=1)
 
-        logging.info("✓ Pre-training completed!")
-
         # ===== PHASE 2: SUPERVISED FINE-TUNING =====
-        logging.info("\n" + "=" * 80)
         logging.info("PHASE 2: SUPERVISED FINE-TUNING")
-        logging.info("=" * 80)
 
         # Get contextualized representations
         contextualized_output = self.neural_network_model.get_layer(
@@ -451,15 +424,6 @@ class AudioWav2Vec2(Wav2Vec2Process):
         finetune_model = Model(inputs=self.neural_network_model.inputs,
                                outputs=outputs,
                                name=f"{self.model_name}_FineTuned")
-
-        # Freeze encoder if requested
-        if False:
-            for layer in finetune_model.layers:
-                if 'feature_encoder' in layer.name or 'transformer' in layer.name:
-                    layer.trainable = False
-            logging.info("✓ Encoder frozen (only training classification head)")
-        else:
-            logging.info("✓ Full model trainable (end-to-end fine-tuning)")
 
         # Compile fine-tuning model
         finetune_model.compile(optimizer=self.optimizer_function,

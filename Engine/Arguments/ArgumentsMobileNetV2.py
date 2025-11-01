@@ -38,12 +38,12 @@ DEFAULT_FILTERS_PER_BLOCK = [8, 12, 16, 24, 32, 64, 128]
 DEFAULT_LOSS_FUNCTION = 'sparse_categorical_crossentropy'
 DEFAULT_INVERTED_RESIDUAL_BLOCKS = [
     # (expansion_factor, output_channels, num_blocks, stride)
-    (1, 8, 1, 1),
-    (6, 12, 2, 2),
-    (6, 16, 3, 2),
-    (6, 24, 4, 2),
-    (6, 32, 3, 1),
-    (6, 64, 3, 2),
+    (1, 12, 1, 1),
+    (6, 16, 2, 2),
+    (6, 24, 3, 2),
+    (6, 32, 4, 2),
+    (6, 64, 3, 1),
+    (6, 128, 3, 2),
     (6, 128, 1, 1),
 ]
 

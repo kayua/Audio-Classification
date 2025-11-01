@@ -1,193 +1,78 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
+"""
+AudioLSTM com SHAP - Versão Corrigida
+Solução para o erro: "operands could not be broadcast together with shapes"
+
+Autor: Kayuã Oleques Paim
+Modificado: 2025/10/31
+"""
+
 __author__ = 'Kayuã Oleques Paim'
 __email__ = 'kayuaolequesp@gmail.com.br'
-__version__ = '{1}.{0}.{0}'
-__initial_data__ = '2025/04/1'
-__last_update__ = '2025/04/1'
-__credits__ = ['Kayuã Oleques Paim']
-
-# MIT License
-#
-# Copyright (c) 2025 Kayuã Oleques Paim
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-
 
 try:
+    import os
     import sys
-
-    import tensorflow
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import tensorflow as tf
 
     from tensorflow.keras import Model
-
-    from tensorflow.keras.layers import LSTM
-    from tensorflow.keras.layers import Dense
-    from tensorflow.keras.layers import Input
-
-    from tensorflow.keras.layers import Dropout
-
-    from tensorflow.keras.layers import Bidirectional
+    from tensorflow.keras.layers import LSTM, Dense, Input, Dropout, GlobalAveragePooling1D
     from tensorflow.keras.callbacks import EarlyStopping
     from Engine.Models.Process.LSTM_Process import ProcessLSTM
-    from tensorflow.keras.layers import GlobalAveragePooling1D
 
+    import shap
+    import matplotlib
+
+    matplotlib.use('Agg')
 
 except ImportError as error:
     print(error)
     sys.exit(-1)
 
 
-
-class AudioLSTM(ProcessLSTM): #(EvaluationProcess):
+class AudioLSTM(ProcessLSTM):
     """
-    @AudioLSTM
+    AudioLSTM com SHAP integrado - Versão corrigida para TensorFlow 2.x
 
-        AudioLSTM is a class implementing a deep learning model based on Long Short-Term
-        Memory (LSTM) networks for audio classification tasks. The model utilizes multiple
-        LSTM layers followed by a dense layer for classification.
-        This type of architecture is particularly suited for tasks involving sequential data,
-        such as speech recognition, audio event detection, and other time-series classification tasks.
-
-        The model consists of:
-            - LSTM layers to capture temporal dependencies in the audio data.
-            - Dropout layers for regularization to prevent overfitting.
-            - A final dense layer with softmax (or other) activation for classification.
-
-    Reference:
-        Hochreiter, S., & Schmidhuber, J. (1997). Long Short-Term Memory.
-        *Neural Computation, 9*(8), 1735–1780. https://doi.org/10.1162/neco.1997.9.8.1735
-
-    Attributes:
-        @neural_network_model (tensorflow.keras.Model): The Keras model representing the LSTM network.
-        @list_lstm_cells (list[int]): List of the number of cells in each LSTM layer.
-        @loss_function (str): The loss function used during model training (e.g., 'categorical_crossentropy').
-        @optimizer_function (str): The optimizer used for model training (e.g., 'adam').
-        @recurrent_activation (str): The activation function for the recurrent state (e.g., 'sigmoid').
-        @intermediary_layer_activation (str): Activation function used in the intermediary layers (e.g., 'tanh').
-        @input_dimension (tuple): The shape of the input data (e.g., (128, 80) for Mel spectrograms).
-        @number_classes (int): The number of output classes for classification.
-        @dropout_rate (float): The dropout rate used for regularization.
-        @last_layer_activation (str): The activation function used in the output layer (e.g., 'softmax').
-        @model_name (str): The name of the model (default is "LSTM").
-
-    Example:
-        >>> # Instantiate the model
-        ...     model = AudioLSTM(
-        ...     number_classes=10,  # Number of output classes (e.g., 10 for classification)
-        ...     last_layer_activation='softmax',  # Activation function for the output layer (e.g., 'softmax')
-        ...     loss_function='categorical_crossentropy',  # Loss function for training (e.g., 'categorical_crossentropy')
-        ...     optimizer_function='adam',  # Optimizer for training (e.g., 'adam')
-        ...     dropout_rate=0.2,  # Dropout rate for regularization
-        ...     intermediary_layer_activation='tanh',  # Activation function for intermediary layers (e.g., 'tanh')
-        ...     recurrent_activation='sigmoid',  # Activation function for the recurrent state (e.g., 'sigmoid')
-        ...     input_dimension=(128, 80),  # Input dimension for the model (e.g., Mel spectrogram)
-        ...     list_lstm_cells=[64, 128]  # List of LSTM cell sizes for each LSTM layer
-        ...     )
-        ...     # Build the model
-        ...     model.build_model()
-        ...     # Compile and train the model
-        ...     training_history = model.compile_and_train(
-        ...     train_data=X_train,  # Input training data
-        ...     train_labels=y_train,  # Training labels
-        ...     epochs=10,  # Number of epochs for training
-        ...     batch_size=32,  # Batch size for training
-        ...     validation_data=(X_val, y_val)  # Optional validation data
-        ...     )
-        >>>
-
+    Correções implementadas:
+    - Fallback automático de GradientExplainer para Gradient×Input
+    - Limpeza automática de shapes com squeeze
+    - Tratamento robusto de erros de broadcasting
     """
 
     def __init__(self, arguments):
-
-
-#    def __init__(self, number_classes: int, last_layer_activation: str, loss_function: str, optimizer_function: str,
-#                 dropout_rate: float, intermediary_layer_activation: str, recurrent_activation: str,
-#                 input_dimension: tuple, size_batch: int, number_splits: int, number_epochs: int,
-#                 window_size_factor: int, decibel_scale_factor: int, hop_length: int, overlap: int, sample_rate: int,
-#                 file_extension: str, list_lstm_cells=None):
-
-        """
-        Initialize the AudioLSTM model with specified hyperparameters.
-
-        Args:
-            @number_classes (int): The number of output classes for classification tasks.
-            @last_layer_activation (str): The activation function for the output layer (e.g., 'softmax').
-            @loss_function (str): The loss function used for training the model (e.g., 'categorical_crossentropy').
-            @optimizer_function (str): The optimizer used for training the model (e.g., 'adam').
-            @dropout_rate (float): The dropout rate for regularization.
-            @intermediary_layer_activation (str): The activation function for intermediary layers (e.g., 'tanh').
-            @recurrent_activation (str): The activation function for the recurrent state (e.g., 'sigmoid').
-            @input_dimension (tuple): The input dimension for the model (e.g., (128, 80) for Mel spectrograms).
-            @list_lstm_cells (list[int], optional): A list of the number of cells for each LSTM layer.
-        """
-
-#        super().__init__(size_batch, number_splits, number_epochs, optimizer_function, window_size_factor,
-#                         decibel_scale_factor, hop_length, overlap, sample_rate, file_extension)
-
-        # Initialize model parameters
         ProcessLSTM.__init__(self, arguments)
 
         self.neural_network_model = None
-        self.list_lstm_cells = arguments.lstm_list_lstm_cells  # Number of cells in each LSTM layer
-        self.loss_function = arguments.lstm_loss_function  # Loss function for training
-        self.optimizer_function = arguments.lstm_optimizer_function  # Optimizer function
-        self.recurrent_activation = arguments.lstm_recurrent_activation  # Recurrent activation function
-        self.intermediary_layer_activation = arguments.lstm_intermediary_layer_activation  # Activation function for intermediary layers
-        self.input_dimension = arguments.lstm_input_dimension  # Input data shape
-        self.number_classes = arguments.number_classes  # Number of output classes for classification
-        self.dropout_rate = arguments.lstm_dropout_rate  # Dropout rate for regularization
-        self.last_layer_activation = arguments.lstm_last_layer_activation  # Activation for the output layer
-        self.model_name = "LSTM"  # Model name
+        self.list_lstm_cells = arguments.lstm_list_lstm_cells
+        self.loss_function = arguments.lstm_loss_function
+        self.optimizer_function = arguments.lstm_optimizer_function
+        self.recurrent_activation = arguments.lstm_recurrent_activation
+        self.intermediary_layer_activation = arguments.lstm_intermediary_layer_activation
+        self.input_dimension = arguments.lstm_input_dimension
+        self.number_classes = arguments.number_classes
+        self.dropout_rate = arguments.lstm_dropout_rate
+        self.last_layer_activation = arguments.lstm_last_layer_activation
+        self.model_name = "LSTM"
 
     def build_model(self) -> None:
-        """
-        Build the LSTM model architecture using Keras.
-
-        The model consists of the following components:
-            - Multiple LSTM layers to capture temporal dependencies.
-            - Dropout layers for regularization.
-            - A dense layer with softmax (or other) activation for classification.
-
-        The model is designed for audio classification tasks where sequential dependencies need to be captured.
-        """
-
-        # Input layer
+        """Build the LSTM model architecture."""
         inputs = Input(shape=self.input_dimension)
-
         neural_network_flow = inputs
 
-        # Apply LSTM layers with specified cells and activation functions
         for _, cells in enumerate(self.list_lstm_cells):
             neural_network_flow = LSTM(cells, activation=self.intermediary_layer_activation,
                                        recurrent_activation=self.recurrent_activation,
                                        return_sequences=True)(neural_network_flow)
             neural_network_flow = Dropout(self.dropout_rate)(neural_network_flow)
 
-        # Global average pooling after LSTM layers
         neural_network_flow = GlobalAveragePooling1D()(neural_network_flow)
-
-        # Final dense layer for classification
         neural_network_flow = Dense(self.number_classes, activation=self.last_layer_activation)(neural_network_flow)
 
-        # Create the model
         self.neural_network_model = Model(inputs=inputs, outputs=neural_network_flow)
         self.neural_network_model.summary()
 
@@ -198,21 +83,10 @@ class AudioLSTM(ProcessLSTM): #(EvaluationProcess):
                           early_stopping_monitor: str = 'val_loss',
                           early_stopping_patience: int = 10,
                           early_stopping_restore_best: bool = True,
-                          early_stopping_min_delta: float = 0.0001) -> tensorflow.keras.callbacks.History:
+                          early_stopping_min_delta: float = 0.0001) -> tf.keras.callbacks.History:
         """
-        Compiles and trains the neural network model using the specified training data and configuration.
-
-        Args:
-            train_data (tensorflow.Tensor): The input training data.
-            train_labels (tensorflow.Tensor): The corresponding labels for the training data.
-            epochs (int): Number of training epochs.
-            batch_size (int): Size of the batches for each training step.
-            validation_data (tuple, optional): A tuple containing validation data and labels.
-
-        Returns:
-            tensorflow.keras.callbacks.History: The history object containing training metrics and performance.
+        Compile and train with SHAP visualization generation.
         """
-
         callbacks = []
 
         if use_early_stopping:
@@ -226,19 +100,302 @@ class AudioLSTM(ProcessLSTM): #(EvaluationProcess):
             )
             callbacks.append(early_stopping)
 
-        # Compile the model with the specified loss function and optimizer
-        self.neural_network_model.compile(optimizer=self.optimizer_function, loss=self.loss_function,
-                                          metrics=['accuracy'])
+        self.neural_network_model.compile(
+            optimizer=self.optimizer_function,
+            loss=self.loss_function,
+            metrics=['accuracy']
+        )
 
-        # Train the model
-        training_history = self.neural_network_model.fit(train_data, train_labels, epochs=epochs,
-                                                         batch_size=batch_size,
-                                                         validation_data=validation_data,
-                                                         callbacks=callbacks if callbacks else None
-                                                         )
+        training_history = self.neural_network_model.fit(
+            train_data, train_labels,
+            epochs=epochs,
+            batch_size=batch_size,
+            validation_data=validation_data,
+            callbacks=callbacks if callbacks else None
+        )
+
+        if validation_data is not None:
+            print(f"\nAcurácia Final (Validação): {training_history.history['val_accuracy'][-1]:.4f}")
+
+        # Generate SHAP visualizations
+        if visualize_attention and validation_data is not None:
+            val_data, val_labels = validation_data
+
+            self.generate_validation_visualizations(
+                validation_data=val_data,
+                validation_labels=val_labels,
+                num_samples=128,
+                output_dir='SHAP_Maps_LSTM'
+            )
+
         return training_history
 
+    def generate_validation_visualizations(self, validation_data, validation_labels,
+                                           num_samples: int = 128,
+                                           output_dir: str = 'SHAP_Maps_LSTM') -> None:
+        """
+        Generate SHAP visualizations with robust error handling.
+        Saves model weights before SHAP computation to prevent state corruption.
+        """
 
+        print("\n" + "=" * 80)
+        print("Gerando Visualizações SHAP para Explicabilidade do Modelo LSTM")
+        print("=" * 80)
+
+        os.makedirs(output_dir, exist_ok=True)
+
+        # 🔧 CRITICAL: Save model weights before SHAP computation
+        temp_weights_path = f'{output_dir}/_temp_weights.h5'
+        self.neural_network_model.save_weights(temp_weights_path)
+        print(f"✓ Pesos do modelo salvos temporariamente")
+
+        # Select samples
+        num_samples = min(num_samples, len(validation_data))
+        indices = np.random.choice(len(validation_data), num_samples, replace=False)
+        sample_data = validation_data[indices]
+        sample_labels = validation_labels[indices]
+
+        # Background dataset
+        background_size = min(100, len(validation_data))
+        background_indices = np.random.choice(len(validation_data), background_size, replace=False)
+        background_data = validation_data[background_indices]
+
+        print(f"\nUsando {num_samples} amostras de validação")
+        print(f"Background dataset: {background_size} amostras")
+
+        shap_values = None
+        method_used = None
+
+        # Try GradientExplainer
+        try:
+            print("\n[Método 1] Tentando SHAP GradientExplainer...")
+            explainer = shap.GradientExplainer(self.neural_network_model, background_data)
+            shap_values = explainer.shap_values(sample_data)
+            method_used = "GradientExplainer"
+            print("  ✓ GradientExplainer funcionou!")
+        except Exception as e:
+            print(f"  ✗ GradientExplainer falhou: {str(e)[:80]}")
+
+        # Fallback: Gradient×Input (always works)
+        if shap_values is None:
+            print("\n[Método 2] Usando Gradient×Input (sempre funciona)...")
+            shap_values = self._compute_gradient_importance(sample_data)
+            method_used = "Gradient×Input"
+
+        # 🔧 CRITICAL: Restore model weights after SHAP computation
+        print("\n✓ Restaurando estado do modelo...")
+        self.neural_network_model.load_weights(temp_weights_path)
+
+        # Clean up temp file
+        if os.path.exists(temp_weights_path):
+            os.remove(temp_weights_path)
+
+        if shap_values is not None:
+            # 🔧 FIX: Remove extra dimensions
+            shap_values = np.array(shap_values)
+            while len(shap_values.shape) > 3:
+                shap_values = np.squeeze(shap_values, axis=-1)
+
+            while len(sample_data.shape) > 3:
+                sample_data = np.squeeze(sample_data, axis=-1)
+
+            print(f"\n✓ Método: {method_used}")
+            print(f"  SHAP shape: {shap_values.shape}")
+            print(f"  Data shape: {sample_data.shape}")
+
+            # Generate all visualizations
+            self._generate_all_plots(shap_values, sample_data, sample_labels,
+                                     output_dir, method_used)
+
+            print(f"\n✓ Visualizações salvas em: {output_dir}/")
+        else:
+            print("\n✗ Não foi possível gerar visualizações")
+
+        print("=" * 80 + "\n")
+
+    def _compute_gradient_importance(self, sample_data):
+        """
+        Compute feature importance using gradients (fallback method).
+        Note: Model weights will be restored by the caller after this operation.
+        """
+        print("  Calculando gradientes...")
+
+        gradients_list = []
+
+        for i in range(len(sample_data)):
+            # Convert to tensor
+            x = tf.constant(sample_data[i:i + 1], dtype=tf.float32)
+
+            with tf.GradientTape(persistent=False) as tape:
+                tape.watch(x)
+                pred = self.neural_network_model(x, training=False)
+                pred_class = tf.argmax(pred, axis=1)[0]
+                pred_score = pred[0, pred_class]
+
+            # Compute gradients
+            grads = tape.gradient(pred_score, x)
+
+            # Explicitly delete tape to free resources
+            del tape
+
+            if grads is not None:
+                # Gradient × Input
+                importance = grads.numpy() * sample_data[i:i + 1]
+                gradients_list.append(importance[0])
+            else:
+                gradients_list.append(np.zeros_like(sample_data[i]))
+
+        return np.array(gradients_list)
+
+    def _generate_all_plots(self, shap_values, sample_data, sample_labels,
+                            output_dir, method_name):
+        """Generate all visualization plots."""
+
+        print("\nGerando plots...")
+
+        # Ensure 3D arrays
+        shap_values = np.squeeze(shap_values)
+        sample_data = np.squeeze(sample_data)
+
+        try:
+            self._plot_summary(shap_values, sample_data, output_dir, method_name)
+        except Exception as e:
+            print(f"  ⚠ Summary plot falhou: {e}")
+
+        try:
+            self._plot_temporal_heatmaps(shap_values, sample_data, sample_labels,
+                                         output_dir, method_name)
+        except Exception as e:
+            print(f"  ⚠ Heatmaps falharam: {e}")
+
+        try:
+            self._plot_temporal_importance(shap_values, output_dir, method_name)
+        except Exception as e:
+            print(f"  ⚠ Temporal importance falhou: {e}")
+
+    def _plot_summary(self, shap_values, sample_data, output_dir, method_name):
+        """Generate summary plot."""
+        print("  [1/3] Summary plot...")
+
+        plt.figure(figsize=(12, 8))
+
+        # Flatten for summary plot
+        n_samples = len(shap_values)
+        shap_flat = shap_values.reshape(n_samples, -1)
+        data_flat = sample_data[:n_samples].reshape(n_samples, -1)
+
+        shap.summary_plot(shap_flat, data_flat, show=False, max_display=20)
+        plt.title(f'Importância de Features (SHAP)\nMétodo: {method_name}',
+                  fontsize=13, fontweight='bold')
+        plt.tight_layout()
+        plt.savefig(f'{output_dir}/shap_summary.png', dpi=300, bbox_inches='tight')
+        plt.close()
+
+        print("    ✓ Salvo")
+
+    def _plot_temporal_heatmaps(self, shap_values, sample_data, sample_labels,
+                                output_dir, method_name, n_examples=5):
+        """Generate temporal heatmaps."""
+        print("  [2/3] Heatmaps temporais...")
+
+        predictions = self.neural_network_model.predict(sample_data, verbose=0)
+        pred_classes = np.argmax(predictions, axis=1)
+        true_classes = np.argmax(sample_labels, axis=1) if len(sample_labels.shape) > 1 else sample_labels
+
+        # Select examples
+        correct = np.where(pred_classes == true_classes)[0]
+        incorrect = np.where(pred_classes != true_classes)[0]
+
+        indices = []
+        if len(correct) > 0:
+            indices.extend(correct[:min(3, len(correct))])
+        if len(incorrect) > 0:
+            indices.extend(incorrect[:min(2, len(incorrect))])
+
+        for plot_idx, sample_idx in enumerate(indices[:n_examples]):
+            fig, axes = plt.subplots(3, 1, figsize=(14, 10))
+
+            # Data sample
+            data_sample = np.squeeze(sample_data[sample_idx])
+            shap_sample = np.squeeze(shap_values[sample_idx])
+
+            # Original features
+            axes[0].imshow(data_sample.T, aspect='auto', cmap='viridis',
+                           origin='lower', interpolation='nearest')
+            axes[0].set_title('Features de Áudio', fontweight='bold')
+            axes[0].set_xlabel('Timesteps')
+            axes[0].set_ylabel('Features')
+
+            # SHAP values
+            vmax = np.abs(shap_sample).max()
+            im = axes[1].imshow(shap_sample.T, aspect='auto', cmap='RdBu_r',
+                                origin='lower', vmin=-vmax, vmax=vmax, interpolation='nearest')
+            axes[1].set_title(f'Valores SHAP (Importância)\nMétodo: {method_name}',
+                              fontweight='bold')
+            axes[1].set_xlabel('Timesteps')
+            axes[1].set_ylabel('Features')
+            plt.colorbar(im, ax=axes[1])
+
+            # Temporal aggregation
+            temporal_imp = np.mean(np.abs(shap_sample), axis=1)
+            axes[2].plot(temporal_imp, linewidth=2, color='darkblue')
+            axes[2].fill_between(range(len(temporal_imp)), temporal_imp, alpha=0.3)
+            axes[2].set_title('Importância ao Longo do Tempo', fontweight='bold')
+            axes[2].set_xlabel('Timesteps')
+            axes[2].set_ylabel('Importância Média')
+            axes[2].grid(alpha=0.3)
+
+            fig.suptitle(f'Amostra {plot_idx + 1}: Predição={pred_classes[sample_idx]}, '
+                         f'Real={true_classes[sample_idx]}, '
+                         f'Conf={predictions[sample_idx].max():.3f}',
+                         fontsize=12, fontweight='bold')
+
+            plt.tight_layout()
+            plt.savefig(f'{output_dir}/heatmap_{plot_idx + 1}.png',
+                        dpi=300, bbox_inches='tight')
+            plt.close()
+
+        print(f"    ✓ {len(indices)} heatmaps salvos")
+
+    def _plot_temporal_importance(self, shap_values, output_dir, method_name):
+        """Plot temporal importance analysis."""
+        print("  [3/3] Análise temporal...")
+
+        # Average across samples
+        mean_importance = np.mean(np.abs(shap_values), axis=0)
+
+        fig, axes = plt.subplots(2, 1, figsize=(14, 8))
+
+        # Heatmap
+        im = axes[0].imshow(mean_importance.T, aspect='auto', cmap='YlOrRd',
+                            origin='lower', interpolation='nearest')
+        axes[0].set_title('Importância Média ao Longo do Tempo', fontweight='bold')
+        axes[0].set_xlabel('Timesteps')
+        axes[0].set_ylabel('Features')
+        plt.colorbar(im, ax=axes[0])
+
+        # Line plot of top features
+        feature_totals = np.mean(mean_importance, axis=0)
+        top_features = np.argsort(feature_totals)[-10:]
+
+        for feat in top_features:
+            axes[1].plot(mean_importance[:, feat], label=f'F{feat}', alpha=0.7)
+
+        axes[1].set_title('Top 10 Features Mais Importantes', fontweight='bold')
+        axes[1].set_xlabel('Timesteps')
+        axes[1].set_ylabel('Importância')
+        axes[1].legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
+        axes[1].grid(alpha=0.3)
+
+        plt.suptitle(f'Análise Temporal (SHAP)\nMétodo: {method_name}',
+                     fontsize=14, fontweight='bold')
+        plt.tight_layout()
+        plt.savefig(f'{output_dir}/temporal_analysis.png', dpi=300, bbox_inches='tight')
+        plt.close()
+
+        print("    ✓ Salvo")
+
+    # Properties
     @property
     def neural_network_model(self):
         return self._neural_network_model
